@@ -1,7 +1,7 @@
 {
   "jobs": [
 
-    ////// NO DIPLOMA //////
+    
     {
       "job_id": 1001,
       "job_name": "Cashier",
@@ -95,7 +95,7 @@
       "base_salary": 2100
     },
 
-    //// 5001: Medicine ////
+    
     {
       "job_id": 3003,
       "job_name": "General Practitioner (Doctor)",
@@ -152,7 +152,7 @@
       "base_salary": 15000
     },
 
-    //// 5002: Business & Finance ////
+    
     {
       "job_id": 4001,
       "job_name": "Accountant",
@@ -196,7 +196,7 @@
       "base_salary": 4800
     },
 
-    /// 5003: Computer Science ////
+    
     {
       "job_id": 2008,
       "job_name": "Software Developer",
@@ -252,7 +252,7 @@
       "base_salary": 16000
     },
 
-    //// 5004: Performing & Fine Arts ////
+    
     {
       "job_id": 2013,
       "job_name": "Graphic Designer",
@@ -387,7 +387,7 @@
       "base_salary": 6200
     },
 
-    //// 5005: Law & Politics ////
+    
     {
       "job_id": 2023,
       "job_name": "Legal Consultant",
@@ -443,7 +443,7 @@
       "base_salary": 14000
     },
 
-    //// 5006: Architecture & Civil Engineering ////
+    
     {
       "job_id": 2028,
       "job_name": "Civil Engineer",
@@ -511,7 +511,7 @@
       "base_salary": 7800
     },
 
-    //// 5007: Sports Science & Kinesiology ////
+    
     {
       "job_id": 2034,
       "job_name": "Physical Education Teacher",
@@ -568,7 +568,7 @@
       "base_salary": 12500
     },
 
-    /// 5008: Aerospace & Aviation Science ////
+    
     {
       "job_id": 2043,
       "job_name": "Aerospace Engineer",
@@ -625,7 +625,7 @@
       "base_salary": 22000
     },
 
-    //// 5009: Marine Science & Oceanography ////
+    
     {
       "job_id": 2048,
       "job_name": "Marine Biologist",
@@ -681,7 +681,7 @@
       "base_salary": 11500
     },
 
-    //// 5010: Agricultural Sciences & Biotechnology ////
+    
     {
       "job_id": 2053,
       "job_name": "Agronomist / Crop Scientist",
@@ -725,7 +725,7 @@
       "base_salary": 11000
     },
 
-    //// 5011: Media & Communications ////
+    
     {
       "job_id": 2057,
       "job_name": "Public Relations (PR) Specialist",
@@ -771,7 +771,7 @@
       "base_salary": 13500
     },
 
-    //// 5012: Archeology & Cultural Heritage ////
+    
     {
       "job_id": 2061,
       "job_name": "Field Archaeologist",
@@ -817,7 +817,7 @@
       "base_salary": 12000
     },
 
-    //// 5013: Behavioral Sciences & Profiling ////
+    
     {
       "job_id": 2065,
       "job_name": "Human Resources Analyst",
@@ -863,7 +863,7 @@
       "base_salary": 12500
     },
 
-    //// 5014: Executive Leadership & Governance ////
+    
     {
       "job_id": 2069,
       "job_name": "Fortune 500 CEO",
@@ -891,7 +891,7 @@
       "base_salary": 18000
     },
 
-    //// 5015: Hospitality, Culinary Arts & Luxury Management ////
+    
     {
       "job_id": 2071,
       "job_name": "Head Sommelier (Wine Expert)",

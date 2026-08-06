@@ -11,8 +11,7 @@ const VALID_LIFESPAN_SETTINGS: Array[String] = [
 ]
 
 
-# Varsayılan değer henüz GDD'de kararlaştırılmadığı için boş bırakılıyor.
-var lifespan_setting: String = ""
+var lifespan_setting: String = "normal"
 
 
 func set_lifespan_setting(value: String) -> void:

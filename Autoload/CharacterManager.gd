@@ -6,6 +6,12 @@ signal character_died(
 )
 
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
+const MAJOR_DATA_PATH := "res://Resources/Json/Major.json"
+const JOB_DATA_PATH := "res://Resources/Json/Job.json"
+
+const UNIVERSITY_START_AGE := 18
+const STARTING_MAJOR_CHANCE := 0.70
+const NO_DIPLOMA_JOB_CHANCE_FOR_GRADUATE := 0.20
 
 const AVATAR_FOLDER_PATH := "res://Resources/Characters/"
 const DEFAULT_AVATAR_PATH := AVATAR_FOLDER_PATH + "default_avatar.png"
@@ -29,10 +35,14 @@ const HEALTH_POINTS_PER_AGE_YEAR := 10.0
 
 
 var characters: Array = []
+var majors: Array = []
+var jobs: Array = []
 
 
 func _ready() -> void:
 	load_characters()
+	load_major_data()
+	load_job_data()
 
 	TimeManager.date_changed.connect(_on_date_changed)
 
@@ -137,6 +147,124 @@ func load_characters() -> void:
 			"Test character genetics: ",
 			test_character.get("genetics", {})
 		)
+
+
+func load_json_array(
+	file_path: String,
+	root_key: String
+) -> Array:
+	if not FileAccess.file_exists(file_path):
+		push_error(
+			"JSON file could not be found: "
+			+ file_path
+		)
+		return []
+
+	var file := FileAccess.open(
+		file_path,
+		FileAccess.READ
+	)
+
+	if file == null:
+		push_error(
+			"JSON file could not be opened: "
+			+ file_path
+		)
+		return []
+
+	var json_text := file.get_as_text()
+	var json := JSON.new()
+	var parse_result := json.parse(json_text)
+
+	if parse_result != OK:
+		push_error(
+			"JSON error in %s at line %d: %s"
+			% [
+				file_path,
+				json.get_error_line(),
+				json.get_error_message()
+			]
+		)
+		return []
+
+	var data = json.data
+
+	if typeof(data) != TYPE_DICTIONARY:
+		push_error(
+			"JSON root must be a Dictionary: "
+			+ file_path
+		)
+		return []
+
+	if not data.has(root_key):
+		push_error(
+			"JSON does not contain '%s': %s"
+			% [root_key, file_path]
+		)
+		return []
+
+	if typeof(data[root_key]) != TYPE_ARRAY:
+		push_error(
+			"'%s' must be an Array: %s"
+			% [root_key, file_path]
+		)
+		return []
+
+	return data[root_key]
+
+
+func load_major_data() -> void:
+	majors = load_json_array(
+		MAJOR_DATA_PATH,
+		"majors"
+	)
+
+	for major_value in majors:
+		if typeof(major_value) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+		major["major_id"] = int(
+			major.get("major_id", 0)
+		)
+
+	print("Majors loaded: ", majors.size())
+
+
+func load_job_data() -> void:
+	jobs = load_json_array(
+		JOB_DATA_PATH,
+		"jobs"
+	)
+
+	for job_value in jobs:
+		if typeof(job_value) != TYPE_DICTIONARY:
+			continue
+
+		var job: Dictionary = job_value
+
+		job["job_id"] = int(
+			job.get("job_id", 0)
+		)
+
+		var required_major_id = job.get(
+			"required_major_id",
+			null
+		)
+
+		if required_major_id != null:
+			job["required_major_id"] = int(
+				required_major_id
+			)
+
+		job["base_salary"] = int(
+			job.get("base_salary", 0)
+		)
+
+	print("Jobs loaded: ", jobs.size())
+
+
+
 
 
 func get_avatar_path(character: Dictionary) -> String:
@@ -567,3 +695,275 @@ func check_character_death(
 
 	if randf() <= daily_chance:
 		kill_character(character)
+
+
+func character_meets_required_stats(
+	character: Dictionary,
+	required_stats: Dictionary
+) -> bool:
+	for stat_name_value in required_stats.keys():
+		var stat_name := String(stat_name_value)
+
+		var required_value := float(
+			required_stats.get(stat_name, 0)
+		)
+
+		var character_value := float(
+			character.get(stat_name, 0)
+		)
+
+		if character_value < required_value:
+			return false
+
+	return true
+
+func get_eligible_starting_majors(
+	character: Dictionary
+) -> Array:
+	var eligible_majors: Array = []
+	var character_age := get_character_age(character)
+
+	if character_age < 0:
+		return eligible_majors
+
+	for major_value in majors:
+		if typeof(major_value) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+
+		var duration_years := int(
+			major.get("duration_years", 0)
+		)
+
+		var graduation_age := (
+			UNIVERSITY_START_AGE
+			+ duration_years
+		)
+
+		if character_age < graduation_age:
+			continue
+
+		var required_stats_value = major.get(
+			"required_stats",
+			{}
+		)
+
+		if typeof(required_stats_value) != TYPE_DICTIONARY:
+			continue
+
+		var required_stats: Dictionary = (
+			required_stats_value
+		)
+
+		if not character_meets_required_stats(
+			character,
+			required_stats
+		):
+			continue
+
+		eligible_majors.append(major)
+
+	return eligible_majors
+
+func assign_starting_major(
+	character: Dictionary
+) -> void:
+	character["major_id"] = null
+
+	var eligible_majors := (
+		get_eligible_starting_majors(character)
+	)
+
+	if eligible_majors.is_empty():
+		print(
+			"No eligible starting major for character: ",
+			character.get("character_id", 0)
+		)
+		return
+
+	if randf() > STARTING_MAJOR_CHANCE:
+		print(
+			"Character started without a major: ",
+			character.get("character_id", 0)
+		)
+		return
+
+	var selected_major_value = (
+		eligible_majors.pick_random()
+	)
+
+	if typeof(selected_major_value) != TYPE_DICTIONARY:
+		return
+
+	var selected_major: Dictionary = (
+		selected_major_value
+	)
+
+	character["major_id"] = int(
+		selected_major.get("major_id", 0)
+	)
+
+	print(
+		"Starting major assigned: ",
+		selected_major.get("major_name", ""),
+		" | Character: ",
+		character.get("character_id", 0)
+	)
+
+func get_eligible_no_diploma_jobs(
+	character: Dictionary
+) -> Array:
+	var eligible_jobs: Array = []
+
+	for job_value in jobs:
+		if typeof(job_value) != TYPE_DICTIONARY:
+			continue
+
+		var job: Dictionary = job_value
+
+		if job.get("required_major_id", null) != null:
+			continue
+
+		var required_stats_value = job.get(
+			"required_stats",
+			{}
+		)
+
+		if typeof(required_stats_value) != TYPE_DICTIONARY:
+			continue
+
+		if not character_meets_required_stats(
+			character,
+			required_stats_value
+		):
+			continue
+
+		eligible_jobs.append(job)
+
+	return eligible_jobs
+
+func get_eligible_major_jobs(
+	character: Dictionary,
+	major_id: int
+) -> Array:
+	var eligible_jobs: Array = []
+
+	for job_value in jobs:
+		if typeof(job_value) != TYPE_DICTIONARY:
+			continue
+
+		var job: Dictionary = job_value
+		var required_major_id = job.get(
+			"required_major_id",
+			null
+		)
+
+		if required_major_id == null:
+			continue
+
+		if int(required_major_id) != major_id:
+			continue
+
+		var required_stats_value = job.get(
+			"required_stats",
+			{}
+		)
+
+		if typeof(required_stats_value) != TYPE_DICTIONARY:
+			continue
+
+		if not character_meets_required_stats(
+			character,
+			required_stats_value
+		):
+			continue
+
+		eligible_jobs.append(job)
+
+	return eligible_jobs
+
+func apply_starting_job(
+	character: Dictionary,
+	job: Dictionary
+) -> void:
+	character["job_id"] = int(
+		job.get("job_id", 0)
+	)
+
+	character["salary"] = int(
+		job.get("base_salary", 0)
+	)
+
+	print(
+		"Starting job assigned: ",
+		job.get("job_name", ""),
+		" | Salary: ",
+		character.get("salary", 0),
+		" | Character: ",
+		character.get("character_id", 0)
+	)
+
+func assign_starting_job(
+	character: Dictionary
+) -> void:
+	character["job_id"] = null
+	character["company_id"] = null
+	character["salary"] = 0
+
+	var major_id_value = character.get(
+		"major_id",
+		null
+	)
+
+	var selected_job_pool: Array = []
+
+	if major_id_value == null:
+		selected_job_pool = (
+			get_eligible_no_diploma_jobs(character)
+		)
+	else:
+		var should_use_no_diploma_job := (
+			randf()
+			< NO_DIPLOMA_JOB_CHANCE_FOR_GRADUATE
+		)
+
+		if should_use_no_diploma_job:
+			selected_job_pool = (
+				get_eligible_no_diploma_jobs(
+					character
+				)
+			)
+		else:
+			selected_job_pool = (
+				get_eligible_major_jobs(
+					character,
+					int(major_id_value)
+				)
+			)
+
+			if selected_job_pool.is_empty():
+				selected_job_pool = (
+					get_eligible_no_diploma_jobs(
+						character
+					)
+				)
+
+	if selected_job_pool.is_empty():
+		print(
+			"No eligible starting job for character: ",
+			character.get("character_id", 0)
+		)
+		return
+
+	var selected_job_value = (
+		selected_job_pool.pick_random()
+	)
+
+	if typeof(selected_job_value) != TYPE_DICTIONARY:
+		return
+
+	apply_starting_job(
+		character,
+		selected_job_value
+	)
