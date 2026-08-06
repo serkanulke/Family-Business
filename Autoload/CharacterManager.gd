@@ -1301,3 +1301,100 @@ func reset_characters_for_new_game() -> void:
 	next_character_id = 1
 
 	print("Characters reset for new game.")
+
+func get_parent_genetic_value(
+	parent: Dictionary,
+	genetic_name: String
+) -> String:
+	var genetics: Dictionary = parent["genetics"]
+
+	return String(
+		genetics[genetic_name]
+	)
+	
+
+func generate_inherited_eye_color(
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> String:
+	var eye_one := get_parent_genetic_value(
+		parent_one,
+		"eye_color"
+	)
+
+	var eye_two := get_parent_genetic_value(
+		parent_two,
+		"eye_color"
+	)
+
+	if eye_one == eye_two:
+		return eye_one
+
+	var one_parent_has_hazel := (
+		eye_one == "hazel"
+		or eye_two == "hazel"
+	)
+
+	if one_parent_has_hazel:
+		if randf() < 0.65:
+			return "hazel"
+
+		if eye_one == "hazel":
+			return eye_two
+
+		return eye_one
+
+	return String(
+		[
+			eye_one,
+			eye_two
+		].pick_random()
+	)
+	
+
+func generate_inherited_hair_color(
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> String:
+	var hair_one := get_parent_genetic_value(
+		parent_one,
+		"hair_color"
+	)
+
+	var hair_two := get_parent_genetic_value(
+		parent_two,
+		"hair_color"
+	)
+
+	if hair_one == hair_two:
+		return hair_one
+
+	return String(
+		[
+			hair_one,
+			hair_two
+		].pick_random()
+	)
+
+func generate_inherited_skin_tone(
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> String:
+	var skin_one := get_parent_genetic_value(
+		parent_one,
+		"skin_tone"
+	)
+
+	var skin_two := get_parent_genetic_value(
+		parent_two,
+		"skin_tone"
+	)
+
+	if skin_one == skin_two:
+		return skin_one
+
+	return String(
+		SKIN_TONES.pick_random()
+	)
+	
+	
