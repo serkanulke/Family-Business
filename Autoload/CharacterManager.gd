@@ -112,24 +112,7 @@ func _ready() -> void:
 	update_all_life_stages()
 	update_all_retirements()
 
-	if not characters.is_empty():
-		var test_character: Dictionary = characters[0]
-
-		print(
-			"Resolved avatar path: ",
-			get_avatar_path(test_character)
-		)
-
-		print(
-			"Test character age: ",
-			get_character_age(test_character)
-		)
-
-		print(
-			"Test character life stage: ",
-			test_character.get("life_stage", "")
-		)
-		
+	
 		
 		
 
@@ -1082,15 +1065,8 @@ func apply_stats_to_character(
 		character[stat_name] = int(
 			generated_stats.get(stat_name, 0)
 		)
+		
 
-	var starting_stats := (
-		generate_starting_character_stats()
-	)
-
-	apply_stats_to_character(
-		character,
-		starting_stats
-	)
 
 func parent_has_max_stat(
 	parent: Dictionary,
@@ -1178,9 +1154,9 @@ func generate_birth_date_for_age(
 ) -> String:
 	var birth_month := randi_range(1, 12)
 
-	var max_day := TimeManager.DAYS_IN_MONTH[
-		birth_month - 1
-	]
+	var max_day: int = TimeManager.DAYS_IN_MONTH[
+	birth_month - 1
+]
 
 	var birth_day := randi_range(1, max_day)
 
@@ -1273,17 +1249,13 @@ func create_base_starting_character(
 		"event_log": []
 	}
 
-	var generated_stats := (
+	var starting_stats := (
 		generate_starting_character_stats()
 	)
 
 	apply_stats_to_character(
 		character,
-		generated_stats
-	)
-
-	character["life_stage"] = (
-		get_life_stage_from_age(selected_age)
+		starting_stats
 	)
 
 	return character

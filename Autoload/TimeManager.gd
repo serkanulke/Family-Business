@@ -9,19 +9,19 @@ var current_year: int = 1985
 var is_paused: bool = false
 
 const DAY_DURATION := 0.5
-const DAYS_IN_MONTH := [
-	31, # January
-	28, # February
-	31, # March
-	30, # April
-	31, # May
-	30, # June
-	31, # July
-	31, # August
-	30, # September
-	31, # October
-	30, # November
-	31  # December
+const DAYS_IN_MONTH: Array[int] = [
+	31,
+	28,
+	31,
+	30,
+	31,
+	30,
+	31,
+	31,
+	30,
+	31,
+	30,
+	31
 ]
 
 var day_timer := 0.0
