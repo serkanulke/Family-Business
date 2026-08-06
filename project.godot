@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 GameManager="*uid://3ddregoty1f5"
 TimeManager="*uid://mq5e4jrydr2g"
 CharacterManager="*uid://bmx6oto7qsvw8"
+EducationManager="*uid://5dacslijq5ww"
 
 [display]
 

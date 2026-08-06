@@ -1,6 +1,6 @@
 {
   "schools": [
-    ////// PRIMARY SCHOOL //////
+    
     {
       "school_id": 1001,
       "education_stage": "primary_school",
@@ -41,7 +41,7 @@
         "creativity": 1
       }
     },
-    ////// MIDDLE SCHOOL //////
+    
     {
       "school_id": 2001,
       "education_stage": "middle_school",
@@ -83,7 +83,7 @@
         "creativity": 1
       }
     },
-    ////// HIGH SCHOOL //////
+    
     {
       "school_id": 3001,
       "education_stage": "high_school",
@@ -126,7 +126,7 @@
         "creativity": 3
       }
     },
-    ////// UNIVERSITY //////
+    
     {
       "school_id": 4001,
       "education_stage": "university",
