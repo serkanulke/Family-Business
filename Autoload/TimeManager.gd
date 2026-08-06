@@ -1,12 +1,17 @@
 extends Node
 
+const START_DAY := 26
+const START_MONTH := 1
+const START_YEAR := 1985
+
 signal date_changed(date_text: String)
 
-var current_day: int = 26
-var current_month: int = 1
-var current_year: int = 1985
+var current_day: int = START_DAY
+var current_month: int = START_MONTH
+var current_year: int = START_YEAR
 
 var is_paused: bool = false
+
 
 const DAY_DURATION := 0.5
 const DAYS_IN_MONTH: Array[int] = [
@@ -70,3 +75,20 @@ func get_iso_date_string() -> String:
 		current_month,
 		current_day
 	]
+
+func reset_time() -> void:
+	current_day = START_DAY
+	current_month = START_MONTH
+	current_year = START_YEAR
+
+	day_timer = 0.0
+	is_paused = true
+
+	date_changed.emit(
+		get_date_string()
+	)
+
+	print(
+		"Time reset: ",
+		get_iso_date_string()
+	)

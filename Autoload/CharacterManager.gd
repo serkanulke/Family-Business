@@ -1295,3 +1295,9 @@ func create_starting_character(
 	)
 
 	return character
+
+func reset_characters_for_new_game() -> void:
+	characters.clear()
+	next_character_id = 1
+
+	print("Characters reset for new game.")
