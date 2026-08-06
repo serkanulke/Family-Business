@@ -1,0 +1,19 @@
+# Godot tarafından otomatik üretilen dosyalar
+.godot/
+.import/
+
+# Export sırasında oluşabilecek gizli bilgiler
+export_credentials.cfg
+
+# C# kullanılıyorsa
+.mono/
+data_*/
+mono_crash.*.json
+
+# Windows ve macOS sistem dosyaları
+Thumbs.db
+.DS_Store
+
+# Geçici dosyalar
+*.tmp
+*.bak

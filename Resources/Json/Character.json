@@ -1,0 +1,53 @@
+{
+  "characters": [
+	{
+	  "character_id": 1,
+
+	  "first_name": "",
+	  "gender": "female",
+
+	  "avatar_theme": "classic",
+
+	  "genetics": {
+	  "hair_color": "blonde",
+	  "skin_tone": "light",
+	  "eye_color": "blue"
+	},
+
+	  "is_alive": true,
+	  "birth_date": "1920-01-26",
+	  "death_date": null,
+	  "life_stage": "young_adult",
+
+	  "is_player_family": true,
+
+	  "father_id": null,
+	  "mother_id": null,
+	  "partner_id": null,
+	  "children_ids": [],
+
+	  "health": 0,
+	  "happiness": 0,
+	  "logic": 0,
+	  "attractiveness": 0,
+	  "social": 0,
+	  "confidence": 0,
+	  "discipline": 0,
+	  "creativity": 0,
+
+	  "school_id": null,
+	  "major_id": null,
+
+	  "is_retired": false,
+	  "job_id": null,
+	  "company_id": null,
+	  "salary": 30000,
+	  "last_salary": 0,
+	  "pension": 0,
+
+	  "flag_ids": [],
+
+	  "event_log": []
+	}
+  ]
+}

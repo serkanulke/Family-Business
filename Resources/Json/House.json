@@ -1,0 +1,13 @@
+{
+  "houses": [
+    {
+      "house_instance_id": "house_001",
+      "resident_slots": [
+        {
+          "slot_id": "resident_01",
+          "character_id": 1
+        }
+      ]
+    }
+  ]
+}

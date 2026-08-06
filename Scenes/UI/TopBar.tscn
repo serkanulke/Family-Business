@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://b4wgo6ukuj83d"]
+
+[ext_resource type="Script" uid="uid://dreh32wr73ld7" path="res://Scenes/UI/TopBar.gd" id="1_m7adm"]
+
+[node name="TopBar" type="Control" unique_id=1720218494]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 160.0
+grow_horizontal = 2
+script = ExtResource("1_m7adm")
+
+[node name="DateLabel" type="Label" parent="." unique_id=1680892919]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "01 Jan 1985"

@@ -1,0 +1,13 @@
+{
+  "game": {
+    "current_date": "1985-01-26",
+    "family_money": 25000,
+    "economy_index": 1.0,
+    "economy_growth_rate": 0.0015,
+    "npc_pool_size": 30,
+
+    "next_character_id": 2,
+    "next_npc_id": 1,
+    "next_relationship_npc_id": 1
+  }
+}

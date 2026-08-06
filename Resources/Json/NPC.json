@@ -1,0 +1,21 @@
+{
+  "npcs": [
+    {
+      "id": "npc_000001",
+      "first_name": "John",
+      "last_name": "Smith",
+      "gender": "male",
+      "birth_date": "1995-04-12",
+      "stats": {
+        "health": 74,
+        "intelligence": 88,
+        "discipline": 81,
+        "creativity": 67,
+        "social": 72,
+        "confidence": 79,
+        "attractiveness": 61,
+        "happiness": 75
+      }
+    }
+  ]
+}

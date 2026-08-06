@@ -1,0 +1,124 @@
+{
+  "flags": [
+    {
+      "flag_id": 1001,
+      "flag_name": "bookworm"
+    },
+    {
+      "flag_id": 1002,
+      "flag_name": "musician"
+    },
+    {
+      "flag_id": 1003,
+      "flag_name": "painter"
+    },
+    {
+      "flag_id": 1004,
+      "flag_name": "casanova"
+    },
+    {
+      "flag_id": 1005,
+      "flag_name": "street_smart"
+    },
+    {
+      "flag_id": 1006,
+      "flag_name": "perfectionist"
+    },
+    {
+      "flag_id": 1007,
+      "flag_name": "stage_fright"
+    },
+    {
+      "flag_id": 1008,
+      "flag_name": "adrenaline_junkie"
+    },
+    {
+      "flag_id": 1009,
+      "flag_name": "silver_tongue"
+    },
+    {
+      "flag_id": 1010,
+      "flag_name": "lone_wolf"
+    },
+    {
+      "flag_id": 1011,
+      "flag_name": "born_leader"
+    },
+    {
+      "flag_id": 1012,
+      "flag_name": "procrastinator"
+    },
+    {
+      "flag_id": 1013,
+      "flag_name": "nepotism_baby"
+    },
+    {
+      "flag_id": 1014,
+      "flag_name": "workaholic"
+    },
+    {
+      "flag_id": 1015,
+      "flag_name": "hypochondriac"
+    },
+    {
+      "flag_id": 1016,
+      "flag_name": "trendsetter"
+    },
+    {
+      "flag_id": 1017,
+      "flag_name": "charity_soul"
+    },
+    {
+      "flag_id": 1018,
+      "flag_name": "gambler"
+    },
+    {
+      "flag_id": 1019,
+      "flag_name": "tech_savvy"
+    },
+    {
+      "flag_id": 1020,
+      "flag_name": "wallflower"
+    },
+    {
+      "flag_id": 1021,
+      "flag_name": "athlete_spirit"
+    },
+    {
+      "flag_id": 1022,
+      "flag_name": "daredevil"
+    },
+    {
+      "flag_id": 1023,
+      "flag_name": "hoarder"
+    },
+    {
+      "flag_id": 1024,
+      "flag_name": "empath"
+    },
+    {
+      "flag_id": 1025,
+      "flag_name": "hot_headed"
+    },
+    {
+      "flag_id": 1026,
+      "flag_name": "cynic"
+    },
+    {
+      "flag_id": 1027,
+      "flag_name": "smooth_operator"
+    },
+    {
+      "flag_id": 1028,
+      "flag_name": "night_owl"
+    },
+    {
+      "flag_id": 1029,
+      "flag_name": "green_thumb"
+    },
+    {
+      "flag_id": 1030,
+      "flag_name": "clumsy"
+    }
+  ]
+}

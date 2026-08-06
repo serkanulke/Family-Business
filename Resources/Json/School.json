@@ -1,0 +1,175 @@
+{
+  "schools": [
+    ////// PRIMARY SCHOOL //////
+    {
+      "school_id": 1001,
+      "education_stage": "primary_school",
+      "school_type": "public",
+      "base_cost": 0,
+      "stat_bonus": {
+        "logic": 1,
+        "health": 1,
+        "social": 1
+      }
+    },
+    {
+      "school_id": 1002,
+      "education_stage": "primary_school",
+      "school_type": "private",
+      "base_cost": 2200,
+      "stat_bonus": {
+        "happiness": 1,
+        "logic": 1,
+        "health": 2, 
+        "social": 1,
+        "discipline": 1,
+        "creativity": 1
+      }
+    },
+    {
+      "school_id": 1003,
+      "education_stage": "primary_school",
+      "school_type": "prestige",
+      "base_cost": 3600,
+      "stat_bonus": {
+        "happiness": 2,
+        "logic": 2,
+        "health": 3, 
+        "social": 1,
+        "confidence": 1,
+        "discipline": 1,
+        "creativity": 1
+      }
+    },
+    ////// MIDDLE SCHOOL //////
+    {
+      "school_id": 2001,
+      "education_stage": "middle_school",
+      "school_type": "public",
+      "base_cost": 0,
+      "stat_bonus": {
+        "logic": 1,
+        "health": 1, 
+        "discipline": 1,
+        "social": 1
+      }
+    },
+    {
+      "school_id": 2002,
+      "education_stage": "middle_school",
+      "school_type": "private",
+      "base_cost": 4200,
+      "stat_bonus": {
+        "happiness": 1,
+        "logic": 2,
+        "health": 2, 
+        "social": 1,
+        "confidence": 1,
+        "discipline": 1
+      }
+    },
+    {
+      "school_id": 2003,
+      "education_stage": "middle_school",
+      "school_type": "prestige",
+      "base_cost": 6400,
+      "stat_bonus": {
+        "happiness": 2,
+        "logic": 2,
+        "health": 4, 
+        "social": 2,
+        "confidence": 2,
+        "discipline": 2,
+        "creativity": 1
+      }
+    },
+    ////// HIGH SCHOOL //////
+    {
+      "school_id": 3001,
+      "education_stage": "high_school",
+      "school_type": "public",
+      "base_cost": 0,
+      "stat_bonus": {
+        "logic": 2,
+        "health": 1, 
+        "social": 1,
+        "discipline": 1
+      }
+    },
+    {
+      "school_id": 3002,
+      "education_stage": "high_school",
+      "school_type": "private",
+      "base_cost": 12000,
+      "stat_bonus": {
+        "health": 3, 
+        "happiness": 2, 
+        "logic": 3,
+        "social": 2,
+        "confidence": 2,
+        "discipline": 2
+      }
+    },
+    {
+      "school_id": 3003,
+      "education_stage": "high_school",
+      "school_type": "prestige",
+      "base_cost": 21000,
+      "stat_bonus": {
+        "health": 5, 
+        "happiness": 3, 
+        "logic": 4,
+        "attractiveness": 2, 
+        "social": 3,
+        "confidence": 3,
+        "discipline": 3,
+        "creativity": 3
+      }
+    },
+    ////// UNIVERSITY //////
+    {
+      "school_id": 4001,
+      "education_stage": "university",
+      "school_type": "public",
+      "base_cost": 2000,
+      "stat_bonus": {
+        "health": 2, 
+        "logic": 2,
+        "social": 2,
+        "confidence": 1,
+        "discipline": 2
+      }
+    },
+    {
+      "school_id": 4002,
+      "education_stage": "university",
+      "school_type": "private",
+      "base_cost": 22100,
+      "stat_bonus": {
+        "health": 4, 
+        "happiness": 2, 
+        "logic": 3,
+        "social": 3,
+        "confidence": 3,
+        "discipline": 3,
+        "creativity": 2
+      }
+    },
+    {
+      "school_id": 4003,
+      "education_stage": "university",
+      "school_type": "prestige",
+      "base_cost": 36400,
+      "stat_bonus": {
+        "health": 6, 
+        "happiness": 4, 
+        "logic": 5,
+        "attractiveness": 3, 
+        "social": 4,
+        "confidence": 5,
+        "discipline": 4,
+        "creativity": 4
+      }
+    }
+  ]
+}

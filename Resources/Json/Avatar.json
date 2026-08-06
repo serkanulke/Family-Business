@@ -1,0 +1,25 @@
+{
+  "themes": [
+    {
+      "theme_id": "classic",
+
+      "male": {
+        "baby": "res://assets/avatars/classic/male/baby.png",
+        "child": "res://assets/avatars/classic/male/child.png",
+        "teen": "res://assets/avatars/classic/male/teen.png",
+        "young_adult": "res://assets/avatars/classic/male/young_adult.png",
+        "adult": "res://assets/avatars/classic/male/adult.png",
+        "elder": "res://assets/avatars/classic/male/elder.png"
+      },
+
+      "female": {
+        "baby": "res://assets/avatars/classic/female/baby.png",
+        "child": "res://assets/avatars/classic/female/child.png",
+        "teen": "res://assets/avatars/classic/female/teen.png",
+        "young_adult": "res://assets/avatars/classic/female/young_adult.png",
+        "adult": "res://assets/avatars/classic/female/adult.png",
+        "elder": "res://assets/avatars/classic/female/elder.png"
+      }
+    }
+  ]
+}

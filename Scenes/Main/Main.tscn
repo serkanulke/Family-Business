@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bvcopx3ku8gti"]
+
+[ext_resource type="PackedScene" uid="uid://xrc7oqop7nwp" path="res://Scenes/Characters/FamilyTree.tscn" id="1_p8rbg"]
+[ext_resource type="PackedScene" uid="uid://b4wgo6ukuj83d" path="res://Scenes/UI/TopBar.tscn" id="2_qtv3y"]
+[ext_resource type="PackedScene" uid="uid://p4jaicabm820" path="res://Scenes/UI/BottomBar.tscn" id="3_cmk6n"]
+
+[node name="Main" type="Node" unique_id=1660465117]
+
+[node name="Managers" type="Node" parent="." unique_id=961854645]
+
+[node name="World" type="Node" parent="." unique_id=273692419]
+
+[node name="FamilyTree" parent="World" unique_id=1688157946 instance=ExtResource("1_p8rbg")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=2028182679]
+
+[node name="TopBar" parent="UI" unique_id=1720218494 instance=ExtResource("2_qtv3y")]
+
+[node name="BottomBar" parent="UI" unique_id=1916220977 instance=ExtResource("3_cmk6n")]

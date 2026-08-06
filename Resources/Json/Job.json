@@ -1,0 +1,952 @@
+{
+  "jobs": [
+
+    ////// NO DIPLOMA //////
+    {
+      "job_id": 1001,
+      "job_name": "Cashier",
+      "required_major_id": null,
+      "required_stats": {
+        "social": 20,
+        "discipline": 20
+      },
+      "base_salary": 1200
+    },
+    {
+      "job_id": 1002,
+      "job_name": "Warehouse Worker",
+      "required_major_id": null,
+      "required_stats": {
+        "health": 30,
+        "discipline": 20
+      },
+      "base_salary": 1800
+    },
+    {
+      "job_id": 1003,
+      "job_name": "Barista",
+      "required_major_id": null,
+      "required_stats": {
+        "social": 30,
+        "attractiveness": 25
+      },
+      "base_salary": 1400
+    },
+    {
+      "job_id": 1004,
+      "job_name": "Security Guard",
+      "required_major_id": null,
+      "required_stats": {
+        "health": 45,
+        "confidence": 35
+      },
+      "base_salary": 1900
+    },
+    {
+      "job_id": 1005,
+      "job_name": "Call Center Agent",
+      "required_major_id": null,
+      "required_stats": {
+        "social": 40,
+        "discipline": 30
+      },
+      "base_salary": 1500
+    },
+    {
+      "job_id": 1007,
+      "job_name": "Sales Representative",
+      "required_major_id": null,
+      "required_stats": {
+        "social": 50,
+        "confidence": 45,
+        "attractiveness": 30
+      },
+      "base_salary": 2200
+    },
+    {
+      "job_id": 1008,
+      "job_name": "Courier",
+      "required_major_id": null,
+      "required_stats": {
+        "health": 40,
+        "discipline": 35
+      },
+      "base_salary": 1750
+    },
+    {
+      "job_id": 1009,
+      "job_name": "Freelance Content Writer",
+      "required_major_id": null,
+      "required_stats": {
+        "creativity": 45,
+        "discipline": 40
+      },
+      "base_salary": 2000
+    },
+    {
+      "job_id": 1010,
+      "job_name": "Streamer / Content Creator",
+      "required_major_id": null,
+      "required_stats": {
+        "social": 45,
+        "creativity": 50,
+        "confidence": 40
+      },
+      "base_salary": 2100
+    },
+
+    //// 5001: Medicine ////
+    {
+      "job_id": 3003,
+      "job_name": "General Practitioner (Doctor)",
+      "required_major_id": 5001,
+      "required_stats": {
+        "logic": 70,
+        "discipline": 65,
+        "social": 40
+      },
+      "base_salary": 6500
+    },
+    {
+      "job_id": 3004,
+      "job_name": "Surgeon",
+      "required_major_id": 5001,
+      "required_stats": {
+        "logic": 85,
+        "discipline": 85,
+        "health": 60
+      },
+      "base_salary": 12000
+    },
+    {
+      "job_id": 3005,
+      "job_name": "Psychiatrist",
+      "required_major_id": 5001,
+      "required_stats": {
+        "logic": 75,
+        "social": 70,
+        "confidence": 50
+      },
+      "base_salary": 8000
+    },
+    {
+      "job_id": 3006,
+      "job_name": "Medical Researcher",
+      "required_major_id": 5001,
+      "required_stats": {
+        "logic": 80,
+        "discipline": 70,
+        "creativity": 45
+      },
+      "base_salary": 7500
+    },
+    {
+      "job_id": 3007,
+      "job_name": "Chief Medical Officer",
+      "required_major_id": 5001,
+      "required_stats": {
+        "confidence": 80,
+        "discipline": 80,
+        "social": 60
+      },
+      "base_salary": 15000
+    },
+
+    //// 5002: Business & Finance ////
+    {
+      "job_id": 4001,
+      "job_name": "Accountant",
+      "required_major_id": 5002,
+      "required_stats": {
+        "logic": 60,
+        "discipline": 55
+      },
+      "base_salary": 5500
+    },
+    {
+      "job_id": 4006,
+      "job_name": "Financial Analyst",
+      "required_major_id": 5002,
+      "required_stats": {
+        "logic": 75,
+        "discipline": 60,
+        "confidence": 40
+      },
+      "base_salary": 7000
+    },
+    {
+      "job_id": 4007,
+      "job_name": "Marketing Manager",
+      "required_major_id": 5002,
+      "required_stats": {
+        "social": 70,
+        "creativity": 60,
+        "confidence": 65
+      },
+      "base_salary": 7500
+    },
+    {
+      "job_id": 4008,
+      "job_name": "Human Resources Specialist",
+      "required_major_id": 5002,
+      "required_stats": {
+        "social": 65,
+        "discipline": 50
+      },
+      "base_salary": 4800
+    },
+
+    /// 5003: Computer Science ////
+    {
+      "job_id": 2008,
+      "job_name": "Software Developer",
+      "required_major_id": 5003,
+      "required_stats": {
+        "logic": 70,
+        "creativity": 45,
+        "discipline": 40
+      },
+      "base_salary": 6500
+    },
+    {
+      "job_id": 2009,
+      "job_name": "Data Scientist",
+      "required_major_id": 5003,
+      "required_stats": {
+        "logic": 85,
+        "discipline": 60
+      },
+      "base_salary": 8500
+    },
+    {
+      "job_id": 2010,
+      "job_name": "Cybersecurity Analyst",
+      "required_major_id": 5003,
+      "required_stats": {
+        "logic": 75,
+        "confidence": 60,
+        "discipline": 65
+      },
+      "base_salary": 8000
+    },
+    {
+      "job_id": 2011,
+      "job_name": "Game Designer",
+      "required_major_id": 5003,
+      "required_stats": {
+        "creativity": 85,
+        "logic": 60,
+        "social": 45
+      },
+      "base_salary": 7000
+    },
+    {
+      "job_id": 2012,
+      "job_name": "Chief Technology Officer (CTO)",
+      "required_major_id": 5003,
+      "required_stats": {
+        "confidence": 85,
+        "social": 70,
+        "logic": 80
+      },
+      "base_salary": 16000
+    },
+
+    //// 5004: Performing & Fine Arts ////
+    {
+      "job_id": 2013,
+      "job_name": "Graphic Designer",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 65,
+        "logic": 40,
+        "discipline": 45
+      },
+      "base_salary": 4500
+    },
+    {
+      "job_id": 2014,
+      "job_name": "Interior Designer",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 70,
+        "social": 55,
+        "attractiveness": 40
+      },
+      "base_salary": 5800
+    },
+    {
+      "job_id": 2015,
+      "job_name": "3D Asset Artist",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 75,
+        "logic": 55,
+        "discipline": 60
+      },
+      "base_salary": 6800
+    },
+    {
+      "job_id": 2016,
+      "job_name": "Fashion Designer",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 80,
+        "attractiveness": 65,
+        "confidence": 55
+      },
+      "base_salary": 7500
+    },
+    {
+      "job_id": 2017,
+      "job_name": "Creative Director",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 85,
+        "confidence": 80,
+        "social": 70
+      },
+      "base_salary": 13500
+    },
+    {
+      "job_id": 2018,
+      "job_name": "Illustrator / Painter",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 75,
+        "discipline": 55,
+        "logic": 35
+      },
+      "base_salary": 4200
+    },
+    {
+      "job_id": 2019,
+      "job_name": "Studio Musician",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 70,
+        "discipline": 65,
+        "social": 40
+      },
+      "base_salary": 5000
+    },
+    {
+      "job_id": 2020,
+      "job_name": "Theater Actor / Actress",
+      "required_major_id": 5004,
+      "required_stats": {
+        "confidence": 70,
+        "social": 65,
+        "creativity": 60
+      },
+      "base_salary": 5500
+    },
+    {
+      "job_id": 2021,
+      "job_name": "Concert Soloist / Virtuoso",
+      "required_major_id": 5004,
+      "required_stats": {
+        "discipline": 90,
+        "creativity": 80,
+        "confidence": 75
+      },
+      "base_salary": 11000
+    },
+    {
+      "job_id": 2022,
+      "job_name": "Movie Star",
+      "required_major_id": 5004,
+      "required_stats": {
+        "attractiveness": 85,
+        "confidence": 85,
+        "social": 75,
+        "creativity": 80
+      },
+      "base_salary": 25000
+    },
+    {
+      "job_id": 2039,
+      "job_name": "Sculptor / Glassblower",
+      "required_major_id": 5004,
+      "required_stats": {
+        "creativity": 80,
+        "health": 65,
+        "discipline": 60
+      },
+      "base_salary": 5400
+    },
+    {
+      "job_id": 2040,
+      "job_name": "Choreographer / Professional Dancer",
+      "required_major_id": 5007,
+      "required_stats": {
+        "health": 80,
+        "creativity": 75,
+        "attractiveness": 60
+      },
+      "base_salary": 6200
+    },
+
+    //// 5005: Law & Politics ////
+    {
+      "job_id": 2023,
+      "job_name": "Legal Consultant",
+      "required_major_id": 5005,
+      "required_stats": {
+        "discipline": 55,
+        "social": 50
+      },
+      "base_salary": 5200
+    },
+    {
+      "job_id": 2024,
+      "job_name": "Lawyer",
+      "required_major_id": 5005,
+      "required_stats": {
+        "confidence": 75,
+        "social": 70,
+        "discipline": 50
+      },
+      "base_salary": 7800
+    },
+    {
+      "job_id": 2025,
+      "job_name": "Prosecutor",
+      "required_major_id": 5005,
+      "required_stats": {
+        "discipline": 85,
+        "confidence": 75,
+        "social": 45
+      },
+      "base_salary": 9500
+    },
+    {
+      "job_id": 2026,
+      "job_name": "Diplomat",
+      "required_major_id": 5005,
+      "required_stats": {
+        "social": 85,
+        "confidence": 80,
+        "attractiveness": 55
+      },
+      "base_salary": 11500
+    },
+    {
+      "job_id": 2027,
+      "job_name": "Judge",
+      "required_major_id": 5005,
+      "required_stats": {
+        "discipline": 90,
+        "confidence": 85,
+        "social": 50
+      },
+      "base_salary": 14000
+    },
+
+    //// 5006: Architecture & Civil Engineering ////
+    {
+      "job_id": 2028,
+      "job_name": "Civil Engineer",
+      "required_major_id": 5006,
+      "required_stats": {
+        "logic": 70,
+        "discipline": 55,
+        "health": 40
+      },
+      "base_salary": 6200
+    },
+    {
+      "job_id": 2029,
+      "job_name": "Architect",
+      "required_major_id": 5006,
+      "required_stats": {
+        "creativity": 75,
+        "logic": 65,
+        "discipline": 50
+      },
+      "base_salary": 7000
+    },
+    {
+      "job_id": 2030,
+      "job_name": "Urban Planner",
+      "required_major_id": 5006,
+      "required_stats": {
+        "logic": 75,
+        "social": 55,
+        "creativity": 60
+      },
+      "base_salary": 6800
+    },
+    {
+      "job_id": 2031,
+      "job_name": "Landscape Architect",
+      "required_major_id": 5006,
+      "required_stats": {
+        "creativity": 70,
+        "logic": 50,
+        "attractiveness": 35
+      },
+      "base_salary": 5600
+    },
+    {
+      "job_id": 2032,
+      "job_name": "Site Manager (Construction)",
+      "required_major_id": 5006,
+      "required_stats": {
+        "confidence": 75,
+        "discipline": 70,
+        "health": 55
+      },
+      "base_salary": 8500
+    },
+    {
+      "job_id": 2033,
+      "job_name": "Restoration Expert",
+      "required_major_id": 5006,
+      "required_stats": {
+        "discipline": 80,
+        "creativity": 65,
+        "logic": 70
+      },
+      "base_salary": 7800
+    },
+
+    //// 5007: Sports Science & Kinesiology ////
+    {
+      "job_id": 2034,
+      "job_name": "Physical Education Teacher",
+      "required_major_id": 5007,
+      "required_stats": {
+        "health": 55,
+        "social": 50,
+        "discipline": 45
+      },
+      "base_salary": 4800
+    },
+    {
+      "job_id": 2035,
+      "job_name": "Sports Physiotherapist",
+      "required_major_id": 5007,
+      "required_stats": {
+        "logic": 70,
+        "health": 50,
+        "discipline": 55
+      },
+      "base_salary": 6800
+    },
+    {
+      "job_id": 2036,
+      "job_name": "Professional Athlete",
+      "required_major_id": 5007,
+      "required_stats": {
+        "health": 90,
+        "discipline": 85,
+        "confidence": 75
+      },
+      "base_salary": 15000
+    },
+    {
+      "job_id": 2037,
+      "job_name": "Athletic Coordinator",
+      "required_major_id": 5007,
+      "required_stats": {
+        "logic": 65,
+        "social": 60,
+        "confidence": 55
+      },
+      "base_salary": 5800
+    },
+    {
+      "job_id": 2038,
+      "job_name": "Elite Sports Coach",
+      "required_major_id": 5007,
+      "required_stats": {
+        "confidence": 85,
+        "discipline": 80,
+        "social": 70
+      },
+      "base_salary": 12500
+    },
+
+    /// 5008: Aerospace & Aviation Science ////
+    {
+      "job_id": 2043,
+      "job_name": "Aerospace Engineer",
+      "required_major_id": 5008,
+      "required_stats": {
+        "logic": 85,
+        "discipline": 70,
+        "creativity": 50
+      },
+      "base_salary": 9200
+    },
+    {
+      "job_id": 2044,
+      "job_name": "Air Traffic Controller",
+      "required_major_id": 5008,
+      "required_stats": {
+        "discipline": 90,
+        "confidence": 85,
+        "logic": 75
+      },
+      "base_salary": 8500
+    },
+    {
+      "job_id": 2045,
+      "job_name": "Commercial Pilot",
+      "required_major_id": 5008,
+      "required_stats": {
+        "health": 75,
+        "confidence": 80,
+        "discipline": 80
+      },
+      "base_salary": 14000
+    },
+    {
+      "job_id": 2046,
+      "job_name": "Aviation Safety Inspector",
+      "required_major_id": 5008,
+      "required_stats": {
+        "discipline": 85,
+        "logic": 70,
+        "confidence": 60
+      },
+      "base_salary": 7200
+    },
+    {
+      "job_id": 2047,
+      "job_name": "Astronaut / Space Mission Specialist",
+      "required_major_id": 5008,
+      "required_stats": {
+        "health": 95,
+        "logic": 90,
+        "confidence": 90
+      },
+      "base_salary": 22000
+    },
+
+    //// 5009: Marine Science & Oceanography ////
+    {
+      "job_id": 2048,
+      "job_name": "Marine Biologist",
+      "required_major_id": 5009,
+      "required_stats": {
+        "logic": 70,
+        "creativity": 50,
+        "health": 45
+      },
+      "base_salary": 5800
+    },
+    {
+      "job_id": 2049,
+      "job_name": "Deep-Sea Diver / Explorer",
+      "required_major_id": 5009,
+      "required_stats": {
+        "health": 85,
+        "confidence": 80,
+        "discipline": 70
+      },
+      "base_salary": 8200
+    },
+    {
+      "job_id": 2050,
+      "job_name": "Oceanographic Data Analyst",
+      "required_major_id": 5009,
+      "required_stats": {
+        "logic": 80,
+        "discipline": 65
+      },
+      "base_salary": 6900
+    },
+    {
+      "job_id": 2051,
+      "job_name": "Marine Conservation Director",
+      "required_major_id": 5009,
+      "required_stats": {
+        "social": 75,
+        "confidence": 70,
+        "logic": 60
+      },
+      "base_salary": 9000
+    },
+    {
+      "job_id": 2052,
+      "job_name": "Research Vessel Captain",
+      "required_major_id": 5009,
+      "required_stats": {
+        "confidence": 85,
+        "discipline": 80,
+        "health": 65
+      },
+      "base_salary": 11500
+    },
+
+    //// 5010: Agricultural Sciences & Biotechnology ////
+    {
+      "job_id": 2053,
+      "job_name": "Agronomist / Crop Scientist",
+      "required_major_id": 5010,
+      "required_stats": {
+        "logic": 60,
+        "discipline": 55,
+        "health": 50
+      },
+      "base_salary": 5400
+    },
+    {
+      "job_id": 2054,
+      "job_name": "Agricultural Drone Pilot",
+      "required_major_id": 5010,
+      "required_stats": {
+        "logic": 65,
+        "discipline": 60
+      },
+      "base_salary": 6200
+    },
+    {
+      "job_id": 2055,
+      "job_name": "Bio-Fuel Researcher",
+      "required_major_id": 5010,
+      "required_stats": {
+        "logic": 72,
+        "creativity": 60
+      },
+      "base_salary": 8800
+    },
+    {
+      "job_id": 2056,
+      "job_name": "Vertical Farming Director",
+      "required_major_id": 5010,
+      "required_stats": {
+        "logic": 70,
+        "discipline": 75,
+        "confidence": 65
+      },
+      "base_salary": 11000
+    },
+
+    //// 5011: Media & Communications ////
+    {
+      "job_id": 2057,
+      "job_name": "Public Relations (PR) Specialist",
+      "required_major_id": 5011,
+      "required_stats": {
+        "social": 70,
+        "confidence": 60,
+        "attractiveness": 50
+      },
+      "base_salary": 5100
+    },
+    {
+      "job_id": 2058,
+      "job_name": "Investigative Journalist",
+      "required_major_id": 5011,
+      "required_stats": {
+        "confidence": 80,
+        "discipline": 75,
+        "logic": 55
+      },
+      "base_salary": 6800
+    },
+    {
+      "job_id": 2059,
+      "job_name": "Podcast Producer & Host",
+      "required_major_id": 5011,
+      "required_stats": {
+        "creativity": 68,
+        "social": 75,
+        "confidence": 65
+      },
+      "base_salary": 7500
+    },
+    {
+      "job_id": 2060,
+      "job_name": "Crisis Communications Director",
+      "required_major_id": 5011,
+      "required_stats": {
+        "confidence": 90,
+        "social": 80,
+        "discipline": 70
+      },
+      "base_salary": 13500
+    },
+
+    //// 5012: Archeology & Cultural Heritage ////
+    {
+      "job_id": 2061,
+      "job_name": "Field Archaeologist",
+      "required_major_id": 5012,
+      "required_stats": {
+        "health": 75,
+        "discipline": 65,
+        "logic": 45
+      },
+      "base_salary": 4800
+    },
+    {
+      "job_id": 2062,
+      "job_name": "Artifact Restorer",
+      "required_major_id": 5012,
+      "required_stats": {
+        "creativity": 65,
+        "discipline": 75,
+        "logic": 55
+      },
+      "base_salary": 6100
+    },
+    {
+      "job_id": 2063,
+      "job_name": "Museum Curator",
+      "required_major_id": 5012,
+      "required_stats": {
+        "social": 70,
+        "logic": 60,
+        "discipline": 60
+      },
+      "base_salary": 7400
+    },
+    {
+      "job_id": 2064,
+      "job_name": "Expedition Leader / Treasure Hunter",
+      "required_major_id": 5012,
+      "required_stats": {
+        "health": 85,
+        "confidence": 85,
+        "logic": 60
+      },
+      "base_salary": 12000
+    },
+
+    //// 5013: Behavioral Sciences & Profiling ////
+    {
+      "job_id": 2065,
+      "job_name": "Human Resources Analyst",
+      "required_major_id": 5013,
+      "required_stats": {
+        "social": 65,
+        "logic": 55,
+        "discipline": 50
+      },
+      "base_salary": 5500
+    },
+    {
+      "job_id": 2066,
+      "job_name": "Corporate Mediator",
+      "required_major_id": 5013,
+      "required_stats": {
+        "social": 80,
+        "confidence": 70,
+        "logic": 60
+      },
+      "base_salary": 8300
+    },
+    {
+      "job_id": 2067,
+      "job_name": "Criminal Profiler",
+      "required_major_id": 5013,
+      "required_stats": {
+        "logic": 74,
+        "confidence": 80,
+        "discipline": 75
+      },
+      "base_salary": 10500
+    },
+    {
+      "job_id": 2068,
+      "job_name": "Jury Consultant",
+      "required_major_id": 5013,
+      "required_stats": {
+        "logic": 65,
+        "social": 75,
+        "confidence": 75
+      },
+      "base_salary": 12500
+    },
+
+    //// 5014: Executive Leadership & Governance ////
+    {
+      "job_id": 2069,
+      "job_name": "Fortune 500 CEO",
+      "required_major_id": 5014,
+      "required_stats": {
+        "confidence": 90,
+        "logic": 80,
+        "social": 80,
+        "discipline": 80,
+        "creativity": 70
+      },
+      "base_salary": 25000
+    },
+    {
+      "job_id": 2070,
+      "job_name": "Megacity Mayor / Politician",
+      "required_major_id": 5014,
+      "required_stats": {
+        "social": 90,
+        "confidence": 85,
+        "attractiveness": 75,
+        "logic": 70,
+        "discipline": 70
+      },
+      "base_salary": 18000
+    },
+
+    //// 5015: Hospitality, Culinary Arts & Luxury Management ////
+    {
+      "job_id": 2071,
+      "job_name": "Head Sommelier (Wine Expert)",
+      "required_major_id": 5015,
+      "required_stats": {
+        "discipline": 70,
+        "social": 65,
+        "attractiveness": 50
+      },
+      "base_salary": 5800
+    },
+    {
+      "job_id": 2072,
+      "job_name": "Luxury Hotel Concierge",
+      "required_major_id": 5015,
+      "required_stats": {
+        "social": 80,
+        "confidence": 70,
+        "attractiveness": 60
+      },
+      "base_salary": 6500
+    },
+    {
+      "job_id": 2073,
+      "job_name": "Pastry Chef / Chocolatier",
+      "required_major_id": 5015,
+      "required_stats": {
+        "creativity": 78,
+        "discipline": 70,
+        "health": 55
+      },
+      "base_salary": 7200
+    },
+    {
+      "job_id": 2074,
+      "job_name": "Food & Beverage (F&B) Director",
+      "required_major_id": 5015,
+      "required_stats": {
+        "logic": 68,
+        "discipline": 75,
+        "confidence": 70
+      },
+      "base_salary": 11000
+    },
+    {
+      "job_id": 2075,
+      "job_name": "Michelin-Starred Restaurant Owner",
+      "required_major_id": 5015,
+      "required_stats": {
+        "creativity": 80,
+        "confidence": 85,
+        "discipline": 80,
+        "social": 70
+      },
+      "base_salary": 22000
+    }
+  ]
+}
