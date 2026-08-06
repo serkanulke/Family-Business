@@ -20,6 +20,13 @@ const LIFESPAN_THRESHOLDS := {
 	"long": 88
 }
 
+const DEATH_WINDOW_YEARS := 10.0
+const BASE_ANNUAL_DEATH_CHANCE := 0.05
+const ANNUAL_DEATH_CHANCE_INCREASE := 0.10
+
+const NEUTRAL_HEALTH := 50.0
+const HEALTH_POINTS_PER_AGE_YEAR := 10.0
+
 
 var characters: Array = []
 
@@ -50,25 +57,7 @@ func _ready() -> void:
 			test_character.get("life_stage", "")
 		)
 		
-		GameManager.set_lifespan_setting("short")
-
-		print(
-			"Death check eligible: ",
-			is_death_check_eligible(test_character)
-		)
 		
-		if is_death_check_eligible(test_character):
-			kill_character(test_character)
-
-			print(
-				"Character is alive: ",
-				test_character.get("is_alive", true)
-			)
-
-			print(
-				"Character death date: ",
-				test_character.get("death_date", null)
-			)
 
 
 func load_characters() -> void:
@@ -243,6 +232,7 @@ func get_avatar_texture(
 func _on_date_changed(_date_text: String) -> void:
 	update_all_life_stages()
 	update_all_retirements()
+	update_all_death_checks()
 
 
 func update_all_life_stages() -> void:
@@ -431,19 +421,19 @@ func is_death_check_eligible(
 	if not character.get("is_alive", true):
 		return false
 
-	var threshold := (
-		get_selected_lifespan_threshold()
-	)
+	var threshold := get_selected_lifespan_threshold()
 
 	if threshold < 0:
 		return false
 
-	var age := get_character_age(character)
+	var effective_age := get_effective_death_age(
+		character
+	)
 
-	if age < 0:
+	if effective_age < 0.0:
 		return false
 
-	return age >= threshold
+	return effective_age >= float(threshold)
 
 func kill_character(
 	character: Dictionary
@@ -473,3 +463,107 @@ func kill_character(
 		" | Death date: ",
 		death_date
 	)
+
+func get_effective_death_age(
+	character: Dictionary
+) -> float:
+	var actual_age := get_character_age(character)
+
+	if actual_age < 0:
+		return -1.0
+
+	var health := clampf(
+		float(character.get("health", 50)),
+		0.0,
+		100.0
+	)
+
+	var health_age_modifier := (
+		(NEUTRAL_HEALTH - health)
+		/ HEALTH_POINTS_PER_AGE_YEAR
+	)
+
+	return float(actual_age) + health_age_modifier
+
+func get_annual_death_chance(
+	character: Dictionary
+) -> float:
+	if not is_death_check_eligible(character):
+		return 0.0
+
+	var threshold := float(
+		get_selected_lifespan_threshold()
+	)
+
+	var effective_age := get_effective_death_age(
+		character
+	)
+
+	var years_after_threshold := maxf(
+		effective_age - threshold,
+		0.0
+	)
+
+	if years_after_threshold >= DEATH_WINDOW_YEARS:
+		return 1.0
+
+	var annual_chance := (
+		BASE_ANNUAL_DEATH_CHANCE
+		+ (
+			years_after_threshold
+			* ANNUAL_DEATH_CHANCE_INCREASE
+		)
+	)
+
+	return clampf(annual_chance, 0.0, 1.0)
+
+func get_daily_death_chance(
+	character: Dictionary
+) -> float:
+	var annual_chance := get_annual_death_chance(
+		character
+	)
+
+	if annual_chance <= 0.0:
+		return 0.0
+
+	if annual_chance >= 1.0:
+		return 1.0
+
+	return 1.0 - pow(
+		1.0 - annual_chance,
+		1.0 / 365.0
+	)
+
+func update_all_death_checks() -> void:
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+
+		if not character.get("is_alive", true):
+			continue
+
+		if not is_death_check_eligible(character):
+			continue
+
+		check_character_death(character)
+
+
+func check_character_death(
+	character: Dictionary
+) -> void:
+	var daily_chance := get_daily_death_chance(
+		character
+	)
+
+	if daily_chance <= 0.0:
+		return
+
+	if daily_chance >= 1.0:
+		kill_character(character)
+		return
+
+	if randf() <= daily_chance:
+		kill_character(character)
