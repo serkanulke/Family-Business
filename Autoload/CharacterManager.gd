@@ -33,10 +33,73 @@ const ANNUAL_DEATH_CHANCE_INCREASE := 0.10
 const NEUTRAL_HEALTH := 50.0
 const HEALTH_POINTS_PER_AGE_YEAR := 10.0
 
+const CHARACTER_STAT_NAMES: Array[String] = [
+	"health",
+	"happiness",
+	"logic",
+	"attractiveness",
+	"social",
+	"confidence",
+	"discipline",
+	"creativity"
+]
+
+const INHERITABLE_STAT_NAMES: Array[String] = [
+	"health",
+	"logic",
+	"attractiveness",
+	"social",
+	"confidence",
+	"discipline",
+	"creativity"
+]
+
+const STARTING_WEAK_STAT_CHANCE := 0.10
+const STARTING_MEDIUM_STAT_CHANCE := 0.80
+
+const STARTING_WEAK_STAT_MIN := 15
+const STARTING_WEAK_STAT_MAX := 34
+
+const STARTING_MEDIUM_STAT_MIN := 35
+const STARTING_MEDIUM_STAT_MAX := 65
+
+const STARTING_STRONG_STAT_MIN := 66
+const STARTING_STRONG_STAT_MAX := 85
+
+const STARTING_HAPPINESS := 50
+
+const BABY_STAT_MIN := 0
+const BABY_STAT_MAX := 14
+const MAX_PARENT_STAT_INHERITANCE_BONUS := 2
+const MAX_STAT_VALUE := 100
+
+const STARTING_CHARACTER_MIN_AGE := 18
+const STARTING_CHARACTER_MAX_AGE := 25
+
+const HAIR_COLORS: Array[String] = [
+	"blonde",
+	"red",
+	"brown",
+	"black"
+]
+
+const SKIN_TONES: Array[String] = [
+	"light",
+	"mixed",
+	"dark"
+]
+
+const EYE_COLORS: Array[String] = [
+	"hazel",
+	"green",
+	"blue"
+]
+
 
 var characters: Array = []
 var majors: Array = []
 var jobs: Array = []
+var next_character_id: int = 1
 
 
 func _ready() -> void:
@@ -66,6 +129,7 @@ func _ready() -> void:
 			"Test character life stage: ",
 			test_character.get("life_stage", "")
 		)
+		
 		
 		
 
@@ -127,6 +191,7 @@ func load_characters() -> void:
 
 	characters = data["characters"]
 	normalize_character_ids()
+	initialize_next_character_id()
 
 	print("Characters loaded: ", characters.size())
 
@@ -967,3 +1032,294 @@ func assign_starting_job(
 		character,
 		selected_job_value
 	)
+
+func generate_starting_stat_value() -> int:
+	var roll := randf()
+
+	if roll < STARTING_WEAK_STAT_CHANCE:
+		return randi_range(
+			STARTING_WEAK_STAT_MIN,
+			STARTING_WEAK_STAT_MAX
+		)
+
+	var medium_limit := (
+		STARTING_WEAK_STAT_CHANCE
+		+ STARTING_MEDIUM_STAT_CHANCE
+	)
+
+	if roll < medium_limit:
+		return randi_range(
+			STARTING_MEDIUM_STAT_MIN,
+			STARTING_MEDIUM_STAT_MAX
+		)
+
+	return randi_range(
+		STARTING_STRONG_STAT_MIN,
+		STARTING_STRONG_STAT_MAX
+	)
+
+func generate_starting_character_stats() -> Dictionary:
+	var generated_stats: Dictionary = {}
+
+	for stat_name in CHARACTER_STAT_NAMES:
+		if stat_name == "happiness":
+			generated_stats[stat_name] = (
+				STARTING_HAPPINESS
+			)
+			continue
+
+		generated_stats[stat_name] = (
+			generate_starting_stat_value()
+		)
+
+	return generated_stats
+
+func apply_stats_to_character(
+	character: Dictionary,
+	generated_stats: Dictionary
+) -> void:
+	for stat_name in CHARACTER_STAT_NAMES:
+		character[stat_name] = int(
+			generated_stats.get(stat_name, 0)
+		)
+
+	var starting_stats := (
+		generate_starting_character_stats()
+	)
+
+	apply_stats_to_character(
+		character,
+		starting_stats
+	)
+
+func parent_has_max_stat(
+	parent: Dictionary,
+	stat_name: String
+) -> bool:
+	if parent.is_empty():
+		return false
+
+	return int(
+		parent.get(stat_name, 0)
+	) >= MAX_STAT_VALUE
+
+func should_baby_inherit_stat_bonus(
+	stat_name: String,
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> bool:
+	if not INHERITABLE_STAT_NAMES.has(stat_name):
+		return false
+
+	return (
+		parent_has_max_stat(
+			parent_one,
+			stat_name
+		)
+		or parent_has_max_stat(
+			parent_two,
+			stat_name
+		)
+	)
+
+func generate_baby_stats(
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> Dictionary:
+	var generated_stats: Dictionary = {}
+
+	for stat_name in CHARACTER_STAT_NAMES:
+		var stat_value := randi_range(
+			BABY_STAT_MIN,
+			BABY_STAT_MAX
+		)
+
+		if should_baby_inherit_stat_bonus(
+			stat_name,
+			parent_one,
+			parent_two
+		):
+			stat_value += (
+				MAX_PARENT_STAT_INHERITANCE_BONUS
+			)
+
+		generated_stats[stat_name] = stat_value
+
+	return generated_stats
+
+func initialize_next_character_id() -> void:
+	var highest_character_id := 0
+
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+		var character_id := int(
+			character.get("character_id", 0)
+		)
+
+		highest_character_id = maxi(
+			highest_character_id,
+			character_id
+		)
+
+	next_character_id = highest_character_id + 1
+
+
+func generate_character_id() -> int:
+	var generated_id := next_character_id
+	next_character_id += 1
+
+	return generated_id
+
+func generate_birth_date_for_age(
+	target_age: int
+) -> String:
+	var birth_month := randi_range(1, 12)
+
+	var max_day := TimeManager.DAYS_IN_MONTH[
+		birth_month - 1
+	]
+
+	var birth_day := randi_range(1, max_day)
+
+	var birth_year := (
+		TimeManager.current_year
+		- target_age
+	)
+
+	var birthday_has_not_happened := (
+		birth_month > TimeManager.current_month
+		or (
+			birth_month == TimeManager.current_month
+			and birth_day > TimeManager.current_day
+		)
+	)
+
+	if birthday_has_not_happened:
+		birth_year -= 1
+
+	return "%04d-%02d-%02d" % [
+		birth_year,
+		birth_month,
+		birth_day
+	]
+
+func generate_random_genetics() -> Dictionary:
+	return {
+		"hair_color": HAIR_COLORS.pick_random(),
+		"skin_tone": SKIN_TONES.pick_random(),
+		"eye_color": EYE_COLORS.pick_random()
+	}
+
+func create_base_starting_character(
+	first_name: String,
+	gender: String
+) -> Dictionary:
+	var normalized_gender := (
+		gender.strip_edges().to_lower()
+	)
+
+	if normalized_gender not in [
+		"female",
+		"male"
+	]:
+		push_error(
+			"Invalid starting character gender: "
+			+ gender
+		)
+		return {}
+
+	var selected_age := randi_range(
+		STARTING_CHARACTER_MIN_AGE,
+		STARTING_CHARACTER_MAX_AGE
+	)
+
+	var character: Dictionary = {
+		"character_id": generate_character_id(),
+
+		"first_name": first_name.strip_edges(),
+		"gender": normalized_gender,
+
+		"avatar_theme": "classic",
+		"genetics": generate_random_genetics(),
+
+		"is_alive": true,
+		"birth_date": generate_birth_date_for_age(
+			selected_age
+		),
+		"death_date": null,
+		"life_stage": "young_adult",
+
+		"is_player_family": true,
+
+		"father_id": null,
+		"mother_id": null,
+		"partner_id": null,
+		"children_ids": [],
+
+		"school_id": null,
+		"major_id": null,
+
+		"is_retired": false,
+		"job_id": null,
+		"company_id": null,
+		"salary": 0,
+		"last_salary": 0,
+		"pension": 0,
+
+		"flag_ids": [],
+		"event_log": []
+	}
+
+	var generated_stats := (
+		generate_starting_character_stats()
+	)
+
+	apply_stats_to_character(
+		character,
+		generated_stats
+	)
+
+	character["life_stage"] = (
+		get_life_stage_from_age(selected_age)
+	)
+
+	return character
+
+func create_starting_character(
+	first_name: String,
+	gender: String
+) -> Dictionary:
+	var character := create_base_starting_character(
+		first_name,
+		gender
+	)
+
+	if character.is_empty():
+		return {}
+
+	assign_starting_major(character)
+	assign_starting_job(character)
+
+	characters.append(character)
+
+	print(
+		"Starting character created: ",
+		character.get("character_id", 0),
+		" | Name: ",
+		character.get("first_name", ""),
+		" | Gender: ",
+		character.get("gender", ""),
+		" | Age: ",
+		get_character_age(character),
+		" | Major: ",
+		character.get("major_id", null),
+		" | Job: ",
+		character.get("job_id", null),
+		" | Salary: ",
+		character.get("salary", 0)
+	)
+
+	return character
