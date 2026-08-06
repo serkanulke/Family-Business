@@ -1,5 +1,9 @@
 extends Node
 
+signal character_died(
+	character_id: int,
+	death_date: String
+)
 
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
 
@@ -9,6 +13,12 @@ const DEFAULT_AVATAR_PATH := AVATAR_FOLDER_PATH + "default_avatar.png"
 const RETIREMENT_AGE := 65
 const PENSION_RATE := 0.10
 const PENSION_SALARY_CAP := 25000
+
+const LIFESPAN_THRESHOLDS := {
+	"short": 68,
+	"normal": 78,
+	"long": 88
+}
 
 
 var characters: Array = []
@@ -39,6 +49,26 @@ func _ready() -> void:
 			"Test character life stage: ",
 			test_character.get("life_stage", "")
 		)
+		
+		GameManager.set_lifespan_setting("short")
+
+		print(
+			"Death check eligible: ",
+			is_death_check_eligible(test_character)
+		)
+		
+		if is_death_check_eligible(test_character):
+			kill_character(test_character)
+
+			print(
+				"Character is alive: ",
+				test_character.get("is_alive", true)
+			)
+
+			print(
+				"Character death date: ",
+				test_character.get("death_date", null)
+			)
 
 
 func load_characters() -> void:
@@ -369,3 +399,77 @@ func normalize_character_ids() -> void:
 		character["character_id"] = int(
 			character.get("character_id", 0)
 		)
+
+func get_selected_lifespan_threshold() -> int:
+	if not GameManager.has_lifespan_setting():
+		push_error(
+			"Lifespan setting has not been selected."
+		)
+		return -1
+
+	var lifespan_setting: String = (
+		GameManager.lifespan_setting
+	)
+
+	if not LIFESPAN_THRESHOLDS.has(
+		lifespan_setting
+	):
+		push_error(
+			"Unknown lifespan setting: "
+			+ lifespan_setting
+		)
+		return -1
+
+	return int(
+		LIFESPAN_THRESHOLDS[lifespan_setting]
+	)
+
+
+func is_death_check_eligible(
+	character: Dictionary
+) -> bool:
+	if not character.get("is_alive", true):
+		return false
+
+	var threshold := (
+		get_selected_lifespan_threshold()
+	)
+
+	if threshold < 0:
+		return false
+
+	var age := get_character_age(character)
+
+	if age < 0:
+		return false
+
+	return age >= threshold
+
+func kill_character(
+	character: Dictionary
+) -> void:
+	if not character.get("is_alive", true):
+		return
+
+	var character_id := int(
+		character.get("character_id", 0)
+	)
+
+	var death_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	character["is_alive"] = false
+	character["death_date"] = death_date
+
+	character_died.emit(
+		character_id,
+		death_date
+	)
+
+	print(
+		"Character died: ",
+		character_id,
+		" | Death date: ",
+		death_date
+	)

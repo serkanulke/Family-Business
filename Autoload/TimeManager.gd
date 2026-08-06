@@ -63,3 +63,10 @@ func pause():
 
 func play():
 	is_paused = false
+
+func get_iso_date_string() -> String:
+	return "%04d-%02d-%02d" % [
+		current_year,
+		current_month,
+		current_day
+	]
