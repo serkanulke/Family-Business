@@ -3,8 +3,10 @@
     
     {
       "school_id": 1001,
+      "school_name": "Public Primary School",
       "education_stage": "primary_school",
       "school_type": "public",
+      "icon_path": "res://Resources/Icons/Schools/public_primary_school.svg",
       "base_cost": 0,
       "stat_bonus": {
         "logic": 1,
@@ -14,8 +16,10 @@
     },
     {
       "school_id": 1002,
+      "school_name": "Private Primary School",
       "education_stage": "primary_school",
       "school_type": "private",
+      "icon_path": "res://Resources/Icons/Schools/private_primary_school.svg",
       "base_cost": 2200,
       "stat_bonus": {
         "happiness": 1,
@@ -28,8 +32,10 @@
     },
     {
       "school_id": 1003,
+      "school_name": "Prestige Primary School",
       "education_stage": "primary_school",
       "school_type": "prestige",
+      "icon_path": "res://Resources/Icons/Schools/prestige_primary_school.svg",
       "base_cost": 3600,
       "stat_bonus": {
         "happiness": 2,
@@ -44,8 +50,10 @@
     
     {
       "school_id": 2001,
+      "school_name": "Public Middle School",
       "education_stage": "middle_school",
       "school_type": "public",
+      "icon_path": "res://Resources/Icons/Schools/public_middle_school.svg",
       "base_cost": 0,
       "stat_bonus": {
         "logic": 1,
@@ -56,8 +64,10 @@
     },
     {
       "school_id": 2002,
+      "school_name": "Private Middle School",
       "education_stage": "middle_school",
       "school_type": "private",
+      "icon_path": "res://Resources/Icons/Schools/private_middle_school.svg",
       "base_cost": 4200,
       "stat_bonus": {
         "happiness": 1,
@@ -70,8 +80,10 @@
     },
     {
       "school_id": 2003,
+      "school_name": "Prestige Middle School",
       "education_stage": "middle_school",
       "school_type": "prestige",
+      "icon_path": "res://Resources/Icons/Schools/prestige_middle_school.svg",
       "base_cost": 6400,
       "stat_bonus": {
         "happiness": 2,
@@ -86,8 +98,10 @@
     
     {
       "school_id": 3001,
+      "school_name": "Public High School",
       "education_stage": "high_school",
       "school_type": "public",
+      "icon_path": "res://Resources/Icons/Schools/public_high_school.svg",
       "base_cost": 0,
       "stat_bonus": {
         "logic": 2,
@@ -98,8 +112,10 @@
     },
     {
       "school_id": 3002,
+      "school_name": "Private High School",
       "education_stage": "high_school",
       "school_type": "private",
+      "icon_path": "res://Resources/Icons/Schools/private_high_school.svg",
       "base_cost": 12000,
       "stat_bonus": {
         "health": 3, 
@@ -112,8 +128,10 @@
     },
     {
       "school_id": 3003,
+      "school_name": "Prestige High School",
       "education_stage": "high_school",
       "school_type": "prestige",
+      "icon_path": "res://Resources/Icons/Schools/prestige_high_school.svg",
       "base_cost": 21000,
       "stat_bonus": {
         "health": 5, 
@@ -129,8 +147,10 @@
     
     {
       "school_id": 4001,
+      "school_name": "Public University",
       "education_stage": "university",
       "school_type": "public",
+      "icon_path": "res://Resources/Icons/Schools/public_university.svg",
       "base_cost": 2000,
       "stat_bonus": {
         "health": 2, 
@@ -142,8 +162,10 @@
     },
     {
       "school_id": 4002,
+      "school_name": "Private University",
       "education_stage": "university",
       "school_type": "private",
+      "icon_path": "res://Resources/Icons/Schools/private_university.svg",
       "base_cost": 22100,
       "stat_bonus": {
         "health": 4, 
@@ -157,8 +179,10 @@
     },
     {
       "school_id": 4003,
+      "school_name": "Prestige University",
       "education_stage": "university",
       "school_type": "prestige",
+      "icon_path": "res://Resources/Icons/Schools/prestige_university.svg",
       "base_cost": 36400,
       "stat_bonus": {
         "health": 6, 

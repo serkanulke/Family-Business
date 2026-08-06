@@ -2,6 +2,9 @@ extends Node
 
 
 const SCHOOL_DATA_PATH := "res://Resources/Json/School.json"
+const DEFAULT_SCHOOL_ICON_PATH := \
+	"res://Resources/Icons/Schools/default_school.svg"
+
 
 const VALID_EDUCATION_STAGES: Array[String] = [
 	"primary_school",
