@@ -5,6 +5,12 @@ signal character_died(
 	death_date: String
 )
 
+signal character_born(
+	character_id: int,
+	mother_id: int,
+	father_id: int
+)
+
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
 const MAJOR_DATA_PATH := "res://Resources/Json/Major.json"
 const JOB_DATA_PATH := "res://Resources/Json/Job.json"
@@ -1397,4 +1403,242 @@ func generate_inherited_skin_tone(
 		SKIN_TONES.pick_random()
 	)
 	
+	
+
+func generate_baby_genetics(
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> Dictionary:
+	return {
+		"hair_color": generate_inherited_hair_color(
+			parent_one,
+			parent_two
+		),
+		"skin_tone": generate_inherited_skin_tone(
+			parent_one,
+			parent_two
+		),
+		"eye_color": generate_inherited_eye_color(
+			parent_one,
+			parent_two
+		)
+	}
+
+func get_character_by_id(
+	character_id: int
+) -> Dictionary:
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+
+		if int(
+			character.get("character_id", 0)
+		) == character_id:
+			return character
+
+	return {}
+
+func add_child_id_to_parent(
+	parent: Dictionary,
+	child_id: int
+) -> void:
+	var children_ids_value = parent.get(
+		"children_ids",
+		[]
+	)
+
+	if typeof(children_ids_value) != TYPE_ARRAY:
+		push_error(
+			"Parent children_ids must be an Array."
+		)
+		return
+
+	var children_ids: Array = children_ids_value
+
+	if children_ids.has(child_id):
+		return
+
+	children_ids.append(child_id)
+	parent["children_ids"] = children_ids
+
+func create_base_baby_character(
+	first_name: String,
+	gender: String,
+	mother: Dictionary,
+	father: Dictionary
+) -> Dictionary:
+	var cleaned_name := first_name.strip_edges()
+
+	if cleaned_name.is_empty():
+		push_error(
+			"Baby first name cannot be empty."
+		)
+		return {}
+
+	var normalized_gender := (
+		gender.strip_edges().to_lower()
+	)
+
+	if normalized_gender not in [
+		"female",
+		"male"
+	]:
+		push_error(
+			"Invalid baby gender: "
+			+ gender
+		)
+		return {}
+
+	var baby: Dictionary = {
+		"character_id": generate_character_id(),
+
+		"first_name": cleaned_name,
+		"gender": normalized_gender,
+
+		"avatar_theme": "classic",
+		"genetics": generate_baby_genetics(
+			mother,
+			father
+		),
+
+		"is_alive": true,
+		"birth_date": TimeManager.get_iso_date_string(),
+		"death_date": null,
+		"life_stage": "baby",
+
+		"is_player_family": true,
+
+		"father_id": int(
+			father["character_id"]
+		),
+		"mother_id": int(
+			mother["character_id"]
+		),
+		"partner_id": null,
+		"children_ids": [],
+
+		"school_id": null,
+		"major_id": null,
+
+		"is_retired": false,
+		"job_id": null,
+		"company_id": null,
+		"salary": 0,
+		"last_salary": 0,
+		"pension": 0,
+
+		"flag_ids": [],
+		"event_log": []
+	}
+
+	var baby_stats := generate_baby_stats(
+		mother,
+		father
+	)
+
+	apply_stats_to_character(
+		baby,
+		baby_stats
+	)
+
+	return baby
+
+func create_baby_character(
+	first_name: String,
+	gender: String,
+	mother_id: int,
+	father_id: int
+) -> Dictionary:
+	if mother_id == father_id:
+		push_error(
+			"Mother and father cannot have the same character ID."
+		)
+		return {}
+
+	var mother := get_character_by_id(
+		mother_id
+	)
+
+	if mother.is_empty():
+		push_error(
+			"Mother character could not be found: "
+			+ str(mother_id)
+		)
+		return {}
+
+	var father := get_character_by_id(
+		father_id
+	)
+
+	if father.is_empty():
+		push_error(
+			"Father character could not be found: "
+			+ str(father_id)
+		)
+		return {}
+
+	if not mother.get("is_alive", true):
+		push_error(
+			"Mother character is not alive: "
+			+ str(mother_id)
+		)
+		return {}
+
+	if not father.get("is_alive", true):
+		push_error(
+			"Father character is not alive: "
+			+ str(father_id)
+		)
+		return {}
+
+	var baby := create_base_baby_character(
+		first_name,
+		gender,
+		mother,
+		father
+	)
+
+	if baby.is_empty():
+		return {}
+
+	var baby_id := int(
+		baby["character_id"]
+	)
+
+	characters.append(baby)
+
+	add_child_id_to_parent(
+		mother,
+		baby_id
+	)
+
+	add_child_id_to_parent(
+		father,
+		baby_id
+	)
+
+	character_born.emit(
+		baby_id,
+		mother_id,
+		father_id
+	)
+
+	print(
+		"Baby character created: ",
+		baby_id,
+		" | Name: ",
+		baby.get("first_name", ""),
+		" | Gender: ",
+		baby.get("gender", ""),
+		" | Mother: ",
+		mother_id,
+		" | Father: ",
+		father_id,
+		" | Birth date: ",
+		baby.get("birth_date", "")
+	)
+
+	return baby
 	
