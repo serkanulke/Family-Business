@@ -410,6 +410,7 @@ func should_request_major_selection(
 func _on_date_changed(
 	_date_text: String
 ) -> void:
+	check_university_graduations()
 	check_birthday_education_events()
 
 
@@ -1102,3 +1103,61 @@ func select_major(
 	complete_current_education_event()
 
 	return true
+
+func check_university_graduations() -> void:
+	var current_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	for character_value in CharacterManager.characters:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = (
+			character_value
+		)
+
+		if not character.get(
+			"is_alive",
+			true
+		):
+			continue
+
+		if String(
+			character.get(
+				"education_status",
+				"none"
+			)
+		) != "studying":
+			continue
+
+		if character.get(
+			"major_id",
+			null
+		) == null:
+			continue
+
+		var expected_date_value = character.get(
+			"expected_graduation_date",
+			null
+		)
+
+		if expected_date_value == null:
+			continue
+
+		var expected_date := String(
+			expected_date_value
+		)
+
+		if expected_date.is_empty():
+			continue
+
+		if current_date != expected_date:
+			continue
+
+		graduate_current_school(
+			character,
+			"university"
+		)
