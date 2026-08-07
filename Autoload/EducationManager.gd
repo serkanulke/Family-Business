@@ -737,3 +737,46 @@ func graduate_current_school(
 	)
 
 	return true
+
+func decline_university(
+	character_id: int
+) -> bool:
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		push_error(
+			"Character could not be found: "
+			+ str(character_id)
+		)
+		return false
+
+	if not character.get(
+		"is_alive",
+		true
+	):
+		return false
+
+	var age := CharacterManager.get_character_age(
+		character
+	)
+
+	if age != UNIVERSITY_START_AGE:
+		push_error(
+			"University can only be declined at age 18."
+		)
+		return false
+
+	character["major_id"] = null
+	character["major_selection_date"] = null
+	character["expected_graduation_date"] = null
+
+	print(
+		"Character declined university: ",
+		character_id
+	)
+
+	complete_current_education_event()
+
+	return true
