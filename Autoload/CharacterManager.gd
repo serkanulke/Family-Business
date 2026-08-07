@@ -1159,6 +1159,7 @@ func generate_birth_date_for_age(
 	target_age: int
 ) -> String:
 	var birth_month := randi_range(1, 12)
+	
 
 	var max_day: int = TimeManager.DAYS_IN_MONTH[
 	birth_month - 1
@@ -1187,6 +1188,62 @@ func generate_birth_date_for_age(
 		birth_month,
 		birth_day
 	]
+
+func generate_starting_birth_date_for_age(
+	target_age: int
+) -> String:
+	var birth_year := (
+		TimeManager.current_year
+		- target_age
+	)
+
+	var latest_birth_month := TimeManager.current_month
+	var birth_month := randi_range(
+		1,
+		latest_birth_month
+	)
+
+	var max_day: int = TimeManager.DAYS_IN_MONTH[
+		birth_month - 1
+	]
+
+	var birth_day: int
+
+	if birth_month == TimeManager.current_month:
+		var latest_birth_day := TimeManager.current_day - 1
+
+		if latest_birth_day < 1:
+			birth_month -= 1
+
+			if birth_month < 1:
+				birth_month = 12
+				birth_year -= 1
+
+			max_day = TimeManager.DAYS_IN_MONTH[
+				birth_month - 1
+			]
+
+			birth_day = randi_range(
+				1,
+				max_day
+			)
+		else:
+			birth_day = randi_range(
+				1,
+				latest_birth_day
+			)
+	else:
+		birth_day = randi_range(
+			1,
+			max_day
+		)
+
+	return "%04d-%02d-%02d" % [
+		birth_year,
+		birth_month,
+		birth_day
+	]
+
 
 func generate_random_genetics() -> Dictionary:
 	return {
@@ -1228,7 +1285,7 @@ func create_base_starting_character(
 		"genetics": generate_random_genetics(),
 
 		"is_alive": true,
-		"birth_date": generate_birth_date_for_age(
+		"birth_date": generate_starting_birth_date_for_age(
 			selected_age
 		),
 		"death_date": null,
