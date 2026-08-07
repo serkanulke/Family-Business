@@ -322,7 +322,35 @@ func _test_three_year_major_immediate_graduation() -> void:
 	character["school_id"] = _find_school_id("university", "public")
 	character["education_status"] = "studying"
 	character["education_start_date"] = "1982-01-26"
-	var major := _find_major_with_duration(3, true)
+	
+	var fallback_majors := EducationManager.get_fallback_majors()
+
+	var major: Dictionary = {}
+
+	for major_value in fallback_majors:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var fallback_major: Dictionary = major_value
+
+		if int(
+			fallback_major.get(
+				"duration_years",
+				0
+			)
+		) == 3:
+			major = fallback_major
+			break
+
+	if major.is_empty():
+		_assert_true(
+			false,
+			"Three-year fallback major test data exists"
+		)
+		return
+	
 	var major_id := int(major.get("major_id", 0))
 	_set_active_event(1, "major_selection", "university")
 	var result := EducationManager.select_major(1, major_id)
