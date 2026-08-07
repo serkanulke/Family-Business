@@ -833,7 +833,9 @@ func get_eligible_normal_majors(
 
 	return eligible_majors
 	
-func get_fallback_major() -> Dictionary:
+func get_fallback_majors() -> Array:
+	var fallback_majors: Array = []
+
 	for major_value in CharacterManager.majors:
 		if typeof(
 			major_value
@@ -843,9 +845,11 @@ func get_fallback_major() -> Dictionary:
 		var major: Dictionary = major_value
 
 		if is_fallback_major(major):
-			return major
+			fallback_majors.append(
+				major
+			)
 
-	return {}
+	return fallback_majors
 
 func get_available_majors_for_character(
 	character_id: int
@@ -875,14 +879,12 @@ func get_available_majors_for_character(
 	if not eligible_normal_majors.is_empty():
 		return eligible_normal_majors
 
-	var fallback_major := get_fallback_major()
+	var fallback_majors := get_fallback_majors()
 
-	if fallback_major.is_empty():
+	if fallback_majors.is_empty():
 		push_error(
-			"No fallback major could be found."
+			"No fallback majors could be found."
 		)
 		return []
 
-	return [
-		fallback_major
-	]
+	return fallback_majors
