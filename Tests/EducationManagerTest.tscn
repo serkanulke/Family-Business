@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://csjm32pwhn74q"]
+
+[ext_resource type="Script" uid="uid://lkswvp83q644" path="res://Tests/EducationManagerTest.gd" id="1_ec0jl"]
+
+[node name="EducationManagerTest" type="Node" unique_id=1187175825]
+script = ExtResource("1_ec0jl")
