@@ -333,33 +333,19 @@ func get_birthday_education_event(
 			}
 
 		MIDDLE_START_AGE:
-			graduate_current_school(
-				character,
-				"primary_school"
-			)
-
 			return {
 				"event_type": "school_transition",
 				"education_stage": "middle_school"
 			}
 
-		HIGH_START_AGE:
-			graduate_current_school(
-				character,
-				"middle_school"
-			)
 
+		HIGH_START_AGE:
 			return {
 				"event_type": "school_transition",
 				"education_stage": "high_school"
 			}
 
 		UNIVERSITY_START_AGE:
-			graduate_current_school(
-				character,
-				"high_school"
-			)
-
 			return {
 				"event_type": "university_choice",
 				"education_stage": "university"
@@ -599,6 +585,33 @@ func request_next_education_event() -> void:
 			""
 		)
 	)
+	
+	var character := CharacterManager.get_character_by_id(
+	character_id
+)
+
+	if not character.is_empty():
+		match education_stage:
+			"middle_school":
+				graduate_current_school(
+					character,
+					"primary_school"
+				)
+
+			"high_school":
+				graduate_current_school(
+					character,
+					"middle_school"
+				)
+
+			"university":
+				if event_type == "university_choice":
+					graduate_current_school(
+						character,
+						"high_school"
+					)
+
+
 
 	if event_type == "major_selection":
 		major_selection_requested.emit(
