@@ -1301,6 +1301,12 @@ func create_base_starting_character(
 		"school_id": null,
 		"major_id": null,
 
+		"education_status": "none",
+		"education_start_date": null,
+		"major_selection_date": null,
+		"expected_graduation_date": null,
+		"graduation_date": null,
+
 		"is_retired": false,
 		"job_id": null,
 		"company_id": null,
@@ -1578,6 +1584,12 @@ func create_base_baby_character(
 
 		"school_id": null,
 		"major_id": null,
+
+		"education_status": "none",
+		"education_start_date": null,
+		"major_selection_date": null,
+		"expected_graduation_date": null,
+		"graduation_date": null,
 
 		"is_retired": false,
 		"job_id": null,
