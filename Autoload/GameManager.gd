@@ -7,6 +7,10 @@ signal new_game_started(
 	starting_character: Dictionary
 )
 
+signal family_money_changed(
+	new_amount: int
+)
+
 const VALID_LIFESPAN_SETTINGS: Array[String] = [
 	"short",
 	"normal",
@@ -14,9 +18,9 @@ const VALID_LIFESPAN_SETTINGS: Array[String] = [
 ]
 
 
-
 var lifespan_setting: String = "normal"
 
+var family_money: int = 0
 
 func set_lifespan_setting(value: String) -> void:
 	var normalized_value := value.strip_edges().to_lower()
@@ -106,3 +110,46 @@ func start_new_game(
 	)
 
 	return starting_character
+
+func set_family_money(
+	amount: int
+) -> void:
+	family_money = maxi(
+		amount,
+		0
+	)
+
+	family_money_changed.emit(
+		family_money
+	)
+
+
+func can_afford(
+	amount: int
+) -> bool:
+	if amount <= 0:
+		return true
+
+	return family_money >= amount
+
+
+func spend_family_money(
+	amount: int
+) -> bool:
+	if amount < 0:
+		push_error(
+			"Money amount cannot be negative."
+		)
+		return false
+
+	if amount == 0:
+		return true
+
+	if not can_afford(amount):
+		return false
+
+	set_family_money(
+		family_money - amount
+	)
+
+	return true

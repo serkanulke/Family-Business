@@ -681,6 +681,27 @@ func enroll_character_in_school(
 			+ school_stage
 		)
 		return false
+		
+	var school_cost := int(
+		school.get(
+			"base_cost",
+			0
+		)
+	)
+
+	if not GameManager.can_afford(
+		school_cost
+	):
+		push_error(
+			"Family cannot afford school: "
+			+ str(school_id)
+		)
+		return false
+
+	if not GameManager.spend_family_money(
+		school_cost
+	):
+		return false
 
 	character["school_id"] = school_id
 	character["major_id"] = null
