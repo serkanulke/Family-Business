@@ -255,3 +255,67 @@ func get_eligible_external_offers(
 			})
 
 	return offers
+
+func get_unemployed_offer_pool(
+	character: Dictionary
+) -> Array:
+	if not is_character_eligible_for_external_jobs(character):
+		return []
+
+	if character.get("job_id", null) != null:
+		return []
+
+	return get_eligible_external_offers(character)
+
+
+func get_employed_advancement_offer_pool(
+	character: Dictionary
+) -> Array:
+	var offers: Array = []
+
+	if not is_character_eligible_for_external_jobs(character):
+		return offers
+
+	var current_job_id = character.get(
+		"job_id",
+		null
+	)
+
+	if current_job_id == null:
+		return offers
+
+	var current_salary := int(
+		character.get(
+			"salary",
+			0
+		)
+	)
+
+	var eligible_offers := get_eligible_external_offers(
+		character
+	)
+
+	for offer in eligible_offers:
+		var offered_job_id := int(
+			offer.get(
+				"job_id",
+				-1
+			)
+		)
+
+		var offered_salary := int(
+			offer.get(
+				"salary",
+				0
+			)
+		)
+
+		if offered_job_id == int(current_job_id):
+			continue
+
+		if offered_salary <= current_salary:
+			continue
+
+		offers.append(offer)
+
+	return offers
