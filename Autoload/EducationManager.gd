@@ -323,18 +323,33 @@ func get_birthday_education_event(
 			}
 
 		MIDDLE_START_AGE:
+			graduate_current_school(
+				character,
+				"primary_school"
+			)
+
 			return {
 				"event_type": "school_transition",
 				"education_stage": "middle_school"
 			}
 
 		HIGH_START_AGE:
+			graduate_current_school(
+				character,
+				"middle_school"
+			)
+
 			return {
 				"event_type": "school_transition",
 				"education_stage": "high_school"
 			}
 
 		UNIVERSITY_START_AGE:
+			graduate_current_school(
+				character,
+				"high_school"
+			)
+
 			return {
 				"event_type": "university_choice",
 				"education_stage": "university"
@@ -652,5 +667,73 @@ func enroll_character_in_school(
 	)
 
 	complete_current_education_event()
+
+	return true
+
+func graduate_current_school(
+	character: Dictionary,
+	expected_stage: String
+) -> bool:
+	if String(
+		character.get(
+			"education_status",
+			"none"
+		)
+	) != "studying":
+		return false
+
+	var school_id_value = character.get(
+		"school_id",
+		null
+	)
+
+	if school_id_value == null:
+		return false
+
+	var school_id := int(school_id_value)
+
+	var school := get_school_by_id(
+		school_id
+	)
+
+	if school.is_empty():
+		return false
+
+	if String(
+		school.get(
+			"education_stage",
+			""
+		)
+	) != expected_stage:
+		return false
+
+	var graduation_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	character["education_status"] = "graduated"
+	character["graduation_date"] = graduation_date
+
+	add_education_event_log(
+		character,
+		"education_graduated",
+		school_id,
+		character.get(
+			"major_id",
+			null
+		)
+	)
+
+	print(
+		"Character graduated from school: ",
+		character.get(
+			"character_id",
+			0
+		),
+		" | School: ",
+		school_id,
+		" | Date: ",
+		graduation_date
+	)
 
 	return true
