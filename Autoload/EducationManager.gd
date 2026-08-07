@@ -305,6 +305,12 @@ func is_character_birthday(
 func get_birthday_education_event(
 	character: Dictionary
 ) -> Dictionary:
+	if not character.get(
+		"is_player_family",
+		false
+	):
+		return {}
+	
 	if not character.get("is_alive", true):
 		return {}
 
@@ -635,6 +641,40 @@ func enroll_character_in_school(
 			+ str(school_id)
 		)
 		return false
+		
+	var character_age := CharacterManager.get_character_age(
+		character
+	)
+
+	var expected_stage := (
+		get_expected_education_stage_for_age(
+			character_age
+		)
+	)
+
+	if expected_stage.is_empty():
+		push_error(
+			"Character is not at a school enrollment age: "
+			+ str(character_age)
+		)
+		return false
+
+	var school_stage := String(
+		school.get(
+			"education_stage",
+			""
+		)
+	)
+
+	if school_stage != expected_stage:
+		push_error(
+			"School stage does not match character age. "
+			+ "Expected: "
+			+ expected_stage
+			+ " | Received: "
+			+ school_stage
+		)
+		return false
 
 	character["school_id"] = school_id
 	character["major_id"] = null
@@ -756,6 +796,12 @@ func decline_university(
 	if not character.get(
 		"is_alive",
 		true
+	):
+		return false
+		
+	if not character.get(
+		"is_player_family",
+		false
 	):
 		return false
 
@@ -1161,3 +1207,21 @@ func check_university_graduations() -> void:
 			character,
 			"university"
 		)
+
+func get_expected_education_stage_for_age(
+	age: int
+) -> String:
+	match age:
+		PRIMARY_START_AGE:
+			return "primary_school"
+
+		MIDDLE_START_AGE:
+			return "middle_school"
+
+		HIGH_START_AGE:
+			return "high_school"
+
+		UNIVERSITY_START_AGE:
+			return "university"
+
+	return ""
