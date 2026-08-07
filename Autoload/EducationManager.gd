@@ -423,6 +423,66 @@ func _on_date_changed(
 	check_university_graduations()
 	check_birthday_education_events()
 
+func has_education_event_pending(
+	character_id: int,
+	event_type: String,
+	education_stage: String
+) -> bool:
+	if (
+		is_education_event_active
+		and int(
+			current_education_event.get(
+				"character_id",
+				0
+			)
+		) == character_id
+		and String(
+			current_education_event.get(
+				"event_type",
+				""
+			)
+		) == event_type
+		and String(
+			current_education_event.get(
+				"education_stage",
+				""
+			)
+		) == education_stage
+	):
+		return true
+
+	for event_value in education_event_queue:
+		if typeof(
+			event_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var event_data: Dictionary = event_value
+
+		if (
+			int(
+				event_data.get(
+					"character_id",
+					0
+				)
+			) == character_id
+			and String(
+				event_data.get(
+					"event_type",
+					""
+				)
+			) == event_type
+			and String(
+				event_data.get(
+					"education_stage",
+					""
+				)
+			) == education_stage
+		):
+			return true
+
+	return false
+
 
 func check_birthday_education_events() -> void:
 	var pending_events: Array = []
@@ -446,25 +506,38 @@ func check_birthday_education_events() -> void:
 		if education_event.is_empty():
 			continue
 
-		pending_events.append({
-			"character_id": int(
-				character.get(
-					"character_id",
-					0
-				)
-			),
-			"event_type": String(
-				education_event.get(
-					"event_type",
-					""
-				)
-			),
-			"education_stage": String(
-				education_event.get(
-					"education_stage",
-					""
-				)
+		var character_id := int(
+			character.get(
+				"character_id",
+				0
 			)
+		)
+
+		var event_type := String(
+			education_event.get(
+				"event_type",
+				""
+			)
+		)
+
+		var education_stage := String(
+			education_event.get(
+				"education_stage",
+				""
+			)
+		)
+
+		if has_education_event_pending(
+			character_id,
+			event_type,
+			education_stage
+		):
+			continue
+
+		pending_events.append({
+			"character_id": character_id,
+			"event_type": event_type,
+			"education_stage": education_stage
 		})
 
 	pending_events.sort_custom(
