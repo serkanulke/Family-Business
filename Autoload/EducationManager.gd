@@ -1,6 +1,16 @@
 extends Node
 
 
+signal education_event_requested(
+	character_id: int,
+	event_type: String,
+	education_stage: String
+)
+
+signal major_selection_requested(
+	character_id: int
+)
+
 const SCHOOL_DATA_PATH := "res://Resources/Json/School.json"
 const DEFAULT_SCHOOL_ICON_PATH := \
 	"res://Resources/Icons/Schools/default_school.svg"
@@ -19,12 +29,22 @@ const VALID_SCHOOL_TYPES: Array[String] = [
 	"prestige"
 ]
 
+const PRIMARY_START_AGE := 6
+const MIDDLE_START_AGE := 12
+const HIGH_START_AGE := 15
+const UNIVERSITY_START_AGE := 18
+const MAJOR_SELECTION_AGE := 21
+
 
 var schools: Array = []
 
 
 func _ready() -> void:
 	load_school_data()
+
+	TimeManager.date_changed.connect(
+		_on_date_changed
+	)
 
 
 func load_school_data() -> void:
@@ -260,3 +280,209 @@ func _load_json_array(
 
 	return loaded_array
 	
+func is_character_birthday(
+	character: Dictionary
+) -> bool:
+	var birth_date := String(
+		character.get("birth_date", "")
+	)
+
+	var date_parts := birth_date.split("-")
+
+	if date_parts.size() != 3:
+		return false
+
+	var birth_month := int(date_parts[1])
+	var birth_day := int(date_parts[2])
+
+	return (
+		TimeManager.current_month == birth_month
+		and TimeManager.current_day == birth_day
+	)
+
+func get_birthday_education_event(
+	character: Dictionary
+) -> Dictionary:
+	if not character.get("is_alive", true):
+		return {}
+
+	if not is_character_birthday(character):
+		return {}
+
+	var age := CharacterManager.get_character_age(
+		character
+	)
+
+	match age:
+		PRIMARY_START_AGE:
+			return {
+				"event_type": "school_enrollment",
+				"education_stage": "primary_school"
+			}
+
+		MIDDLE_START_AGE:
+			return {
+				"event_type": "school_transition",
+				"education_stage": "middle_school"
+			}
+
+		HIGH_START_AGE:
+			return {
+				"event_type": "school_transition",
+				"education_stage": "high_school"
+			}
+
+		UNIVERSITY_START_AGE:
+			return {
+				"event_type": "university_choice",
+				"education_stage": "university"
+			}
+
+		MAJOR_SELECTION_AGE:
+			if should_request_major_selection(
+				character
+			):
+				return {
+					"event_type": "major_selection",
+					"education_stage": "university"
+				}
+
+	return {}
+
+func should_request_major_selection(
+	character: Dictionary
+) -> bool:
+	if String(
+		character.get(
+			"education_status",
+			"none"
+		)
+	) != "studying":
+		return false
+
+	if character.get(
+		"school_id",
+		null
+	) == null:
+		return false
+
+	if character.get(
+		"major_id",
+		null
+	) != null:
+		return false
+
+	var school_id := int(
+		character.get("school_id", 0)
+	)
+
+	var school := get_school_by_id(
+		school_id
+	)
+
+	if school.is_empty():
+		return false
+
+	return String(
+		school.get(
+			"education_stage",
+			""
+		)
+	) == "university"
+
+func _on_date_changed(
+	_date_text: String
+) -> void:
+	check_birthday_education_events()
+
+
+func check_birthday_education_events() -> void:
+	var pending_events: Array = []
+
+	for character_value in CharacterManager.characters:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = (
+			character_value
+		)
+
+		var education_event := (
+			get_birthday_education_event(
+				character
+			)
+		)
+
+		if education_event.is_empty():
+			continue
+
+		pending_events.append({
+			"character_id": int(
+				character.get(
+					"character_id",
+					0
+				)
+			),
+			"event_type": String(
+				education_event.get(
+					"event_type",
+					""
+				)
+			),
+			"education_stage": String(
+				education_event.get(
+					"education_stage",
+					""
+				)
+			)
+		})
+
+	pending_events.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return int(
+				a["character_id"]
+			) < int(
+				b["character_id"]
+			)
+	)
+
+	for event_data_value in pending_events:
+		var event_data: Dictionary = (
+			event_data_value
+		)
+
+		var character_id := int(
+			event_data["character_id"]
+		)
+
+		var event_type := String(
+			event_data["event_type"]
+		)
+
+		var education_stage := String(
+			event_data[
+				"education_stage"
+			]
+		)
+
+		if event_type == "major_selection":
+			major_selection_requested.emit(
+				character_id
+			)
+		else:
+			education_event_requested.emit(
+				character_id,
+				event_type,
+				education_stage
+			)
+
+		print(
+			"Education event requested: ",
+			event_type,
+			" | Character: ",
+			character_id,
+			" | Stage: ",
+			education_stage
+		)
