@@ -519,3 +519,138 @@ func complete_current_education_event() -> void:
 
 	request_next_education_event()
 	
+func apply_school_stat_bonus(
+	character: Dictionary,
+	school: Dictionary
+) -> void:
+	var stat_bonus_value = school.get(
+		"stat_bonus",
+		{}
+	)
+
+	if typeof(stat_bonus_value) != TYPE_DICTIONARY:
+		push_error(
+			"School stat_bonus must be a Dictionary."
+		)
+		return
+
+	var stat_bonus: Dictionary = stat_bonus_value
+
+	for stat_name_value in stat_bonus.keys():
+		var stat_name := String(
+			stat_name_value
+		)
+
+		var bonus := int(
+			stat_bonus.get(
+				stat_name,
+				0
+			)
+		)
+
+		var current_value := int(
+			character.get(
+				stat_name,
+				0
+			)
+		)
+
+		character[stat_name] = mini(
+			current_value + bonus,
+			100
+		)
+
+func add_education_event_log(
+	character: Dictionary,
+	event_type: String,
+	school_id: int,
+	major_id = null
+) -> void:
+	var event_log_value = character.get(
+		"event_log",
+		[]
+	)
+
+	if typeof(event_log_value) != TYPE_ARRAY:
+		push_error(
+			"Character event_log must be an Array."
+		)
+		return
+
+	var event_log: Array = event_log_value
+
+	event_log.append({
+		"event_type": event_type,
+		"date": TimeManager.get_iso_date_string(),
+		"school_id": school_id,
+		"major_id": major_id
+	})
+
+	character["event_log"] = event_log
+
+func enroll_character_in_school(
+	character_id: int,
+	school_id: int
+) -> bool:
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		push_error(
+			"Character could not be found: "
+			+ str(character_id)
+		)
+		return false
+
+	if not character.get(
+		"is_alive",
+		true
+	):
+		return false
+
+	var school := get_school_by_id(
+		school_id
+	)
+
+	if school.is_empty():
+		push_error(
+			"School could not be found: "
+			+ str(school_id)
+		)
+		return false
+
+	character["school_id"] = school_id
+	character["major_id"] = null
+
+	character["education_status"] = "studying"
+
+	character["education_start_date"] = (
+		TimeManager.get_iso_date_string()
+	)
+
+	character["major_selection_date"] = null
+	character["expected_graduation_date"] = null
+	character["graduation_date"] = null
+
+	apply_school_stat_bonus(
+		character,
+		school
+	)
+
+	add_education_event_log(
+		character,
+		"education_started",
+		school_id
+	)
+
+	print(
+		"Character enrolled in school: ",
+		character_id,
+		" | School: ",
+		school_id
+	)
+
+	complete_current_education_event()
+
+	return true
