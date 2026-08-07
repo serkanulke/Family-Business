@@ -644,8 +644,7 @@ func apply_school_stat_bonus(
 func add_education_event_log(
 	character: Dictionary,
 	event_type: String,
-	school_id: int,
-	major_id = null
+	extra_data: Dictionary = {}
 ) -> void:
 	var event_log_value = character.get(
 		"event_log",
@@ -658,14 +657,19 @@ func add_education_event_log(
 		)
 		return
 
+	var event_data: Dictionary = {
+		"event_type": event_type,
+		"date": TimeManager.get_iso_date_string()
+	}
+
+	for key in extra_data.keys():
+		event_data[key] = extra_data[key]
+
 	var event_log: Array = event_log_value
 
-	event_log.append({
-		"event_type": event_type,
-		"date": TimeManager.get_iso_date_string(),
-		"school_id": school_id,
-		"major_id": major_id
-	})
+	event_log.append(
+		event_data
+	)
 
 	character["event_log"] = event_log
 
@@ -809,7 +813,9 @@ func enroll_character_in_school(
 	add_education_event_log(
 		character,
 		"education_started",
-		school_id
+		{
+			"school_id": school_id
+		}
 	)
 
 	print(
@@ -867,14 +873,24 @@ func graduate_current_school(
 	character["education_status"] = "graduated"
 	character["graduation_date"] = graduation_date
 
+	var graduation_log_data: Dictionary = {
+		"school_id": school_id
+	}
+
+	var major_id_value = character.get(
+		"major_id",
+		null
+	)
+
+	if major_id_value != null:
+		graduation_log_data["major_id"] = int(
+			major_id_value
+		)
+
 	add_education_event_log(
 		character,
 		"education_graduated",
-		school_id,
-		character.get(
-			"major_id",
-			null
-		)
+		graduation_log_data
 	)
 
 	print(
@@ -1260,13 +1276,15 @@ func select_major(
 	add_education_event_log(
 		character,
 		"major_selected",
-		int(
-			character.get(
-				"school_id",
-				0
-			)
-		),
-		major_id
+		{
+			"school_id": int(
+				character.get(
+					"school_id",
+					0
+				)
+			),
+			"major_id": major_id
+		}
 	)
 
 	print(
