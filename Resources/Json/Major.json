@@ -126,6 +126,17 @@
       "duration_years": 4
     },
     {
+      "major_id": 5014,
+      "major_name": "Leadership & Public Administration",
+      "required_stats": {
+        "confidence": 65,
+        "social": 60,
+        "discipline": 55,
+        "logic": 50
+      },
+      "duration_years": 4
+    },
+    {
       "major_id": 5015,
       "major_name": "Hospitality, Culinary Arts & Luxury Management",
       "required_stats": {
