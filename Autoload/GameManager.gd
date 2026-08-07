@@ -17,6 +17,8 @@ const VALID_LIFESPAN_SETTINGS: Array[String] = [
 	"long"
 ]
 
+const STARTING_FAMILY_MONEY := 15000
+
 
 var lifespan_setting: String = "normal"
 
@@ -74,6 +76,10 @@ func start_new_game(
 
 	TimeManager.reset_time()
 
+	set_family_money(
+		STARTING_FAMILY_MONEY
+	)
+
 	CharacterManager.reset_characters_for_new_game()
 
 	var starting_character := (
@@ -105,6 +111,8 @@ func start_new_game(
 			"first_name",
 			""
 		),
+		" | Money: ",
+		family_money,
 		" | Date: ",
 		TimeManager.get_iso_date_string()
 	)
