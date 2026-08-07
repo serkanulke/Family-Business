@@ -788,6 +788,14 @@ func get_eligible_starting_majors(
 
 		var major: Dictionary = major_value
 
+		if bool(
+			major.get(
+				"is_fallback",
+				false
+			)
+		):
+			continue
+
 		var duration_years := int(
 			major.get("duration_years", 0)
 		)
