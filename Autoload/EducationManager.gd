@@ -780,3 +780,109 @@ func decline_university(
 	complete_current_education_event()
 
 	return true
+
+func is_fallback_major(
+	major: Dictionary
+) -> bool:
+	return bool(
+		major.get(
+			"is_fallback",
+			false
+		)
+	)
+
+func get_eligible_normal_majors(
+	character: Dictionary
+) -> Array:
+	var eligible_majors: Array = []
+
+	for major_value in CharacterManager.majors:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+
+		if is_fallback_major(major):
+			continue
+
+		var required_stats_value = major.get(
+			"required_stats",
+			{}
+		)
+
+		if typeof(
+			required_stats_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var required_stats: Dictionary = (
+			required_stats_value
+		)
+
+		if not CharacterManager.character_meets_required_stats(
+			character,
+			required_stats
+		):
+			continue
+
+		eligible_majors.append(
+			major
+		)
+
+	return eligible_majors
+	
+func get_fallback_major() -> Dictionary:
+	for major_value in CharacterManager.majors:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+
+		if is_fallback_major(major):
+			return major
+
+	return {}
+
+func get_available_majors_for_character(
+	character_id: int
+) -> Array:
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		push_error(
+			"Character could not be found: "
+			+ str(character_id)
+		)
+		return []
+
+	if not should_request_major_selection(
+		character
+	):
+		return []
+
+	var eligible_normal_majors := (
+		get_eligible_normal_majors(
+			character
+		)
+	)
+
+	if not eligible_normal_majors.is_empty():
+		return eligible_normal_majors
+
+	var fallback_major := get_fallback_major()
+
+	if fallback_major.is_empty():
+		push_error(
+			"No fallback major could be found."
+		)
+		return []
+
+	return [
+		fallback_major
+	]
