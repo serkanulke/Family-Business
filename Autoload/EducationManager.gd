@@ -37,6 +37,8 @@ const MAJOR_SELECTION_AGE := 21
 
 
 var schools: Array = []
+var education_event_queue: Array = []
+var is_education_event_active: bool = false
 
 
 func _ready() -> void:
@@ -448,41 +450,72 @@ func check_birthday_education_events() -> void:
 			)
 	)
 
-	for event_data_value in pending_events:
-		var event_data: Dictionary = (
-			event_data_value
+	for event_data in pending_events:
+		education_event_queue.append(
+			event_data
 		)
 
-		var character_id := int(
-			event_data["character_id"]
+	request_next_education_event()
+
+func request_next_education_event() -> void:
+	if is_education_event_active:
+		return
+
+	if education_event_queue.is_empty():
+		return
+
+	var event_data: Dictionary = (
+		education_event_queue.pop_front()
+	)
+
+	is_education_event_active = true
+
+	var character_id := int(
+		event_data.get(
+			"character_id",
+			0
 		)
+	)
 
-		var event_type := String(
-			event_data["event_type"]
+	var event_type := String(
+		event_data.get(
+			"event_type",
+			""
 		)
+	)
 
-		var education_stage := String(
-			event_data[
-				"education_stage"
-			]
+	var education_stage := String(
+		event_data.get(
+			"education_stage",
+			""
 		)
+	)
 
-		if event_type == "major_selection":
-			major_selection_requested.emit(
-				character_id
-			)
-		else:
-			education_event_requested.emit(
-				character_id,
-				event_type,
-				education_stage
-			)
-
-		print(
-			"Education event requested: ",
-			event_type,
-			" | Character: ",
+	if event_type == "major_selection":
+		major_selection_requested.emit(
+			character_id
+		)
+	else:
+		education_event_requested.emit(
 			character_id,
-			" | Stage: ",
+			event_type,
 			education_stage
 		)
+
+	print(
+		"Education event requested: ",
+		event_type,
+		" | Character: ",
+		character_id,
+		" | Stage: ",
+		education_stage
+	)
+
+func complete_current_education_event() -> void:
+	if not is_education_event_active:
+		return
+
+	is_education_event_active = false
+
+	request_next_education_event()
+	
