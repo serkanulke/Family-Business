@@ -1,6 +1,13 @@
 extends Node
 
 
+signal job_offer_requested(
+	character_id: int,
+	job_id: int,
+	company_id: String,
+	salary: int
+)
+
 const COMPANY_DATA_PATH := "res://Resources/Json/Companies.json"
 const MIN_COMPANIES_PER_JOB := 5
 
@@ -20,6 +27,10 @@ var companies: Array = []
 func _ready() -> void:
 	load_company_data()
 	validate_company_job_links()
+
+	TimeManager.date_changed.connect(
+		_on_date_changed
+	)
 
 
 func load_company_data() -> void:
@@ -447,3 +458,396 @@ func get_unemployed_daily_offer_chance(
 		return UNEMPLOYED_CHANCE_91_TO_180_DAYS
 
 	return UNEMPLOYED_CHANCE_OVER_180_DAYS
+
+func is_character_assigned_to_family_business(
+	character_id: int
+) -> bool:
+	var business_manager := get_node_or_null(
+		"/root/BusinessManager"
+	)
+
+	if business_manager == null:
+		return false
+
+	if not business_manager.has_method(
+		"is_character_assigned"
+	):
+		return false
+
+	return bool(
+		business_manager.call(
+			"is_character_assigned",
+			character_id
+		)
+	)
+
+func game_day_index_to_iso_date(
+	day_index: int
+) -> String:
+	if day_index < 0:
+		return ""
+
+	var year := int(
+		floor(
+			float(day_index) / 365.0
+		)
+	)
+
+	var remaining_days := (
+		day_index - year * 365
+	)
+
+	var month := 1
+
+	while (
+		month <= 12
+		and remaining_days
+		>= TimeManager.DAYS_IN_MONTH[
+			month - 1
+		]
+	):
+		remaining_days -= (
+			TimeManager.DAYS_IN_MONTH[
+				month - 1
+			]
+		)
+
+		month += 1
+
+	var day := remaining_days + 1
+
+	return "%04d-%02d-%02d" % [
+		year,
+		month,
+		day
+	]
+
+
+func add_game_days_to_iso_date(
+	date_text: String,
+	days_to_add: int
+) -> String:
+	var starting_index := (
+		iso_date_to_game_day_index(
+			date_text
+		)
+	)
+
+	if starting_index < 0:
+		return ""
+
+	return game_day_index_to_iso_date(
+		starting_index + days_to_add
+	)
+
+func is_unemployed_offer_on_cooldown(
+	character: Dictionary
+) -> bool:
+	var cooldown_until = character.get(
+		"job_offer_cooldown_until",
+		null
+	)
+
+	if cooldown_until == null:
+		return false
+
+	var cooldown_day := (
+		iso_date_to_game_day_index(
+			String(cooldown_until)
+		)
+	)
+
+	if cooldown_day < 0:
+		character[
+			"job_offer_cooldown_until"
+		] = null
+
+		return false
+
+	if get_current_game_day_index() <= cooldown_day:
+		return true
+
+	character[
+		"job_offer_cooldown_until"
+	] = null
+
+	return false
+
+
+func start_unemployed_offer_cooldown(
+	character: Dictionary
+) -> void:
+	var current_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	character[
+		"job_offer_cooldown_until"
+	] = add_game_days_to_iso_date(
+		current_date,
+		UNEMPLOYED_OFFER_COOLDOWN_DAYS
+	)
+
+func select_random_offer_from_pool(
+	offers: Array
+) -> Dictionary:
+	if offers.is_empty():
+		return {}
+
+	var offers_by_job: Dictionary = {}
+
+	for offer_value in offers:
+		if typeof(offer_value) != TYPE_DICTIONARY:
+			continue
+
+		var offer: Dictionary = offer_value
+
+		var job_id := int(
+			offer.get(
+				"job_id",
+				-1
+			)
+		)
+
+		if job_id < 0:
+			continue
+
+		if not offers_by_job.has(job_id):
+			offers_by_job[job_id] = []
+
+		offers_by_job[job_id].append(
+			offer
+		)
+
+	if offers_by_job.is_empty():
+		return {}
+
+	var eligible_job_ids: Array = (
+		offers_by_job.keys()
+	)
+
+	var selected_job_id = (
+		eligible_job_ids.pick_random()
+	)
+
+	var company_offers: Array = (
+		offers_by_job[
+			selected_job_id
+		]
+	)
+
+	if company_offers.is_empty():
+		return {}
+
+	var selected_offer_value = (
+		company_offers.pick_random()
+	)
+
+	if typeof(selected_offer_value) != TYPE_DICTIONARY:
+		return {}
+
+	return selected_offer_value
+
+func request_job_offer(
+	character: Dictionary,
+	offer: Dictionary
+) -> void:
+	if offer.is_empty():
+		return
+
+	var character_id := int(
+		character.get(
+			"character_id",
+			0
+		)
+	)
+
+	var job_id := int(
+		offer.get(
+			"job_id",
+			-1
+		)
+	)
+
+	var company_id := String(
+		offer.get(
+			"company_id",
+			""
+		)
+	)
+
+	var salary := int(
+		offer.get(
+			"salary",
+			0
+		)
+	)
+
+	if (
+		character_id <= 0
+		or job_id < 0
+		or company_id.is_empty()
+	):
+		return
+
+	job_offer_requested.emit(
+		character_id,
+		job_id,
+		company_id,
+		salary
+	)
+
+	var job := get_job_by_id(job_id)
+	var company := get_company_by_id(
+		company_id
+	)
+
+	print(
+		"JOB OFFER | Character: ",
+		character_id,
+		" | Job: ",
+		job.get("job_name", job_id),
+		" | Company: ",
+		company.get(
+			"company_name",
+			company_id
+		),
+		" | Salary: ",
+		salary
+	)
+
+func check_unemployed_character_offer(
+	character: Dictionary
+) -> void:
+	if character.get("job_id", null) != null:
+		return
+
+	var character_id := int(
+		character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if is_character_assigned_to_family_business(
+		character_id
+	):
+		return
+
+	if is_unemployed_offer_on_cooldown(
+		character
+	):
+		return
+
+	var offer_pool := (
+		get_unemployed_offer_pool(
+			character
+		)
+	)
+
+	if offer_pool.is_empty():
+		return
+
+	var daily_chance := (
+		get_unemployed_daily_offer_chance(
+			character
+		)
+	)
+
+	if randf() > daily_chance:
+		return
+
+	var selected_offer := (
+		select_random_offer_from_pool(
+			offer_pool
+		)
+	)
+
+	if selected_offer.is_empty():
+		return
+
+	start_unemployed_offer_cooldown(
+		character
+	)
+
+	request_job_offer(
+		character,
+		selected_offer
+	)
+
+func check_employed_character_offer(
+	character: Dictionary
+) -> void:
+	if character.get("job_id", null) == null:
+		return
+
+	var character_id := int(
+		character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if is_character_assigned_to_family_business(
+		character_id
+	):
+		return
+
+	var offer_pool := (
+		get_employed_advancement_offer_pool(
+			character
+		)
+	)
+
+	if offer_pool.is_empty():
+		return
+
+	if randf() > EMPLOYED_MONTHLY_OFFER_CHANCE:
+		return
+
+	var selected_offer := (
+		select_random_offer_from_pool(
+			offer_pool
+		)
+	)
+
+	if selected_offer.is_empty():
+		return
+
+	request_job_offer(
+		character,
+		selected_offer
+	)
+
+func _on_date_changed(
+	_date_text: String
+) -> void:
+	for character_value in CharacterManager.characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = (
+			character_value
+		)
+
+		if not is_character_eligible_for_external_jobs(
+			character
+		):
+			continue
+
+		if character.get(
+			"job_id",
+			null
+		) == null:
+			check_unemployed_character_offer(
+				character
+			)
+
+			continue
+
+		if TimeManager.current_day != 1:
+			continue
+
+		check_employed_character_offer(
+			character
+		)
