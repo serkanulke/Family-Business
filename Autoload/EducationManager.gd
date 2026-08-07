@@ -41,6 +41,8 @@ var education_event_queue: Array = []
 var current_education_event: Dictionary = {}
 var is_education_event_active: bool = false
 
+var is_education_pause_active: bool = false
+var should_resume_time_after_education_events: bool = false
 
 
 func _ready() -> void:
@@ -488,6 +490,15 @@ func request_next_education_event() -> void:
 	if education_event_queue.is_empty():
 		return
 
+	if not is_education_pause_active:
+		should_resume_time_after_education_events = (
+			not TimeManager.is_paused
+		)
+
+		TimeManager.pause()
+
+		is_education_pause_active = true
+
 	var event_data: Dictionary = (
 		education_event_queue.pop_front()
 	)
@@ -543,7 +554,18 @@ func complete_current_education_event() -> void:
 	current_education_event = {}
 	is_education_event_active = false
 
-	request_next_education_event()
+	if not education_event_queue.is_empty():
+		request_next_education_event()
+		return
+
+	if (
+		is_education_pause_active
+		and should_resume_time_after_education_events
+	):
+		TimeManager.play()
+
+	is_education_pause_active = false
+	should_resume_time_after_education_events = false
 	
 
 func is_current_education_event(
