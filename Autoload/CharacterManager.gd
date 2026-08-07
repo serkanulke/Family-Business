@@ -82,6 +82,8 @@ const MAX_STAT_VALUE := 100
 const STARTING_CHARACTER_MIN_AGE := 18
 const STARTING_CHARACTER_MAX_AGE := 25
 
+const PUBLIC_UNIVERSITY_SCHOOL_ID := 4001
+
 const HAIR_COLORS: Array[String] = [
 	"blonde",
 	"red",
@@ -820,6 +822,139 @@ func get_eligible_starting_majors(
 
 	return eligible_majors
 
+func get_date_for_character_age(
+	character: Dictionary,
+	target_age: int
+) -> String:
+	var birth_date := String(
+		character.get(
+			"birth_date",
+			""
+		)
+	)
+
+	var date_parts := birth_date.split("-")
+
+	if date_parts.size() != 3:
+		push_error(
+			"Invalid character birth date: "
+			+ birth_date
+		)
+		return ""
+
+	var birth_year := int(date_parts[0])
+	var birth_month := int(date_parts[1])
+	var birth_day := int(date_parts[2])
+
+	return "%04d-%02d-%02d" % [
+		birth_year + target_age,
+		birth_month,
+		birth_day
+	]
+
+func apply_starting_education_history(
+	character: Dictionary,
+	major: Dictionary
+) -> void:
+	var major_id := int(
+		major.get(
+			"major_id",
+			0
+		)
+	)
+
+	var duration_years := int(
+		major.get(
+			"duration_years",
+			0
+		)
+	)
+
+	var university_start_date := (
+		get_date_for_character_age(
+			character,
+			UNIVERSITY_START_AGE
+		)
+	)
+
+	var major_selection_date := (
+		get_date_for_character_age(
+			character,
+			21
+		)
+	)
+
+	var graduation_date := (
+		get_date_for_character_age(
+			character,
+			UNIVERSITY_START_AGE
+			+ duration_years
+		)
+	)
+
+	if (
+		university_start_date.is_empty()
+		or major_selection_date.is_empty()
+		or graduation_date.is_empty()
+	):
+		return
+
+	character["school_id"] = (
+		PUBLIC_UNIVERSITY_SCHOOL_ID
+	)
+
+	character["major_id"] = major_id
+	character["education_status"] = "graduated"
+
+	character["education_start_date"] = (
+		university_start_date
+	)
+
+	character["major_selection_date"] = (
+		major_selection_date
+	)
+
+	character["expected_graduation_date"] = (
+		graduation_date
+	)
+
+	character["graduation_date"] = (
+		graduation_date
+	)
+
+	var event_log_value = character.get(
+		"event_log",
+		[]
+	)
+
+	if typeof(event_log_value) != TYPE_ARRAY:
+		event_log_value = []
+
+	var event_log: Array = event_log_value
+
+	event_log.append({
+		"event_type": "education_started",
+		"date": university_start_date,
+		"school_id": PUBLIC_UNIVERSITY_SCHOOL_ID,
+		"major_id": null
+	})
+
+	event_log.append({
+		"event_type": "major_selected",
+		"date": major_selection_date,
+		"school_id": PUBLIC_UNIVERSITY_SCHOOL_ID,
+		"major_id": major_id
+	})
+
+	event_log.append({
+		"event_type": "education_graduated",
+		"date": graduation_date,
+		"school_id": PUBLIC_UNIVERSITY_SCHOOL_ID,
+		"major_id": major_id
+	})
+
+	character["event_log"] = event_log
+
 func assign_starting_major(
 	character: Dictionary
 ) -> void:
@@ -854,8 +989,9 @@ func assign_starting_major(
 		selected_major_value
 	)
 
-	character["major_id"] = int(
-		selected_major.get("major_id", 0)
+	apply_starting_education_history(
+	character,
+	selected_major
 	)
 
 	print(

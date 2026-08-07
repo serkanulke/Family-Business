@@ -630,6 +630,12 @@ func enroll_character_in_school(
 		true
 	):
 		return false
+		
+	if not character.get(
+		"is_player_family",
+		false
+	):
+		return false
 
 	var school := get_school_by_id(
 		school_id
