@@ -890,7 +890,53 @@
       },
       "base_salary": 18000
     },
-
+    {
+      "job_id": 2076,
+      "job_name": "Public Administration Officer",
+      "required_major_id": 5014,
+      "required_stats": {
+        "discipline": 60,
+        "social": 55,
+        "logic": 50
+      },
+      "base_salary": 5600
+    },
+    {
+      "job_id": 2077,
+      "job_name": "Management Consultant",
+      "required_major_id": 5014,
+      "required_stats": {
+        "logic": 70,
+        "confidence": 65,
+        "social": 65,
+        "discipline": 60
+      },
+      "base_salary": 8200
+    },
+    {
+      "job_id": 2078,
+      "job_name": "Policy Advisor",
+      "required_major_id": 5014,
+      "required_stats": {
+        "logic": 72,
+        "social": 70,
+        "discipline": 65,
+        "confidence": 60
+      },
+      "base_salary": 7800
+    },
+    {
+      "job_id": 2079,
+      "job_name": "Operations Manager",
+      "required_major_id": 5014,
+      "required_stats": {
+        "discipline": 75,
+        "confidence": 70,
+        "logic": 65,
+        "social": 60
+      },
+      "base_salary": 9000
+    },
     
     {
       "job_id": 2071,
