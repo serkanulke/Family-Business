@@ -888,3 +888,217 @@ func get_available_majors_for_character(
 		return []
 
 	return fallback_majors
+
+func get_major_by_id(
+	major_id: int
+) -> Dictionary:
+	for major_value in CharacterManager.majors:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+
+		if int(
+			major.get(
+				"major_id",
+				0
+			)
+		) == major_id:
+			return major
+
+	return {}
+
+func is_major_available_for_character(
+	character_id: int,
+	major_id: int
+) -> bool:
+	var available_majors := (
+		get_available_majors_for_character(
+			character_id
+		)
+	)
+
+	for major_value in available_majors:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var major: Dictionary = major_value
+
+		if int(
+			major.get(
+				"major_id",
+				0
+			)
+		) == major_id:
+			return true
+
+	return false
+
+func get_expected_major_graduation_date(
+	character: Dictionary,
+	major: Dictionary
+) -> String:
+	var birth_date := String(
+		character.get(
+			"birth_date",
+			""
+		)
+	)
+
+	var date_parts := birth_date.split("-")
+
+	if date_parts.size() != 3:
+		push_error(
+			"Invalid character birth date: "
+			+ birth_date
+		)
+		return ""
+
+	var birth_year := int(
+		date_parts[0]
+	)
+
+	var birth_month := int(
+		date_parts[1]
+	)
+
+	var birth_day := int(
+		date_parts[2]
+	)
+
+	var duration_years := int(
+		major.get(
+			"duration_years",
+			0
+		)
+	)
+
+	if duration_years < 3:
+		push_error(
+			"Major duration cannot be less than 3 years."
+		)
+		return ""
+
+	var graduation_age := (
+		UNIVERSITY_START_AGE
+		+ duration_years
+	)
+
+	var graduation_year := (
+		birth_year
+		+ graduation_age
+	)
+
+	return "%04d-%02d-%02d" % [
+		graduation_year,
+		birth_month,
+		birth_day
+	]
+
+func select_major(
+	character_id: int,
+	major_id: int
+) -> bool:
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		push_error(
+			"Character could not be found: "
+			+ str(character_id)
+		)
+		return false
+
+	if not character.get(
+		"is_alive",
+		true
+	):
+		return false
+
+	if not is_major_available_for_character(
+		character_id,
+		major_id
+	):
+		push_error(
+			"Major is not available for character: "
+			+ str(major_id)
+		)
+		return false
+
+	var major := get_major_by_id(
+		major_id
+	)
+
+	if major.is_empty():
+		push_error(
+			"Major could not be found: "
+			+ str(major_id)
+		)
+		return false
+
+	var duration_years := int(
+		major.get(
+			"duration_years",
+			0
+		)
+	)
+
+	var selection_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	var expected_graduation_date := (
+		get_expected_major_graduation_date(
+			character,
+			major
+		)
+	)
+
+	if expected_graduation_date.is_empty():
+		return false
+
+	character["major_id"] = major_id
+
+	character["major_selection_date"] = (
+		selection_date
+	)
+
+	character["expected_graduation_date"] = (
+		expected_graduation_date
+	)
+
+	add_education_event_log(
+		character,
+		"major_selected",
+		int(
+			character.get(
+				"school_id",
+				0
+			)
+		),
+		major_id
+	)
+
+	print(
+		"Major selected: ",
+		major_id,
+		" | Character: ",
+		character_id,
+		" | Expected graduation: ",
+		expected_graduation_date
+	)
+
+	if duration_years == 3:
+		graduate_current_school(
+			character,
+			"university"
+		)
+
+	complete_current_education_event()
+
+	return true
