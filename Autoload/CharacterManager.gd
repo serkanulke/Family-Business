@@ -1458,6 +1458,9 @@ func create_base_starting_character(
 		"last_salary": 0,
 		"pension": 0,
 
+		"unemployment_start_date": null,
+		"job_offer_cooldown_until": null,
+
 		"flag_ids": [],
 		"event_log": []
 	}

@@ -4,6 +4,15 @@ extends Node
 const COMPANY_DATA_PATH := "res://Resources/Json/Companies.json"
 const MIN_COMPANIES_PER_JOB := 5
 
+const UNEMPLOYED_OFFER_COOLDOWN_DAYS := 7
+
+const UNEMPLOYED_CHANCE_FIRST_30_DAYS := 0.005
+const UNEMPLOYED_CHANCE_31_TO_60_DAYS := 0.01
+const UNEMPLOYED_CHANCE_61_TO_90_DAYS := 0.015
+const UNEMPLOYED_CHANCE_91_TO_180_DAYS := 0.02
+const UNEMPLOYED_CHANCE_OVER_180_DAYS := 0.03
+
+const EMPLOYED_MONTHLY_OFFER_CHANCE := 0.03
 
 var companies: Array = []
 
@@ -153,7 +162,20 @@ func is_character_eligible_for_external_jobs(
 	if character.is_empty():
 		return false
 
-	if bool(character.get("is_dead", false)):
+	if not bool(
+		character.get(
+			"is_alive",
+			true
+		)
+	):
+		return false
+
+	if not bool(
+		character.get(
+			"is_player_family",
+			false
+		)
+	):
 		return false
 
 	if bool(character.get("is_retired", false)):
@@ -319,3 +341,109 @@ func get_employed_advancement_offer_pool(
 		offers.append(offer)
 
 	return offers
+
+func iso_date_to_game_day_index(
+	date_text: String
+) -> int:
+	var parts := date_text.split("-")
+
+	if parts.size() != 3:
+		return -1
+
+	var year := int(parts[0])
+	var month := int(parts[1])
+	var day := int(parts[2])
+
+	if month < 1 or month > 12:
+		return -1
+
+	var result := year * 365
+
+	for month_index in range(month - 1):
+		result += TimeManager.DAYS_IN_MONTH[
+			month_index
+		]
+
+	result += day - 1
+
+	return result
+
+
+func get_current_game_day_index() -> int:
+	return iso_date_to_game_day_index(
+		TimeManager.get_iso_date_string()
+	)
+
+
+func get_days_since_iso_date(
+	date_text: String
+) -> int:
+	var start_day := iso_date_to_game_day_index(
+		date_text
+	)
+
+	if start_day < 0:
+		return 0
+
+	return maxi(
+		get_current_game_day_index() - start_day,
+		0
+	)
+
+func ensure_unemployment_start_date(
+	character: Dictionary
+) -> void:
+	if character.get("job_id", null) != null:
+		character["unemployment_start_date"] = null
+		return
+
+	if character.get(
+		"unemployment_start_date",
+		null
+	) != null:
+		return
+
+	var graduation_date = character.get(
+		"graduation_date",
+		null
+	)
+
+	if graduation_date != null:
+		character["unemployment_start_date"] = String(
+			graduation_date
+		)
+	else:
+		character["unemployment_start_date"] = (
+			TimeManager.get_iso_date_string()
+		)
+
+func get_unemployed_daily_offer_chance(
+	character: Dictionary
+) -> float:
+	ensure_unemployment_start_date(character)
+
+	var start_date = character.get(
+		"unemployment_start_date",
+		null
+	)
+
+	if start_date == null:
+		return 0.0
+
+	var unemployed_days := get_days_since_iso_date(
+		String(start_date)
+	)
+
+	if unemployed_days <= 30:
+		return UNEMPLOYED_CHANCE_FIRST_30_DAYS
+
+	if unemployed_days <= 60:
+		return UNEMPLOYED_CHANCE_31_TO_60_DAYS
+
+	if unemployed_days <= 90:
+		return UNEMPLOYED_CHANCE_61_TO_90_DAYS
+
+	if unemployed_days <= 180:
+		return UNEMPLOYED_CHANCE_91_TO_180_DAYS
+
+	return UNEMPLOYED_CHANCE_OVER_180_DAYS
