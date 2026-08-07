@@ -38,7 +38,9 @@ const MAJOR_SELECTION_AGE := 21
 
 var schools: Array = []
 var education_event_queue: Array = []
+var current_education_event: Dictionary = {}
 var is_education_event_active: bool = false
+
 
 
 func _ready() -> void:
@@ -490,6 +492,7 @@ func request_next_education_event() -> void:
 		education_event_queue.pop_front()
 	)
 
+	current_education_event = event_data
 	is_education_event_active = true
 
 	var character_id := int(
@@ -537,10 +540,44 @@ func complete_current_education_event() -> void:
 	if not is_education_event_active:
 		return
 
+	current_education_event = {}
 	is_education_event_active = false
 
 	request_next_education_event()
 	
+
+func is_current_education_event(
+	character_id: int,
+	event_type: String,
+	education_stage: String
+) -> bool:
+	if not is_education_event_active:
+		return false
+
+	if current_education_event.is_empty():
+		return false
+
+	return (
+		int(
+			current_education_event.get(
+				"character_id",
+				0
+			)
+		) == character_id
+		and String(
+			current_education_event.get(
+				"event_type",
+				""
+			)
+		) == event_type
+		and String(
+			current_education_event.get(
+				"education_stage",
+				""
+			)
+		) == education_stage
+	)
+
 func apply_school_stat_bonus(
 	character: Dictionary,
 	school: Dictionary
@@ -689,6 +726,32 @@ func enroll_character_in_school(
 		)
 	)
 
+	var expected_event_type := ""
+
+	match expected_stage:
+		"primary_school":
+			expected_event_type = "school_enrollment"
+
+		"middle_school", "high_school":
+			expected_event_type = "school_transition"
+
+		"university":
+			expected_event_type = "university_choice"
+
+	if expected_event_type.is_empty():
+		return false
+
+	if not is_current_education_event(
+		character_id,
+		expected_event_type,
+		expected_stage
+	):
+		push_error(
+			"School enrollment does not match the active education event."
+		)
+		return false
+
+
 	if not GameManager.can_afford(
 		school_cost
 	):
@@ -830,6 +893,16 @@ func decline_university(
 		"is_player_family",
 		false
 	):
+		return false
+
+	if not is_current_education_event(
+		character_id,
+		"university_choice",
+		"university"
+	):
+		push_error(
+			"University decline does not match the active education event."
+		)
 		return false
 
 	var age := CharacterManager.get_character_age(
@@ -1092,6 +1165,22 @@ func select_major(
 		"is_alive",
 		true
 	):
+		return false
+
+	if not character.get(
+		"is_player_family",
+		false
+	):
+		return false
+
+	if not is_current_education_event(
+		character_id,
+		"major_selection",
+		"university"
+	):
+		push_error(
+			"Major selection does not match the active education event."
+		)
 		return false
 
 	if not is_major_available_for_character(
