@@ -1,13 +1,3 @@
 {
-  "businesses": [
-    {
-      "business_instance_id": "hospital_001",
-      "slots": [
-        {
-          "slot_id": "doctor_01",
-          "assigned_character_id": 1
-        }
-      ]
-    }
-  ]
+  "businesses": []
 }
