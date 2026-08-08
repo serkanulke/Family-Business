@@ -95,6 +95,14 @@ func start_new_game(
 		)
 		return {}
 
+	if starting_character.get(
+		"job_id",
+		null
+	) != null:
+		CareerManager.assign_company_for_existing_job(
+			starting_character
+		)
+
 	new_game_started.emit(
 		starting_character
 	)

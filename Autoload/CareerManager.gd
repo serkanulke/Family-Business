@@ -22,7 +22,7 @@ const UNEMPLOYED_CHANCE_OVER_180_DAYS := 0.03
 const EMPLOYED_MONTHLY_OFFER_CHANCE := 0.03
 
 var companies: Array = []
-
+var active_job_offers: Dictionary = {}
 
 func _ready() -> void:
 	load_company_data()
@@ -690,6 +690,19 @@ func request_job_offer(
 	):
 		return
 
+	if active_job_offers.has(
+		character_id
+	):
+		return
+
+	active_job_offers[
+		character_id
+	] = {
+		"job_id": job_id,
+		"company_id": company_id,
+		"salary": salary
+	}
+
 	job_offer_requested.emit(
 		character_id,
 		job_id,
@@ -728,6 +741,11 @@ func check_unemployed_character_offer(
 			0
 		)
 	)
+
+	if active_job_offers.has(
+		character_id
+	):
+		return
 
 	if is_character_assigned_to_family_business(
 		character_id
@@ -787,6 +805,11 @@ func check_employed_character_offer(
 			0
 		)
 	)
+	
+	if active_job_offers.has(
+		character_id
+	):
+		return
 
 	if is_character_assigned_to_family_business(
 		character_id
@@ -851,3 +874,298 @@ func _on_date_changed(
 		check_employed_character_offer(
 			character
 		)
+
+func get_character_by_id(
+	character_id: int
+) -> Dictionary:
+	for character_value in CharacterManager.characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = (
+			character_value
+		)
+
+		if int(
+			character.get(
+				"character_id",
+				0
+			)
+		) == character_id:
+			return character
+
+	return {}
+
+func get_active_job_offer(
+	character_id: int
+) -> Dictionary:
+	if not active_job_offers.has(
+		character_id
+	):
+		return {}
+
+	var offer_value = active_job_offers[
+		character_id
+	]
+
+	if typeof(offer_value) != TYPE_DICTIONARY:
+		return {}
+
+	return offer_value
+
+func is_active_job_offer_valid(
+	character: Dictionary,
+	offer: Dictionary
+) -> bool:
+	if character.is_empty():
+		return false
+
+	if offer.is_empty():
+		return false
+
+	if not is_character_eligible_for_external_jobs(
+		character
+	):
+		return false
+
+	var character_id := int(
+		character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if is_character_assigned_to_family_business(
+		character_id
+	):
+		return false
+
+	var job_id := int(
+		offer.get(
+			"job_id",
+			-1
+		)
+	)
+
+	var company_id := String(
+		offer.get(
+			"company_id",
+			""
+		)
+	)
+
+	var job := get_job_by_id(job_id)
+
+	if job.is_empty():
+		return false
+
+	if not company_offers_job(
+		company_id,
+		job_id
+	):
+		return false
+
+	if not character_meets_job_requirements(
+		character,
+		job
+	):
+		return false
+
+	var canonical_salary := int(
+		job.get(
+			"base_salary",
+			0
+		)
+	)
+
+	if int(
+		offer.get(
+			"salary",
+			-1
+		)
+	) != canonical_salary:
+		return false
+
+	var current_job_id = character.get(
+		"job_id",
+		null
+	)
+
+	if current_job_id != null:
+		var current_salary := int(
+			character.get(
+				"salary",
+				0
+			)
+		)
+
+		if job_id == int(current_job_id):
+			return false
+
+		if canonical_salary <= current_salary:
+			return false
+
+	return true
+
+func accept_job_offer(
+	character_id: int
+) -> bool:
+	var character := get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return false
+
+	var offer := get_active_job_offer(
+		character_id
+	)
+
+	if not is_active_job_offer_valid(
+		character,
+		offer
+	):
+		active_job_offers.erase(
+			character_id
+		)
+
+		return false
+
+	var job_id := int(
+		offer.get(
+			"job_id",
+			-1
+		)
+	)
+
+	var company_id := String(
+		offer.get(
+			"company_id",
+			""
+		)
+	)
+
+	var salary := int(
+		offer.get(
+			"salary",
+			0
+		)
+	)
+
+	character["job_id"] = job_id
+	character["company_id"] = company_id
+	character["salary"] = salary
+
+	character[
+		"unemployment_start_date"
+	] = null
+
+	character[
+		"job_offer_cooldown_until"
+	] = null
+
+	active_job_offers.erase(
+		character_id
+	)
+
+	print(
+		"JOB OFFER ACCEPTED | Character: ",
+		character_id,
+		" | Job: ",
+		job_id,
+		" | Company: ",
+		company_id,
+		" | Salary: ",
+		salary
+	)
+
+	return true
+
+func reject_job_offer(
+	character_id: int
+) -> bool:
+	if not active_job_offers.has(
+		character_id
+	):
+		return false
+
+	active_job_offers.erase(
+		character_id
+	)
+
+	print(
+		"JOB OFFER REJECTED | Character: ",
+		character_id
+	)
+
+	return true
+
+func assign_company_for_existing_job(
+	character: Dictionary
+) -> bool:
+	if character.is_empty():
+		return false
+
+	var job_id_value = character.get(
+		"job_id",
+		null
+	)
+
+	if job_id_value == null:
+		return false
+
+	var job_id := int(
+		job_id_value
+	)
+
+	var matching_companies := (
+		get_companies_for_job(
+			job_id
+		)
+	)
+
+	if matching_companies.is_empty():
+		push_error(
+			"No company found for starting job: %d"
+			% job_id
+		)
+
+		return false
+
+	var company_value = (
+		matching_companies.pick_random()
+	)
+
+	if typeof(company_value) != TYPE_DICTIONARY:
+		return false
+
+	var company: Dictionary = company_value
+
+	var company_id := String(
+		company.get(
+			"company_id",
+			""
+		)
+	)
+
+	if company_id.is_empty():
+		return false
+
+	character["company_id"] = company_id
+
+	print(
+		"Starting company assigned: ",
+		company.get(
+			"company_name",
+			company_id
+		),
+		" | Character: ",
+		character.get(
+			"character_id",
+			0
+		),
+		" | Job: ",
+		job_id
+	)
+
+	return true
