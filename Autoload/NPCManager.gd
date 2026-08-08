@@ -1023,16 +1023,32 @@ func _process_retirements() -> void:
 		if age < retirement_age:
 			continue
 
+		var npc_id: String = str(
+			worker.get(
+				"id",
+				""
+			)
+		)
+
+		# A retiring Worker NPC must leave an active family-business slot
+		# before being marked retired. The NPC record itself is preserved.
+		if not npc_id.is_empty():
+			BusinessManager.remove_npc_from_any_slot(
+				npc_id
+			)
+
 		worker["is_retired"] = true
 		changed = true
 
 		worker_npc_retired.emit(
-			str(
-				worker.get(
-					"id",
-					""
-				)
-			)
+			npc_id
+		)
+
+		print(
+			"WORKER NPC RETIRED | NPC: ",
+			npc_id,
+			" | Age: ",
+			age
 		)
 
 	if changed:
