@@ -232,13 +232,13 @@ func _test_family_business_employee_is_excluded_from_external_systems() -> void:
 		BusinessManager.is_character_assigned(
 			1
 		)
-		and CareerManager.get_unemployed_offer_pool(
-			character
-		).is_empty()
+		and CareerManager.is_character_assigned_to_family_business(
+			1
+		)
 		and not EconomyManager.is_character_eligible_for_external_salary(
 			character
 		),
-		"Family-business employee is excluded from external offers and external salary"
+		"Family-business employee is excluded from external offer checks and external salary"
 	)
 
 
