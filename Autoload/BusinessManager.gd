@@ -1782,6 +1782,263 @@ func _sort_family_candidates_descending(
 	)
 
 
+func get_slot_occupant(
+	business_instance_id: String,
+	slot_id: String
+) -> Dictionary:
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return {}
+
+	var character_id_value = slot.get(
+		"assigned_character_id",
+		null
+	)
+
+	if character_id_value != null:
+		return {
+			"source_type": "family",
+			"id": int(character_id_value)
+		}
+
+	var npc_id_value = slot.get(
+		"assigned_npc_id",
+		null
+	)
+
+	if npc_id_value != null:
+		var npc_id := str(
+			npc_id_value
+		)
+
+		if not npc_id.is_empty():
+			return {
+				"source_type": "npc",
+				"id": npc_id
+			}
+
+	return {}
+
+
+func is_slot_occupied(
+	business_instance_id: String,
+	slot_id: String
+) -> bool:
+	return not get_slot_occupant(
+		business_instance_id,
+		slot_id
+	).is_empty()
+
+
+func replace_slot_with_character(
+	business_instance_id: String,
+	slot_id: String,
+	character_id: int
+) -> bool:
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return false
+
+	if not is_slot_occupied(
+		business_instance_id,
+		slot_id
+	):
+		return assign_character_to_slot(
+			business_instance_id,
+			slot_id,
+			character_id
+		)
+
+	# Validate the new family member before removing the current worker.
+	if not can_assign_character(
+		character_id
+	):
+		return false
+
+	var character := CareerManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return false
+
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return false
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	var slot_definition := get_slot_definition(
+		business_type_id,
+		slot_id
+	)
+
+	if slot_definition.is_empty():
+		return false
+
+	if not worker_meets_slot_requirements(
+		character,
+		slot_definition
+	):
+		return false
+
+	var occupant := get_slot_occupant(
+		business_instance_id,
+		slot_id
+	)
+
+	var occupant_source := str(
+		occupant.get(
+			"source_type",
+			""
+		)
+	)
+
+	var removed: bool = false
+
+	if occupant_source == "family":
+		removed = remove_character_from_slot(
+			business_instance_id,
+			slot_id
+		)
+	elif occupant_source == "npc":
+		removed = remove_npc_from_slot(
+			business_instance_id,
+			slot_id
+		)
+
+	if not removed:
+		return false
+
+	return assign_character_to_slot(
+		business_instance_id,
+		slot_id,
+		character_id
+	)
+
+
+func replace_slot_with_npc(
+	business_instance_id: String,
+	slot_id: String,
+	npc_id: String
+) -> bool:
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return false
+
+	if not is_slot_occupied(
+		business_instance_id,
+		slot_id
+	):
+		return assign_npc_to_slot(
+			business_instance_id,
+			slot_id,
+			npc_id
+		)
+
+	# Validate the new NPC before removing the current worker.
+	if not can_assign_npc(
+		npc_id
+	):
+		return false
+
+	var npc_manager := get_node_or_null(
+		"/root/NPCManager"
+	)
+
+	if npc_manager == null:
+		return false
+
+	var worker: Dictionary = npc_manager.get_worker_npc_by_id(
+		npc_id
+	)
+
+	if worker.is_empty():
+		return false
+
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return false
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	var slot_definition := get_slot_definition(
+		business_type_id,
+		slot_id
+	)
+
+	if slot_definition.is_empty():
+		return false
+
+	if not worker_meets_slot_requirements(
+		worker,
+		slot_definition
+	):
+		return false
+
+	var occupant := get_slot_occupant(
+		business_instance_id,
+		slot_id
+	)
+
+	var occupant_source := str(
+		occupant.get(
+			"source_type",
+			""
+		)
+	)
+
+	var removed: bool = false
+
+	if occupant_source == "family":
+		removed = remove_character_from_slot(
+			business_instance_id,
+			slot_id
+		)
+	elif occupant_source == "npc":
+		removed = remove_npc_from_slot(
+			business_instance_id,
+			slot_id
+		)
+
+	if not removed:
+		return false
+
+	return assign_npc_to_slot(
+		business_instance_id,
+		slot_id,
+		npc_id
+	)
+
+
 func get_npc_assignment(
 	npc_id: String
 ) -> Dictionary:
