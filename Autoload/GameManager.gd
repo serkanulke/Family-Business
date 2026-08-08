@@ -169,3 +169,21 @@ func spend_family_money(
 	)
 
 	return true
+
+func add_family_money(
+	amount: int
+) -> bool:
+	if amount < 0:
+		push_error(
+			"Money amount cannot be negative."
+		)
+		return false
+
+	if amount == 0:
+		return true
+
+	set_family_money(
+		family_money + amount
+	)
+
+	return true
