@@ -287,13 +287,63 @@ func get_level_fixed_monthly_expense(
 	)
 
 
+func _worker_has_stat(
+	worker: Dictionary,
+	stat_name: String
+) -> bool:
+	if worker.has(stat_name):
+		return true
+
+	var stats_value = worker.get(
+		"stats",
+		{}
+	)
+
+	if typeof(stats_value) != TYPE_DICTIONARY:
+		return false
+
+	var stats: Dictionary = stats_value
+
+	return stats.has(stat_name)
+
+
+func _get_worker_stat_value(
+	worker: Dictionary,
+	stat_name: String
+) -> float:
+	if worker.has(stat_name):
+		return float(
+			worker.get(
+				stat_name,
+				0
+			)
+		)
+
+	var stats_value = worker.get(
+		"stats",
+		{}
+	)
+
+	if typeof(stats_value) != TYPE_DICTIONARY:
+		return 0.0
+
+	var stats: Dictionary = stats_value
+
+	return float(
+		stats.get(
+			stat_name,
+			0
+		)
+	)
+
+
 func worker_meets_slot_requirements(
 	worker: Dictionary,
 	slot_definition: Dictionary
 ) -> bool:
-	# required_stats no longer act as a hiring threshold.
-	# They define which stats are used to evaluate performance.
-	# A worker is valid as long as every referenced stat exists.
+	# required_stats are performance references, not hiring limits.
+	# Playable characters keep stats at top level; Worker NPCs keep
+	# them under "stats". Both formats are accepted here.
 	if worker.is_empty():
 		return false
 
@@ -316,7 +366,10 @@ func worker_meets_slot_requirements(
 	for stat_name_value in required_stats.keys():
 		var stat_name := str(stat_name_value)
 
-		if not worker.has(stat_name):
+		if not _worker_has_stat(
+			worker,
+			stat_name
+		):
 			return false
 
 	return true
@@ -351,11 +404,9 @@ func get_worker_performance_score(
 	for stat_name_value in required_stats.keys():
 		var stat_name := str(stat_name_value)
 
-		total += float(
-			worker.get(
-				stat_name,
-				0
-			)
+		total += _get_worker_stat_value(
+			worker,
+			stat_name
 		)
 
 		stat_count += 1

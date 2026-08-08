@@ -1,21 +1,71 @@
 {
-  "npcs": [
-    {
-      "id": "npc_000001",
-      "first_name": "John",
-      "last_name": "Smith",
-      "gender": "male",
-      "birth_date": "1995-04-12",
-      "stats": {
-        "health": 74,
-        "intelligence": 88,
-        "discipline": 81,
-        "creativity": 67,
-        "social": 72,
-        "confidence": 79,
-        "attractiveness": 61,
-        "happiness": 75
-      }
-    }
-  ]
+  "generation": {
+    "initial_pool_min": 8,
+    "initial_pool_max": 12,
+    "generation_interval_months_min": 1,
+    "generation_interval_months_max": 3,
+    "generation_count_min": 1,
+    "generation_count_max": 3,
+    "minimum_entry_age": 24,
+    "maximum_entry_age": 50,
+    "retirement_age": 65,
+    "stat_min": 0,
+    "stat_max": 100
+  },
+  "names": {
+    "male": [
+      "Michael",
+      "Daniel",
+      "David",
+      "James",
+      "Robert",
+      "Thomas",
+      "William",
+      "Joseph",
+      "Andrew",
+      "Christopher",
+      "Matthew",
+      "Anthony"
+    ],
+    "female": [
+      "Lisa",
+      "Sarah",
+      "Jennifer",
+      "Laura",
+      "Emily",
+      "Anna",
+      "Rebecca",
+      "Jessica",
+      "Rachel",
+      "Michelle",
+      "Elizabeth",
+      "Amanda"
+    ],
+    "last_names": [
+      "Anderson",
+      "Smith",
+      "Miller",
+      "Johnson",
+      "Brown",
+      "Wilson",
+      "Taylor",
+      "Clark",
+      "Martin",
+      "Lewis",
+      "Walker",
+      "Hall"
+    ]
+  },
+  "portraits": {
+    "male": [
+      "res://Resources/Characters/NPC/Worker/worker_male_01.png",
+      "res://Resources/Characters/NPC/Worker/worker_male_02.png",
+      "res://Resources/Characters/NPC/Worker/worker_male_03.png"
+    ],
+    "female": [
+      "res://Resources/Characters/NPC/Worker/worker_female_01.png",
+      "res://Resources/Characters/NPC/Worker/worker_female_02.png",
+      "res://Resources/Characters/NPC/Worker/worker_female_03.png"
+    ]
+  }
 }
