@@ -1556,6 +1556,232 @@ func remove_character_from_slot(
 	return true
 
 
+func get_family_candidates_for_slot(
+	business_type_id: String,
+	slot_id: String,
+	age_filter: String = "all"
+) -> Array:
+	var slot_definition := get_slot_definition(
+		business_type_id,
+		slot_id
+	)
+
+	if slot_definition.is_empty():
+		return []
+
+	var normalized_filter := (
+		age_filter.strip_edges().to_lower()
+	)
+
+	if normalized_filter.is_empty():
+		normalized_filter = "all"
+
+	if normalized_filter not in [
+		"all",
+		"young_adult",
+		"adult",
+		"elder"
+	]:
+		return []
+
+	var candidates: Array = []
+
+	for character_value in CharacterManager.characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+
+		var character_id := int(
+			character.get(
+				"character_id",
+				0
+			)
+		)
+
+		if character_id <= 0:
+			continue
+
+		if not bool(
+			character.get(
+				"is_alive",
+				true
+			)
+		):
+			continue
+
+		if not bool(
+			character.get(
+				"is_player_family",
+				false
+			)
+		):
+			continue
+
+		if bool(
+			character.get(
+				"is_retired",
+				false
+			)
+		):
+			continue
+
+		var age := CharacterManager.get_character_age(
+			character
+		)
+
+		# Family-business staff selection is for working-age
+		# family members only.
+		if age < 18 or age >= CharacterManager.RETIREMENT_AGE:
+			continue
+
+		var life_stage := CharacterManager.get_life_stage_from_age(
+			age
+		)
+
+		if normalized_filter != "all":
+			if life_stage != normalized_filter:
+				continue
+
+		# A family member already assigned to another
+		# family-business slot is not a candidate.
+		if is_character_assigned(
+			character_id
+		):
+			continue
+
+		var performance := get_worker_slot_performance(
+			character,
+			slot_definition
+		)
+
+		if performance.is_empty():
+			continue
+
+		var score := float(
+			performance.get(
+				"score",
+				0.0
+			)
+		)
+
+		var income := calculate_worker_slot_gross(
+			character,
+			slot_definition
+		)
+
+		candidates.append(
+			{
+				"character_id": character_id,
+				"first_name": str(
+					character.get(
+						"first_name",
+						""
+					)
+				),
+				"last_name": str(
+					character.get(
+						"last_name",
+						""
+					)
+				),
+				"gender": str(
+					character.get(
+						"gender",
+						""
+					)
+				),
+				"age": age,
+				"life_stage": life_stage,
+				"portrait_path": CharacterManager.get_avatar_path(
+					character
+				),
+				"stats": _get_character_candidate_stats(
+					character
+				),
+				"performance_score": score,
+				"performance_tier": str(
+					performance.get(
+						"tier",
+						""
+					)
+				),
+				"performance_multiplier": float(
+					performance.get(
+						"multiplier",
+						0.0
+					)
+				),
+				"business_income": income,
+				"has_external_job": (
+					character.get(
+						"job_id",
+						null
+					) != null
+				)
+			}
+		)
+
+	candidates.sort_custom(
+		_sort_family_candidates_descending
+	)
+
+	return candidates
+
+
+func _get_character_candidate_stats(
+	character: Dictionary
+) -> Dictionary:
+	var stats: Dictionary = {}
+
+	for stat_name in CharacterManager.CHARACTER_STAT_NAMES:
+		stats[stat_name] = int(
+			character.get(
+				stat_name,
+				0
+			)
+		)
+
+	return stats
+
+
+func _sort_family_candidates_descending(
+	a: Dictionary,
+	b: Dictionary
+) -> bool:
+	var a_score := float(
+		a.get(
+			"performance_score",
+			0.0
+		)
+	)
+
+	var b_score := float(
+		b.get(
+			"performance_score",
+			0.0
+		)
+	)
+
+	if not is_equal_approx(
+		a_score,
+		b_score
+	):
+		return a_score > b_score
+
+	return int(
+		a.get(
+			"character_id",
+			0
+		)
+	) < int(
+		b.get(
+			"character_id",
+			0
+		)
+	)
+
+
 func get_npc_assignment(
 	npc_id: String
 ) -> Dictionary:
