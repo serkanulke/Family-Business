@@ -14,7 +14,7 @@ var saved_paused := false
 func _ready() -> void:
 	print("")
 	print("========================================")
-	print("BusinessManager backend tests starting")
+	print("BusinessManager static + backend tests starting")
 	print("========================================")
 
 	_save_state()
@@ -42,6 +42,13 @@ func _ready() -> void:
 
 
 func _run_all_tests() -> void:
+	_test_business_types_loaded()
+	_test_hospital_level_1_definition()
+	_test_hospital_level_5_definition()
+	_test_required_stats_are_enforced()
+	_test_performance_tiers_and_gross()
+	_test_missing_visual_uses_placeholder()
+
 	_test_external_employee_moves_to_family_business()
 	_test_pending_offer_is_removed_on_assignment()
 	_test_family_business_employee_is_excluded_from_external_systems()
@@ -54,11 +61,13 @@ func _save_state() -> void:
 	saved_characters = CharacterManager.characters.duplicate(true)
 	saved_businesses = BusinessManager.businesses.duplicate(true)
 	saved_active_offers = CareerManager.active_job_offers.duplicate(true)
+
 	saved_date = Vector3i(
 		TimeManager.current_day,
 		TimeManager.current_month,
 		TimeManager.current_year
 	)
+
 	saved_paused = TimeManager.is_paused
 
 
@@ -80,13 +89,17 @@ func _reset_world() -> void:
 	BusinessManager.businesses = [
 		{
 			"business_instance_id": "test_business_001",
+			"business_type_id": "hospital",
+			"level": 1,
+			"visual_variant_id": "",
+			"plot_id": "test_plot_001",
 			"slots": [
 				{
-					"slot_id": "slot_01",
+					"slot_id": "doctor_01",
 					"assigned_character_id": null
 				},
 				{
-					"slot_id": "slot_02",
+					"slot_id": "nurse_01",
 					"assigned_character_id": null
 				}
 			]
@@ -113,13 +126,13 @@ func _make_character(
 		"major_id": 5014,
 
 		"logic": 100,
+		"health": 100,
+		"attractiveness": 100,
 		"social": 100,
 		"confidence": 100,
 		"discipline": 100,
 		"creativity": 100,
-		"health": 100,
 		"happiness": 100,
-		"attractiveness": 100,
 
 		"job_id": 2076,
 		"company_id": "central_city_administration",
@@ -136,6 +149,16 @@ func _make_character(
 	return character
 
 
+func _make_nurse_worker(
+	score: int
+) -> Dictionary:
+	return {
+		"health": score,
+		"social": score,
+		"discipline": score
+	}
+
+
 func _assert_true(
 	condition: bool,
 	test_name: String
@@ -150,6 +173,233 @@ func _assert_true(
 		)
 
 
+func _test_business_types_loaded() -> void:
+	var hospital := BusinessManager.get_business_type_by_id(
+		"hospital"
+	)
+
+	_assert_true(
+		BusinessManager.business_types.size() == 10
+		and not hospital.is_empty()
+		and str(
+			hospital.get(
+				"display_name",
+				""
+			)
+		) == "Hospital",
+		"10 business types load and Hospital can be resolved"
+	)
+
+
+func _test_hospital_level_1_definition() -> void:
+	var level_definition := BusinessManager.get_level_definition(
+		"hospital",
+		1
+	)
+
+	var slot_definitions := BusinessManager.get_level_slot_definitions(
+		"hospital",
+		1
+	)
+
+	_assert_true(
+		not level_definition.is_empty()
+		and int(
+			level_definition.get(
+				"cost",
+				0
+			)
+		) == 120000
+		and int(
+			level_definition.get(
+				"fixed_monthly_expense",
+				0
+			)
+		) == 6800
+		and slot_definitions.size() == 3
+		and BusinessManager.get_level_max_gross(
+			"hospital",
+			1
+		) == 17000,
+		"Hospital Lv1 cost, expense, slots and max gross match BusinessTypes.json"
+	)
+
+
+func _test_hospital_level_5_definition() -> void:
+	var level_definition := BusinessManager.get_level_definition(
+		"hospital",
+		5
+	)
+
+	var slot_definitions := BusinessManager.get_level_slot_definitions(
+		"hospital",
+		5
+	)
+
+	_assert_true(
+		not level_definition.is_empty()
+		and int(
+			level_definition.get(
+				"cost",
+				0
+			)
+		) == 390000
+		and int(
+			level_definition.get(
+				"fixed_monthly_expense",
+				0
+			)
+		) == 29200
+		and slot_definitions.size() == 8
+		and BusinessManager.get_level_max_gross(
+			"hospital",
+			5
+		) == 73000,
+		"Hospital Lv5 cost, expense, slots and max gross match BusinessTypes.json"
+	)
+
+
+func _test_required_stats_are_enforced() -> void:
+	var nurse_slot := BusinessManager.get_slot_definition(
+		"hospital",
+		"nurse_01"
+	)
+
+	var valid_worker := {
+		"health": 45,
+		"social": 45,
+		"discipline": 40
+	}
+
+	var invalid_worker := {
+		"health": 44,
+		"social": 100,
+		"discipline": 100
+	}
+
+	_assert_true(
+		BusinessManager.worker_meets_slot_requirements(
+			valid_worker,
+			nurse_slot
+		)
+		and not BusinessManager.worker_meets_slot_requirements(
+			invalid_worker,
+			nurse_slot
+		),
+		"Worker must meet every required stat for the selected business slot"
+	)
+
+
+func _test_performance_tiers_and_gross() -> void:
+	var nurse_slot := BusinessManager.get_slot_definition(
+		"hospital",
+		"nurse_01"
+	)
+
+	var s_result := BusinessManager.get_worker_slot_performance(
+		_make_nurse_worker(90),
+		nurse_slot
+	)
+
+	var a_result := BusinessManager.get_worker_slot_performance(
+		_make_nurse_worker(80),
+		nurse_slot
+	)
+
+	var b_result := BusinessManager.get_worker_slot_performance(
+		_make_nurse_worker(70),
+		nurse_slot
+	)
+
+	var c_result := BusinessManager.get_worker_slot_performance(
+		_make_nurse_worker(55),
+		nurse_slot
+	)
+
+	var d_result := BusinessManager.get_worker_slot_performance(
+		_make_nurse_worker(45),
+		nurse_slot
+	)
+
+	_assert_true(
+		str(s_result.get("tier", "")) == "S"
+		and is_equal_approx(
+			float(s_result.get("multiplier", 0.0)),
+			1.0
+		)
+		and BusinessManager.calculate_worker_slot_gross(
+			_make_nurse_worker(90),
+			nurse_slot
+		) == 6000
+
+		and str(a_result.get("tier", "")) == "A"
+		and is_equal_approx(
+			float(a_result.get("multiplier", 0.0)),
+			0.85
+		)
+		and BusinessManager.calculate_worker_slot_gross(
+			_make_nurse_worker(80),
+			nurse_slot
+		) == 5100
+
+		and str(b_result.get("tier", "")) == "B"
+		and is_equal_approx(
+			float(b_result.get("multiplier", 0.0)),
+			0.70
+		)
+		and BusinessManager.calculate_worker_slot_gross(
+			_make_nurse_worker(70),
+			nurse_slot
+		) == 4200
+
+		and str(c_result.get("tier", "")) == "C"
+		and is_equal_approx(
+			float(c_result.get("multiplier", 0.0)),
+			0.55
+		)
+		and BusinessManager.calculate_worker_slot_gross(
+			_make_nurse_worker(55),
+			nurse_slot
+		) == 3300
+
+		and str(d_result.get("tier", "")) == "D"
+		and is_equal_approx(
+			float(d_result.get("multiplier", 0.0)),
+			0.40
+		)
+		and BusinessManager.calculate_worker_slot_gross(
+			_make_nurse_worker(45),
+			nurse_slot
+		) == 2400,
+		"S/A/B/C/D tiers apply the correct gross contribution multipliers"
+	)
+
+
+func _test_missing_visual_uses_placeholder() -> void:
+	var hospital := BusinessManager.get_business_type_by_id(
+		"hospital"
+	)
+
+	var expected_placeholder := str(
+		hospital.get(
+			"placeholder_visual_path",
+			""
+		)
+	)
+
+	var actual_path := BusinessManager.get_business_visual_path(
+		"hospital",
+		"",
+		3
+	)
+
+	_assert_true(
+		not expected_placeholder.is_empty()
+		and actual_path == expected_placeholder,
+		"Missing business visual variant uses the configured placeholder path"
+	)
+
+
 func _test_external_employee_moves_to_family_business() -> void:
 	_reset_world()
 
@@ -157,13 +407,13 @@ func _test_external_employee_moves_to_family_business() -> void:
 
 	var assigned := BusinessManager.assign_character_to_slot(
 		"test_business_001",
-		"slot_01",
+		"doctor_01",
 		1
 	)
 
 	var slot := BusinessManager.get_slot(
 		"test_business_001",
-		"slot_01"
+		"doctor_01"
 	)
 
 	_assert_true(
@@ -205,7 +455,7 @@ func _test_pending_offer_is_removed_on_assignment() -> void:
 
 	BusinessManager.assign_character_to_slot(
 		"test_business_001",
-		"slot_01",
+		"doctor_01",
 		1
 	)
 
@@ -224,7 +474,7 @@ func _test_family_business_employee_is_excluded_from_external_systems() -> void:
 
 	BusinessManager.assign_character_to_slot(
 		"test_business_001",
-		"slot_01",
+		"doctor_01",
 		1
 	)
 
@@ -249,13 +499,13 @@ func _test_removed_character_returns_to_job_offer_pool() -> void:
 
 	BusinessManager.assign_character_to_slot(
 		"test_business_001",
-		"slot_01",
+		"doctor_01",
 		1
 	)
 
 	var removed := BusinessManager.remove_character_from_slot(
 		"test_business_001",
-		"slot_01"
+		"doctor_01"
 	)
 
 	var offer_pool := CareerManager.get_unemployed_offer_pool(
@@ -281,7 +531,7 @@ func _test_removed_character_returns_to_job_offer_pool() -> void:
 				-1
 			)
 		) == 0
-		and String(
+		and str(
 			character.get(
 				"unemployment_start_date",
 				""
@@ -304,7 +554,7 @@ func _test_same_character_cannot_fill_two_slots() -> void:
 	var first_assignment := (
 		BusinessManager.assign_character_to_slot(
 			"test_business_001",
-			"slot_01",
+			"doctor_01",
 			1
 		)
 	)
@@ -312,7 +562,7 @@ func _test_same_character_cannot_fill_two_slots() -> void:
 	var second_assignment := (
 		BusinessManager.assign_character_to_slot(
 			"test_business_001",
-			"slot_02",
+			"nurse_01",
 			1
 		)
 	)
@@ -333,7 +583,7 @@ func _test_occupied_slot_rejects_second_character() -> void:
 	var first_assignment := (
 		BusinessManager.assign_character_to_slot(
 			"test_business_001",
-			"slot_01",
+			"doctor_01",
 			1
 		)
 	)
@@ -341,14 +591,14 @@ func _test_occupied_slot_rejects_second_character() -> void:
 	var second_assignment := (
 		BusinessManager.assign_character_to_slot(
 			"test_business_001",
-			"slot_01",
+			"doctor_01",
 			2
 		)
 	)
 
 	var slot := BusinessManager.get_slot(
 		"test_business_001",
-		"slot_01"
+		"doctor_01"
 	)
 
 	_assert_true(

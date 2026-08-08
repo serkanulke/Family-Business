@@ -8,6 +8,9 @@ signal external_salaries_paid(
 )
 
 
+const NEW_CONSTRUCTION_MULTIPLIER := 1.40
+
+
 var last_external_salary_payment_date: String = ""
 
 
@@ -18,6 +21,20 @@ func _ready() -> void:
 
 	GameManager.new_game_started.connect(
 		_on_new_game_started
+	)
+
+
+func get_new_construction_cost(
+	base_level_one_cost: int
+) -> int:
+	if base_level_one_cost <= 0:
+		return 0
+
+	return int(
+		round(
+			float(base_level_one_cost)
+			* NEW_CONSTRUCTION_MULTIPLIER
+		)
 	)
 
 
@@ -73,9 +90,9 @@ func is_character_eligible_for_external_salary(
 		return false
 
 	var company_id_value = character.get(
-	"company_id",
-	null
-)
+		"company_id",
+		null
+	)
 
 	if company_id_value == null:
 		return false

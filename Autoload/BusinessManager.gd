@@ -8,6 +8,20 @@ signal family_business_slot_changed(
 )
 
 
+signal family_business_created(
+	business_instance_id: String,
+	business_type_id: String,
+	plot_id: String,
+	purchase_cost: int
+)
+
+signal family_business_upgraded(
+	business_instance_id: String,
+	new_level: int,
+	upgrade_cost: int
+)
+
+
 const BUSINESS_DATA_PATH := "res://Resources/Json/Business.json"
 const BUSINESS_TYPES_DATA_PATH := "res://Resources/Json/BusinessTypes.json"
 
@@ -15,6 +29,7 @@ const BUSINESS_TYPES_DATA_PATH := "res://Resources/Json/BusinessTypes.json"
 var businesses: Array = []
 var business_types: Array = []
 var performance_model: Dictionary = {}
+var next_business_instance_number: int = 1
 
 
 func _ready() -> void:
@@ -27,6 +42,8 @@ func load_business_data() -> void:
 		BUSINESS_DATA_PATH,
 		"businesses"
 	)
+
+	_initialize_next_business_instance_number()
 
 	print(
 		"Family businesses loaded: ",
@@ -496,6 +513,427 @@ func get_business_visual_path(
 		return candidate_path
 
 	return placeholder_path
+
+
+func _initialize_next_business_instance_number() -> void:
+	next_business_instance_number = 1
+
+	for business_value in businesses:
+		if typeof(business_value) != TYPE_DICTIONARY:
+			continue
+
+		var business: Dictionary = business_value
+		var instance_id := str(
+			business.get(
+				"business_instance_id",
+				""
+			)
+		)
+
+		if not instance_id.begins_with("business_"):
+			continue
+
+		var number_text := instance_id.trim_prefix(
+			"business_"
+		)
+
+		if not number_text.is_valid_int():
+			continue
+
+		next_business_instance_number = maxi(
+			next_business_instance_number,
+			int(number_text) + 1
+		)
+
+
+func _generate_business_instance_id() -> String:
+	var instance_id := "business_%04d" % (
+		next_business_instance_number
+	)
+
+	next_business_instance_number += 1
+
+	return instance_id
+
+
+func get_business_on_plot(
+	plot_id: String
+) -> Dictionary:
+	if plot_id.is_empty():
+		return {}
+
+	for business_value in businesses:
+		if typeof(business_value) != TYPE_DICTIONARY:
+			continue
+
+		var business: Dictionary = business_value
+
+		if str(
+			business.get(
+				"plot_id",
+				""
+			)
+		) == plot_id:
+			return business
+
+	return {}
+
+
+func is_plot_occupied_by_business(
+	plot_id: String
+) -> bool:
+	return not get_business_on_plot(
+		plot_id
+	).is_empty()
+
+
+func get_business_acquisition_cost(
+	business_type_id: String,
+	is_new_construction: bool
+) -> int:
+	var level_one := get_level_definition(
+		business_type_id,
+		1
+	)
+
+	if level_one.is_empty():
+		return 0
+
+	var base_cost := int(
+		level_one.get(
+			"cost",
+			0
+		)
+	)
+
+	if base_cost <= 0:
+		return 0
+
+	if is_new_construction:
+		return EconomyManager.get_new_construction_cost(
+			base_cost
+		)
+
+	return base_cost
+
+
+func _select_visual_variant(
+	business_type: Dictionary,
+	requested_variant_id: String
+) -> String:
+	var variants_value = business_type.get(
+		"visual_variants",
+		[]
+	)
+
+	if typeof(variants_value) != TYPE_ARRAY:
+		return ""
+
+	var variants: Array = variants_value
+
+	if not requested_variant_id.is_empty():
+		if variants.has(requested_variant_id):
+			return requested_variant_id
+
+		return ""
+
+	if variants.is_empty():
+		return ""
+
+	return str(
+		variants[
+			randi_range(
+				0,
+				variants.size() - 1
+			)
+		]
+	)
+
+
+func _create_runtime_slots_for_level(
+	business_type_id: String,
+	level: int
+) -> Array:
+	var runtime_slots: Array = []
+
+	var level_definition := get_level_definition(
+		business_type_id,
+		level
+	)
+
+	if level_definition.is_empty():
+		return runtime_slots
+
+	for slot_id_value in level_definition.get(
+		"slot_ids",
+		[]
+	):
+		runtime_slots.append(
+			{
+				"slot_id": str(slot_id_value),
+				"assigned_character_id": null
+			}
+		)
+
+	return runtime_slots
+
+
+func create_business_instance(
+	business_type_id: String,
+	plot_id: String,
+	is_new_construction: bool,
+	requested_visual_variant_id: String = ""
+) -> Dictionary:
+	if plot_id.is_empty():
+		return {}
+
+	if is_plot_occupied_by_business(
+		plot_id
+	):
+		return {}
+
+	var business_type := get_business_type_by_id(
+		business_type_id
+	)
+
+	if business_type.is_empty():
+		return {}
+
+	var level_one := get_level_definition(
+		business_type_id,
+		1
+	)
+
+	if level_one.is_empty():
+		return {}
+
+	var purchase_cost := get_business_acquisition_cost(
+		business_type_id,
+		is_new_construction
+	)
+
+	if purchase_cost <= 0:
+		return {}
+
+	if not GameManager.can_afford(
+		purchase_cost
+	):
+		return {}
+
+	var visual_variant_id := _select_visual_variant(
+		business_type,
+		requested_visual_variant_id
+	)
+
+	var variants_value = business_type.get(
+		"visual_variants",
+		[]
+	)
+
+	if (
+		not requested_visual_variant_id.is_empty()
+		and typeof(variants_value) == TYPE_ARRAY
+		and not variants_value.has(
+			requested_visual_variant_id
+		)
+	):
+		return {}
+
+	var runtime_slots := _create_runtime_slots_for_level(
+		business_type_id,
+		1
+	)
+
+	if runtime_slots.is_empty():
+		return {}
+
+	if not GameManager.spend_family_money(
+		purchase_cost
+	):
+		return {}
+
+	var business_instance_id := (
+		_generate_business_instance_id()
+	)
+
+	var business_instance := {
+		"business_instance_id": business_instance_id,
+		"business_type_id": business_type_id,
+		"visual_variant_id": visual_variant_id,
+		"plot_id": plot_id,
+		"level": 1,
+		"slots": runtime_slots
+	}
+
+	businesses.append(
+		business_instance
+	)
+
+	family_business_created.emit(
+		business_instance_id,
+		business_type_id,
+		plot_id,
+		purchase_cost
+	)
+
+	print(
+		"FAMILY BUSINESS CREATED | ID: ",
+		business_instance_id,
+		" | Type: ",
+		business_type_id,
+		" | Plot: ",
+		plot_id,
+		" | New Construction: ",
+		is_new_construction,
+		" | Cost: ",
+		purchase_cost
+	)
+
+	return business_instance
+
+
+func upgrade_business(
+	business_instance_id: String
+) -> bool:
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return false
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	if business_type_id.is_empty():
+		return false
+
+	var business_type := get_business_type_by_id(
+		business_type_id
+	)
+
+	if business_type.is_empty():
+		return false
+
+	var current_level := int(
+		business.get(
+			"level",
+			1
+		)
+	)
+
+	var max_level := int(
+		business_type.get(
+			"max_level",
+			1
+		)
+	)
+
+	if current_level >= max_level:
+		return false
+
+	var next_level := current_level + 1
+
+	var next_level_definition := get_level_definition(
+		business_type_id,
+		next_level
+	)
+
+	if next_level_definition.is_empty():
+		return false
+
+	var upgrade_cost := int(
+		next_level_definition.get(
+			"cost",
+			0
+		)
+	)
+
+	if upgrade_cost <= 0:
+		return false
+
+	if not GameManager.can_afford(
+		upgrade_cost
+	):
+		return false
+
+	var next_slot_ids_value = next_level_definition.get(
+		"slot_ids",
+		[]
+	)
+
+	if typeof(next_slot_ids_value) != TYPE_ARRAY:
+		return false
+
+	var current_slots_value = business.get(
+		"slots",
+		[]
+	)
+
+	if typeof(current_slots_value) != TYPE_ARRAY:
+		return false
+
+	var current_slots: Array = current_slots_value
+	var existing_slot_ids: Array[String] = []
+
+	for slot_value in current_slots:
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+
+		var slot: Dictionary = slot_value
+
+		existing_slot_ids.append(
+			str(
+				slot.get(
+					"slot_id",
+					""
+				)
+			)
+		)
+
+	if not GameManager.spend_family_money(
+		upgrade_cost
+	):
+		return false
+
+	for slot_id_value in next_slot_ids_value:
+		var slot_id := str(slot_id_value)
+
+		if existing_slot_ids.has(
+			slot_id
+		):
+			continue
+
+		current_slots.append(
+			{
+				"slot_id": slot_id,
+				"assigned_character_id": null
+			}
+		)
+
+	business["slots"] = current_slots
+	business["level"] = next_level
+
+	family_business_upgraded.emit(
+		business_instance_id,
+		next_level,
+		upgrade_cost
+	)
+
+	print(
+		"FAMILY BUSINESS UPGRADED | ID: ",
+		business_instance_id,
+		" | Level: ",
+		next_level,
+		" | Cost: ",
+		upgrade_cost
+	)
+
+	return true
 
 
 func get_business_by_instance_id(
