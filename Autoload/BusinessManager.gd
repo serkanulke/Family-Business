@@ -936,6 +936,196 @@ func upgrade_business(
 	return true
 
 
+func get_business_slot_gross(
+	business_instance_id: String,
+	slot_id: String
+) -> int:
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return 0
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	if business_type_id.is_empty():
+		return 0
+
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return 0
+
+	var assigned_character_id = slot.get(
+		"assigned_character_id",
+		null
+	)
+
+	if assigned_character_id == null:
+		return 0
+
+	var character := CareerManager.get_character_by_id(
+		int(assigned_character_id)
+	)
+
+	if character.is_empty():
+		return 0
+
+	if not bool(
+		character.get(
+			"is_alive",
+			true
+		)
+	):
+		return 0
+
+	if bool(
+		character.get(
+			"is_retired",
+			false
+		)
+	):
+		return 0
+
+	var slot_definition := get_slot_definition(
+		business_type_id,
+		slot_id
+	)
+
+	if slot_definition.is_empty():
+		return 0
+
+	return calculate_worker_slot_gross(
+		character,
+		slot_definition
+	)
+
+
+func get_business_gross_income(
+	business_instance_id: String
+) -> int:
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return 0
+
+	var total := 0
+
+	for slot_value in business.get(
+		"slots",
+		[]
+	):
+		if typeof(slot_value) != TYPE_DICTIONARY:
+			continue
+
+		var slot: Dictionary = slot_value
+		var slot_id := str(
+			slot.get(
+				"slot_id",
+				""
+			)
+		)
+
+		if slot_id.is_empty():
+			continue
+
+		total += get_business_slot_gross(
+			business_instance_id,
+			slot_id
+		)
+
+	return total
+
+
+func get_business_monthly_breakdown(
+	business_instance_id: String
+) -> Dictionary:
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return {}
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	var level := int(
+		business.get(
+			"level",
+			1
+		)
+	)
+
+	if business_type_id.is_empty():
+		return {}
+
+	var gross_income := get_business_gross_income(
+		business_instance_id
+	)
+
+	var fixed_expense := get_level_fixed_monthly_expense(
+		business_type_id,
+		level
+	)
+
+	return {
+		"business_instance_id": business_instance_id,
+		"business_type_id": business_type_id,
+		"level": level,
+		"gross_income": gross_income,
+		"fixed_expense": fixed_expense,
+		"net_profit": gross_income - fixed_expense
+	}
+
+
+func get_all_business_monthly_breakdowns() -> Array:
+	var result: Array = []
+
+	for business_value in businesses:
+		if typeof(business_value) != TYPE_DICTIONARY:
+			continue
+
+		var business: Dictionary = business_value
+		var business_instance_id := str(
+			business.get(
+				"business_instance_id",
+				""
+			)
+		)
+
+		if business_instance_id.is_empty():
+			continue
+
+		var breakdown := get_business_monthly_breakdown(
+			business_instance_id
+		)
+
+		if breakdown.is_empty():
+			continue
+
+		result.append(
+			breakdown
+		)
+
+	return result
+
+
 func get_business_by_instance_id(
 	business_instance_id: String
 ) -> Dictionary:

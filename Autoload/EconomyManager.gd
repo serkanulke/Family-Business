@@ -8,10 +8,21 @@ signal external_salaries_paid(
 )
 
 
+signal family_businesses_settled(
+	total_gross_income: int,
+	total_fixed_expense: int,
+	total_net_profit: int,
+	business_count: int,
+	payment_date: String
+)
+
+
 const NEW_CONSTRUCTION_MULTIPLIER := 1.40
 
 
 var last_external_salary_payment_date: String = ""
+var last_family_business_payment_date: String = ""
+var last_family_business_breakdown: Array = []
 
 
 func _ready() -> void:
@@ -42,6 +53,8 @@ func _on_new_game_started(
 	_starting_character: Dictionary
 ) -> void:
 	last_external_salary_payment_date = ""
+	last_family_business_payment_date = ""
+	last_family_business_breakdown = []
 
 
 func _on_date_changed(
@@ -51,6 +64,7 @@ func _on_date_changed(
 		return
 
 	pay_external_salaries()
+	settle_family_businesses()
 
 
 func is_character_eligible_for_external_salary(
@@ -220,6 +234,144 @@ func pay_external_salaries() -> bool:
 		character_count,
 		" | Total: ",
 		total_salary,
+		" | Family Money: ",
+		GameManager.family_money
+	)
+
+	return true
+
+
+
+func get_family_business_monthly_breakdown() -> Array:
+	return BusinessManager.get_all_business_monthly_breakdowns()
+
+
+func get_family_business_monthly_totals() -> Dictionary:
+	var breakdowns := get_family_business_monthly_breakdown()
+
+	var total_gross_income := 0
+	var total_fixed_expense := 0
+	var total_net_profit := 0
+
+	for breakdown_value in breakdowns:
+		if typeof(breakdown_value) != TYPE_DICTIONARY:
+			continue
+
+		var breakdown: Dictionary = breakdown_value
+
+		total_gross_income += int(
+			breakdown.get(
+				"gross_income",
+				0
+			)
+		)
+
+		total_fixed_expense += int(
+			breakdown.get(
+				"fixed_expense",
+				0
+			)
+		)
+
+		total_net_profit += int(
+			breakdown.get(
+				"net_profit",
+				0
+			)
+		)
+
+	return {
+		"gross_income": total_gross_income,
+		"fixed_expense": total_fixed_expense,
+		"net_profit": total_net_profit,
+		"business_count": breakdowns.size()
+	}
+
+
+func settle_family_businesses() -> bool:
+	if TimeManager.current_day != 1:
+		return false
+
+	var current_date := (
+		TimeManager.get_iso_date_string()
+	)
+
+	if (
+		last_family_business_payment_date
+		== current_date
+	):
+		return false
+
+	var breakdowns := (
+		get_family_business_monthly_breakdown()
+	)
+
+	if breakdowns.is_empty():
+		last_family_business_payment_date = current_date
+		last_family_business_breakdown = []
+		return false
+
+	var totals := get_family_business_monthly_totals()
+
+	var total_gross_income := int(
+		totals.get(
+			"gross_income",
+			0
+		)
+	)
+
+	var total_fixed_expense := int(
+		totals.get(
+			"fixed_expense",
+			0
+		)
+	)
+
+	var total_net_profit := int(
+		totals.get(
+			"net_profit",
+			0
+		)
+	)
+
+	if total_net_profit > 0:
+		if not GameManager.add_family_money(
+			total_net_profit
+		):
+			return false
+
+	elif total_net_profit < 0:
+		var loss_amount: int = absi(
+			total_net_profit
+		)
+
+		if not GameManager.spend_family_money(
+			loss_amount
+		):
+			return false
+
+	last_family_business_payment_date = current_date
+	last_family_business_breakdown = breakdowns.duplicate(true)
+
+	family_businesses_settled.emit(
+		total_gross_income,
+		total_fixed_expense,
+		total_net_profit,
+		breakdowns.size(),
+		current_date
+	)
+
+	print(
+		"FAMILY BUSINESSES SETTLED | Date: ",
+		current_date,
+		" | Businesses: ",
+		breakdowns.size(),
+		" | Gross: ",
+		total_gross_income,
+		" | Expense: ",
+		total_fixed_expense,
+		" | Net: ",
+		total_net_profit,
 		" | Family Money: ",
 		GameManager.family_money
 	)
