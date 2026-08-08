@@ -291,6 +291,9 @@ func worker_meets_slot_requirements(
 	worker: Dictionary,
 	slot_definition: Dictionary
 ) -> bool:
+	# required_stats no longer act as a hiring threshold.
+	# They define which stats are used to evaluate performance.
+	# A worker is valid as long as every referenced stat exists.
 	if worker.is_empty():
 		return false
 
@@ -307,10 +310,16 @@ func worker_meets_slot_requirements(
 
 	var required_stats: Dictionary = required_stats_value
 
-	return CharacterManager.character_meets_required_stats(
-		worker,
-		required_stats
-	)
+	if required_stats.is_empty():
+		return false
+
+	for stat_name_value in required_stats.keys():
+		var stat_name := str(stat_name_value)
+
+		if not worker.has(stat_name):
+			return false
+
+	return true
 
 
 func get_worker_performance_score(
@@ -1328,6 +1337,8 @@ func assign_character_to_slot(
 			if slot_definition.is_empty():
 				return false
 
+			# required_stats are performance references, not minimum
+			# hiring thresholds. Reject only invalid/missing stat data.
 			if not worker_meets_slot_requirements(
 				character,
 				slot_definition

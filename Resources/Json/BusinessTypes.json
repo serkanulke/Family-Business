@@ -1,6 +1,6 @@
 {
   "performance_model": {
-    "eligibility_rule": "worker_must_meet_every_required_stat",
+    "eligibility_rule": "required_stats_are_performance_reference_only",
     "score_rule": "average_of_required_stats",
     "tiers": [
       {
@@ -29,7 +29,7 @@
       },
       {
         "tier": "D",
-        "min_score": 35,
+        "min_score": 0,
         "max_score": 49,
         "multiplier": 0.4
       }
