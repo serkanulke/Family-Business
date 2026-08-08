@@ -7,6 +7,12 @@ signal family_business_slot_changed(
 	character_id: int
 )
 
+signal family_business_npc_slot_changed(
+	business_instance_id: String,
+	slot_id: String,
+	npc_id: String
+)
+
 
 signal family_business_created(
 	business_instance_id: String,
@@ -731,7 +737,8 @@ func _create_runtime_slots_for_level(
 		runtime_slots.append(
 			{
 				"slot_id": str(slot_id_value),
-				"assigned_character_id": null
+				"assigned_character_id": null,
+				"assigned_npc_id": null
 			}
 		)
 
@@ -971,7 +978,8 @@ func upgrade_business(
 		current_slots.append(
 			{
 				"slot_id": slot_id,
-				"assigned_character_id": null
+				"assigned_character_id": null,
+				"assigned_npc_id": null
 			}
 		)
 
@@ -1025,37 +1033,6 @@ func get_business_slot_gross(
 	if slot.is_empty():
 		return 0
 
-	var assigned_character_id = slot.get(
-		"assigned_character_id",
-		null
-	)
-
-	if assigned_character_id == null:
-		return 0
-
-	var character := CareerManager.get_character_by_id(
-		int(assigned_character_id)
-	)
-
-	if character.is_empty():
-		return 0
-
-	if not bool(
-		character.get(
-			"is_alive",
-			true
-		)
-	):
-		return 0
-
-	if bool(
-		character.get(
-			"is_retired",
-			false
-		)
-	):
-		return 0
-
 	var slot_definition := get_slot_definition(
 		business_type_id,
 		slot_id
@@ -1064,8 +1041,81 @@ func get_business_slot_gross(
 	if slot_definition.is_empty():
 		return 0
 
+	var assigned_character_id = slot.get(
+		"assigned_character_id",
+		null
+	)
+
+	if assigned_character_id != null:
+		var character := CareerManager.get_character_by_id(
+			int(assigned_character_id)
+		)
+
+		if character.is_empty():
+			return 0
+
+		if not bool(
+			character.get(
+				"is_alive",
+				true
+			)
+		):
+			return 0
+
+		if bool(
+			character.get(
+				"is_retired",
+				false
+			)
+		):
+			return 0
+
+		return calculate_worker_slot_gross(
+			character,
+			slot_definition
+		)
+
+	var assigned_npc_id_value = slot.get(
+		"assigned_npc_id",
+		null
+	)
+
+	if assigned_npc_id_value == null:
+		return 0
+
+	var npc_id := str(
+		assigned_npc_id_value
+	)
+
+	if npc_id.is_empty():
+		return 0
+
+	var npc_manager := get_node_or_null(
+		"/root/NPCManager"
+	)
+
+	if npc_manager == null:
+		return 0
+
+	var worker: Dictionary = (
+		npc_manager.get_worker_npc_by_id(
+			npc_id
+		)
+	)
+
+	if worker.is_empty():
+		return 0
+
+	if bool(
+		worker.get(
+			"is_retired",
+			false
+		)
+	):
+		return 0
+
 	return calculate_worker_slot_gross(
-		character,
+		worker,
 		slot_definition
 	)
 
@@ -1355,6 +1405,12 @@ func assign_character_to_slot(
 	) != null:
 		return false
 
+	if slot.get(
+		"assigned_npc_id",
+		null
+	) != null:
+		return false
+
 	if not can_assign_character(
 		character_id
 	):
@@ -1498,6 +1554,293 @@ func remove_character_from_slot(
 	)
 
 	return true
+
+
+func get_npc_assignment(
+	npc_id: String
+) -> Dictionary:
+	if npc_id.is_empty():
+		return {}
+
+	for business_value in businesses:
+		if typeof(business_value) != TYPE_DICTIONARY:
+			continue
+
+		var business: Dictionary = business_value
+
+		var business_instance_id := str(
+			business.get(
+				"business_instance_id",
+				""
+			)
+		)
+
+		var slots_value = business.get(
+			"slots",
+			[]
+		)
+
+		if typeof(slots_value) != TYPE_ARRAY:
+			continue
+
+		var slots: Array = slots_value
+
+		for slot_value in slots:
+			if typeof(slot_value) != TYPE_DICTIONARY:
+				continue
+
+			var slot: Dictionary = slot_value
+
+			if str(
+				slot.get(
+					"assigned_npc_id",
+					""
+				)
+			) != npc_id:
+				continue
+
+			return {
+				"business_instance_id": business_instance_id,
+				"slot_id": str(
+					slot.get(
+						"slot_id",
+						""
+					)
+				)
+			}
+
+	return {}
+
+
+func is_npc_assigned(
+	npc_id: String
+) -> bool:
+	return not get_npc_assignment(
+		npc_id
+	).is_empty()
+
+
+func can_assign_npc(
+	npc_id: String
+) -> bool:
+	if npc_id.is_empty():
+		return false
+
+	var npc_manager := get_node_or_null(
+		"/root/NPCManager"
+	)
+
+	if npc_manager == null:
+		return false
+
+	var worker: Dictionary = (
+		npc_manager.get_worker_npc_by_id(
+			npc_id
+		)
+	)
+
+	if worker.is_empty():
+		return false
+
+	if bool(
+		worker.get(
+			"is_retired",
+			false
+		)
+	):
+		return false
+
+	var retirement_age: int = int(
+		npc_manager.generation_config.get(
+			"retirement_age",
+			65
+		)
+	)
+
+	if npc_manager.get_worker_age(
+		worker
+	) >= retirement_age:
+		return false
+
+	if is_npc_assigned(
+		npc_id
+	):
+		return false
+
+	return true
+
+
+func assign_npc_to_slot(
+	business_instance_id: String,
+	slot_id: String,
+	npc_id: String
+) -> bool:
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return false
+
+	if slot.get(
+		"assigned_character_id",
+		null
+	) != null:
+		return false
+
+	if slot.get(
+		"assigned_npc_id",
+		null
+	) != null:
+		return false
+
+	if not can_assign_npc(
+		npc_id
+	):
+		return false
+
+	var npc_manager := get_node_or_null(
+		"/root/NPCManager"
+	)
+
+	if npc_manager == null:
+		return false
+
+	var worker: Dictionary = (
+		npc_manager.get_worker_npc_by_id(
+			npc_id
+		)
+	)
+
+	if worker.is_empty():
+		return false
+
+	var business := get_business_by_instance_id(
+		business_instance_id
+	)
+
+	if business.is_empty():
+		return false
+
+	var business_type_id := str(
+		business.get(
+			"business_type_id",
+			""
+		)
+	)
+
+	if business_type_id.is_empty():
+		return false
+
+	var slot_definition := get_slot_definition(
+		business_type_id,
+		slot_id
+	)
+
+	if slot_definition.is_empty():
+		return false
+
+	# required_stats are performance references only.
+	# The NPC may have low values, but all referenced stats must exist.
+	if not worker_meets_slot_requirements(
+		worker,
+		slot_definition
+	):
+		return false
+
+	slot["assigned_npc_id"] = npc_id
+
+	family_business_npc_slot_changed.emit(
+		business_instance_id,
+		slot_id,
+		npc_id
+	)
+
+	print(
+		"FAMILY BUSINESS NPC ASSIGNED | NPC: ",
+		npc_id,
+		" | Business: ",
+		business_instance_id,
+		" | Slot: ",
+		slot_id
+	)
+
+	return true
+
+
+func remove_npc_from_slot(
+	business_instance_id: String,
+	slot_id: String
+) -> bool:
+	var slot := get_slot(
+		business_instance_id,
+		slot_id
+	)
+
+	if slot.is_empty():
+		return false
+
+	var npc_id_value = slot.get(
+		"assigned_npc_id",
+		null
+	)
+
+	if npc_id_value == null:
+		return false
+
+	var npc_id := str(
+		npc_id_value
+	)
+
+	if npc_id.is_empty():
+		return false
+
+	slot["assigned_npc_id"] = null
+
+	family_business_npc_slot_changed.emit(
+		business_instance_id,
+		slot_id,
+		""
+	)
+
+	print(
+		"FAMILY BUSINESS NPC REMOVED | NPC: ",
+		npc_id,
+		" | Business: ",
+		business_instance_id,
+		" | Slot: ",
+		slot_id,
+		" | NPC available again"
+	)
+
+	return true
+
+
+func remove_npc_from_any_slot(
+	npc_id: String
+) -> bool:
+	var assignment := get_npc_assignment(
+		npc_id
+	)
+
+	if assignment.is_empty():
+		return false
+
+	return remove_npc_from_slot(
+		str(
+			assignment.get(
+				"business_instance_id",
+				""
+			)
+		),
+		str(
+			assignment.get(
+				"slot_id",
+				""
+			)
+		)
+	)
 
 
 func remove_character_from_any_slot(
