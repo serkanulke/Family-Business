@@ -9,6 +9,8 @@ var saved_businesses: Array = []
 var saved_active_offers: Dictionary = {}
 var saved_date := Vector3i.ZERO
 var saved_paused := false
+var saved_family_money := 0
+var saved_next_business_instance_number := 1
 
 
 func _ready() -> void:
@@ -49,6 +51,16 @@ func _run_all_tests() -> void:
 	_test_performance_tiers_and_gross()
 	_test_missing_visual_uses_placeholder()
 
+	_test_existing_building_uses_lv1_cost()
+	_test_new_construction_uses_1_4_multiplier()
+	_test_create_existing_business_instance()
+	_test_create_new_construction_instance()
+	_test_insufficient_money_blocks_purchase()
+	_test_occupied_plot_blocks_second_business()
+	_test_upgrade_cost_and_level()
+	_test_upgrade_preserves_existing_worker_and_adds_new_slot()
+	_test_max_level_blocks_further_upgrade()
+
 	_test_external_employee_moves_to_family_business()
 	_test_pending_offer_is_removed_on_assignment()
 	_test_family_business_employee_is_excluded_from_external_systems()
@@ -61,6 +73,10 @@ func _save_state() -> void:
 	saved_characters = CharacterManager.characters.duplicate(true)
 	saved_businesses = BusinessManager.businesses.duplicate(true)
 	saved_active_offers = CareerManager.active_job_offers.duplicate(true)
+	saved_family_money = GameManager.family_money
+	saved_next_business_instance_number = (
+		BusinessManager.next_business_instance_number
+	)
 
 	saved_date = Vector3i(
 		TimeManager.current_day,
@@ -75,6 +91,10 @@ func _restore_state() -> void:
 	CharacterManager.characters = saved_characters
 	BusinessManager.businesses = saved_businesses
 	CareerManager.active_job_offers = saved_active_offers
+	GameManager.set_family_money(saved_family_money)
+	BusinessManager.next_business_instance_number = (
+		saved_next_business_instance_number
+	)
 
 	TimeManager.current_day = saved_date.x
 	TimeManager.current_month = saved_date.y
@@ -85,6 +105,8 @@ func _restore_state() -> void:
 func _reset_world() -> void:
 	CharacterManager.characters = []
 	CareerManager.active_job_offers.clear()
+	GameManager.set_family_money(10000000)
+	BusinessManager.next_business_instance_number = 1
 
 	BusinessManager.businesses = [
 		{
@@ -397,6 +419,313 @@ func _test_missing_visual_uses_placeholder() -> void:
 		not expected_placeholder.is_empty()
 		and actual_path == expected_placeholder,
 		"Missing business visual variant uses the configured placeholder path"
+	)
+
+
+func _test_existing_building_uses_lv1_cost() -> void:
+	_reset_world()
+
+	_assert_true(
+		BusinessManager.get_business_acquisition_cost(
+			"hospital",
+			false
+		) == 120000,
+		"Existing Hospital uses the Lv1 base purchase cost"
+	)
+
+
+func _test_new_construction_uses_1_4_multiplier() -> void:
+	_reset_world()
+
+	_assert_true(
+		is_equal_approx(
+			EconomyManager.NEW_CONSTRUCTION_MULTIPLIER,
+			1.40
+		)
+		and EconomyManager.get_new_construction_cost(
+			120000
+		) == 168000
+		and BusinessManager.get_business_acquisition_cost(
+			"hospital",
+			true
+		) == 168000,
+		"New construction applies the shared 1.4 multiplier to Lv1 cost"
+	)
+
+
+func _test_create_existing_business_instance() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(200000)
+
+	var created := BusinessManager.create_business_instance(
+		"hospital",
+		"plot_existing_001",
+		false
+	)
+
+	_assert_true(
+		not created.is_empty()
+		and str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		) == "business_0001"
+		and str(
+			created.get(
+				"business_type_id",
+				""
+			)
+		) == "hospital"
+		and str(
+			created.get(
+				"plot_id",
+				""
+			)
+		) == "plot_existing_001"
+		and int(
+			created.get(
+				"level",
+				0
+			)
+		) == 1
+		and created.get(
+			"slots",
+			[]
+		).size() == 3
+		and GameManager.family_money == 80000,
+		"Existing Hospital purchase creates Lv1 instance and deducts 120000"
+	)
+
+
+func _test_create_new_construction_instance() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(200000)
+
+	var created := BusinessManager.create_business_instance(
+		"hospital",
+		"plot_empty_001",
+		true
+	)
+
+	_assert_true(
+		not created.is_empty()
+		and GameManager.family_money == 32000
+		and int(
+			created.get(
+				"level",
+				0
+			)
+		) == 1
+		and created.get(
+			"slots",
+			[]
+		).size() == 3,
+		"New Hospital construction creates Lv1 instance and deducts 168000"
+	)
+
+
+func _test_insufficient_money_blocks_purchase() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(100000)
+
+	var created := BusinessManager.create_business_instance(
+		"hospital",
+		"plot_empty_002",
+		true
+	)
+
+	_assert_true(
+		created.is_empty()
+		and BusinessManager.businesses.is_empty()
+		and GameManager.family_money == 100000,
+		"Business purchase is blocked when family money is insufficient"
+	)
+
+
+func _test_occupied_plot_blocks_second_business() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(500000)
+
+	var first := BusinessManager.create_business_instance(
+		"bookshop",
+		"plot_shared_001",
+		false
+	)
+
+	var money_after_first := GameManager.family_money
+
+	var second := BusinessManager.create_business_instance(
+		"cafe",
+		"plot_shared_001",
+		false
+	)
+
+	_assert_true(
+		not first.is_empty()
+		and second.is_empty()
+		and BusinessManager.businesses.size() == 1
+		and GameManager.family_money == money_after_first,
+		"Occupied plot rejects a second family business without charging money"
+	)
+
+
+func _test_upgrade_cost_and_level() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(500000)
+
+	var created := BusinessManager.create_business_instance(
+		"hospital",
+		"plot_upgrade_001",
+		false
+	)
+
+	var upgraded := BusinessManager.upgrade_business(
+		str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		)
+	)
+
+	_assert_true(
+		upgraded
+		and int(
+			created.get(
+				"level",
+				0
+			)
+		) == 2
+		and created.get(
+			"slots",
+			[]
+		).size() == 4
+		and GameManager.family_money == 230000,
+		"Hospital Lv1 to Lv2 upgrade deducts 150000 and opens the Lv2 slot"
+	)
+
+
+func _test_upgrade_preserves_existing_worker_and_adds_new_slot() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(500000)
+
+	var created := BusinessManager.create_business_instance(
+		"hospital",
+		"plot_upgrade_002",
+		false
+	)
+
+	var doctor_slot := BusinessManager.get_slot(
+		str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		),
+		"doctor_01"
+	)
+
+	doctor_slot["assigned_character_id"] = 77
+
+	var upgraded := BusinessManager.upgrade_business(
+		str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		)
+	)
+
+	var preserved_doctor := BusinessManager.get_slot(
+		str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		),
+		"doctor_01"
+	)
+
+	var new_surgeon := BusinessManager.get_slot(
+		str(
+			created.get(
+				"business_instance_id",
+				""
+			)
+		),
+		"surgeon_01"
+	)
+
+	_assert_true(
+		upgraded
+		and int(
+			preserved_doctor.get(
+				"assigned_character_id",
+				0
+			)
+		) == 77
+		and not new_surgeon.is_empty()
+		and new_surgeon.get(
+			"assigned_character_id",
+			"invalid"
+		) == null,
+		"Upgrade preserves existing workers and adds newly unlocked slots empty"
+	)
+
+
+func _test_max_level_blocks_further_upgrade() -> void:
+	_reset_world()
+	BusinessManager.businesses = []
+	GameManager.set_family_money(5000000)
+
+	var created := BusinessManager.create_business_instance(
+		"bookshop",
+		"plot_max_001",
+		false
+	)
+
+	var business_id := str(
+		created.get(
+			"business_instance_id",
+			""
+		)
+	)
+
+	var all_upgrades_succeeded := true
+
+	for _step in range(4):
+		if not BusinessManager.upgrade_business(
+			business_id
+		):
+			all_upgrades_succeeded = false
+			break
+
+	var money_at_level_five := GameManager.family_money
+
+	var sixth_level_attempt := (
+		BusinessManager.upgrade_business(
+			business_id
+		)
+	)
+
+	_assert_true(
+		all_upgrades_succeeded
+		and int(
+			created.get(
+				"level",
+				0
+			)
+		) == 5
+		and not sixth_level_attempt
+		and GameManager.family_money == money_at_level_five,
+		"Max-level business rejects further upgrades without charging money"
 	)
 
 
