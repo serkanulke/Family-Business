@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bls1tk47qpkgf"]
+
+[ext_resource type="Script" uid="uid://ga4u3kjn0y8i" path="res://Tests/BusinessManagerTest.gd" id="1_xlqhd"]
+
+[node name="BusinessManagerTest" type="Node" unique_id=1194779557]
+script = ExtResource("1_xlqhd")
