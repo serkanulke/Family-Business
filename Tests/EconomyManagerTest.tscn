@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cmu1coqcr5qnc"]
+
+[ext_resource type="Script" uid="uid://djdpduhukfet1" path="res://Tests/EconomyManagerTest.gd" id="1_economy"]
+
+[node name="EconomyManagerTest" type="Node" unique_id=2109747964]
+script = ExtResource("1_economy")

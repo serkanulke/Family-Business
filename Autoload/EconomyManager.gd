@@ -72,11 +72,16 @@ func is_character_eligible_for_external_salary(
 	) == null:
 		return false
 
-	var company_id := String(
-		character.get(
-			"company_id",
-			""
-		)
+	var company_id_value = character.get(
+	"company_id",
+	null
+)
+
+	if company_id_value == null:
+		return false
+
+	var company_id := str(
+		company_id_value
 	)
 
 	if company_id.is_empty():
