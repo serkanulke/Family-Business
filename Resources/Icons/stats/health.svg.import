@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxv3pmkvnmjmd"
-path="res://.godot/imported/modal_header_bg.svg-39c5e2673935fb12fff9e625cf67c37e.ctex"
+uid="uid://c4jg50de4espg"
+path="res://.godot/imported/health.svg-21a42cc451fbd90960e0e9e9366f4cff.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Icons/modal_header_bg.svg"
-dest_files=["res://.godot/imported/modal_header_bg.svg-39c5e2673935fb12fff9e625cf67c37e.ctex"]
+source_file="res://Resources/Icons/stats/health.svg"
+dest_files=["res://.godot/imported/health.svg-21a42cc451fbd90960e0e9e9366f4cff.ctex"]
 
 [params]
 

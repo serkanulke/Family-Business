@@ -1,6 +1,27 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://UI/Business/WorkerSelection/WorkerSelectionSheet.gd" id="1"]
+[ext_resource type="Script" path="res://UI/Business/WorkerSelection/WorkerSelectionSheet.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleSheet"]
+bg_color = Color(0.988235, 0.937255, 0.870588, 1)
+corner_radius_top_left = 42
+corner_radius_top_right = 42
+
+[sub_resource type="StyleBoxFlat" id="StyleHandle"]
+bg_color = Color(0.827451, 0.713725, 0.607843, 0.68)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleFilterBar"]
+bg_color = Color(0.996078, 0.976471, 0.960784, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxEmpty" id="StyleEmpty"]
 
 [node name="WorkerSelectionSheet" type="Control"]
 layout_mode = 3
@@ -10,7 +31,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-script = ExtResource("1")
+script = ExtResource("1_script")
 
 [node name="Dimmer" type="ColorRect" parent="."]
 layout_mode = 1
@@ -19,87 +40,128 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+mouse_filter = 2
+color = Color(0.0705882, 0.0980392, 0.0941176, 0.86)
+
+[node name="BackdropButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+theme_override_styles/normal = SubResource("StyleEmpty")
+theme_override_styles/hover = SubResource("StyleEmpty")
+theme_override_styles/pressed = SubResource("StyleEmpty")
+theme_override_styles/focus = SubResource("StyleEmpty")
 
 [node name="Sheet" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 12
+anchor_top = 0.218
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -1200.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleSheet")
 
 [node name="Margin" type="MarginContainer" parent="Sheet"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_left = 42
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 42
 theme_override_constants/margin_bottom = 24
 
 [node name="VBox" type="VBoxContainer" parent="Sheet/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Header" type="HBoxContainer" parent="Sheet/Margin/VBox"]
+[node name="HandleCenter" type="CenterContainer" parent="Sheet/Margin/VBox"]
+custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
+
+[node name="Handle" type="PanelContainer" parent="Sheet/Margin/VBox/HandleCenter"]
+custom_minimum_size = Vector2(205, 8)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleHandle")
+
+[node name="Header" type="VBoxContainer" parent="Sheet/Margin/VBox"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
 
 [node name="TitleLabel" type="Label" parent="Sheet/Margin/VBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Position"
-theme_override_font_sizes/font_size = 28
+text = "CHIEF PHYSICIAN"
+horizontal_alignment = 1
 
-[node name="CloseButton" type="Button" parent="Sheet/Margin/VBox/Header"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 48)
-layout_mode = 2
-text = "×"
-
-[node name="SubtitleLabel" type="Label" parent="Sheet/Margin/VBox"]
+[node name="SubtitleLabel" type="Label" parent="Sheet/Margin/VBox/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Select the best candidate"
+horizontal_alignment = 1
 
-[node name="Filters" type="HBoxContainer" parent="Sheet/Margin/VBox"]
+[node name="FilterPanel" type="PanelContainer" parent="Sheet/Margin/VBox"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleFilterBar")
+
+[node name="FilterMargin" type="MarginContainer" parent="Sheet/Margin/VBox/FilterPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Filters" type="HBoxContainer" parent="Sheet/Margin/VBox/FilterPanel/FilterMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="AllButton" type="Button" parent="Sheet/Margin/VBox/Filters"]
+[node name="AllButton" type="Button" parent="Sheet/Margin/VBox/FilterPanel/FilterMargin/Filters"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "All"
 
-[node name="YoungAdultButton" type="Button" parent="Sheet/Margin/VBox/Filters"]
+[node name="YoungAdultButton" type="Button" parent="Sheet/Margin/VBox/FilterPanel/FilterMargin/Filters"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Young Adult"
 
-[node name="AdultButton" type="Button" parent="Sheet/Margin/VBox/Filters"]
+[node name="AdultButton" type="Button" parent="Sheet/Margin/VBox/FilterPanel/FilterMargin/Filters"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Adult"
 
-[node name="ElderButton" type="Button" parent="Sheet/Margin/VBox/Filters"]
+[node name="ElderButton" type="Button" parent="Sheet/Margin/VBox/FilterPanel/FilterMargin/Filters"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Elder"
 
+[node name="ErrorLabel" type="Label" parent="Sheet/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Assignment could not be completed."
+horizontal_alignment = 1
+visible = false
+
 [node name="Scroll" type="ScrollContainer" parent="Sheet/Margin/VBox"]
-custom_minimum_size = Vector2(0, 930)
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="CandidateList" type="VBoxContainer" parent="Sheet/Margin/VBox/Scroll"]
+[node name="CandidateGrid" type="GridContainer" parent="Sheet/Margin/VBox/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+columns = 2
+theme_override_constants/h_separation = 28
+theme_override_constants/v_separation = 26
 
 [node name="EmptyLabel" type="Label" parent="Sheet/Margin/VBox"]
 unique_name_in_owner = true

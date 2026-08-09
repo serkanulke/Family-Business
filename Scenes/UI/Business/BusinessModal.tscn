@@ -1,7 +1,8 @@
-[gd_scene format=3 uid="uid://m5u77u87u5kx"]
+[gd_scene load_steps=11 format=3]
 
-[ext_resource type="Script" uid="uid://du600rdfad627" path="res://Scripts/UI/Business/business_modal.gd" id="1_script"]
-[ext_resource type="Script" uid="uid://uno83ahras60" path="res://Scripts/UI/Business/business_modal_worker_flow_connector.gd" id="2_eb72x"]
+[ext_resource type="Script" path="res://Scripts/UI/Business/business_modal.gd" id="1_script"]
+[ext_resource type="Script" path="res://Scripts/UI/Business/business_modal_worker_flow_connector.gd" id="2_connector"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/business-modal-header-bg.svg" id="3_header_bg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleModal"]
 bg_color = Color(0.988235, 0.937255, 0.870588, 1)
@@ -10,8 +11,20 @@ corner_radius_top_right = 40
 corner_radius_bottom_right = 40
 corner_radius_bottom_left = 40
 
-[sub_resource type="StyleBoxFlat" id="StyleSoftCard"]
-bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+[sub_resource type="StyleBoxFlat" id="StyleFinancialCard"]
+bg_color = Color(0.996078, 0.945098, 0.921569, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.952941, 0.87451, 0.827451, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleUpgradeCard"]
+bg_color = Color(0.992157, 0.960784, 0.917647, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -21,30 +34,38 @@ corner_radius_top_left = 24
 corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
-
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_f7vsq"]
-color = Color(0.95686275, 0.8862745, 0.84705883, 1)
-thickness = 2
-vertical = true
-
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_44a2s"]
-color = Color(0.95686275, 0.8862745, 0.84705883, 1)
-thickness = 2
-vertical = true
 
 [sub_resource type="StyleBoxFlat" id="StyleUpgradeButton"]
-bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+bg_color = Color(0.992157, 0.960784, 0.917647, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.956863, 0.886275, 0.847059, 1)
+border_color = Color(0.905882, 0.807843, 0.745098, 1)
 corner_radius_top_left = 24
 corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
-[node name="BusinessModal" type="Control" unique_id=83039761]
+[sub_resource type="StyleBoxFlat" id="StyleClose"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+shadow_color = Color(0, 0, 0, 0.14)
+shadow_size = 4
+
+[sub_resource type="StyleBoxLine" id="StyleVerticalSeparator"]
+color = Color(0.94902, 0.862745, 0.811765, 1)
+thickness = 2
+vertical = true
+
+[sub_resource type="StyleBoxLine" id="StyleHorizontalSeparator"]
+color = Color(0.427451, 0.270588, 0.203922, 0.68)
+thickness = 1
+
+[node name="BusinessModal" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -54,304 +75,343 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_script")
 
-[node name="Dimmer" type="ColorRect" parent="." unique_id=1765659467]
+[node name="Dimmer" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.117647, 0.117647, 0.117647, 0.9)
+mouse_filter = 2
+color = Color(0.0705882, 0.0980392, 0.0941176, 0.86)
 
-[node name="ModalCenter" type="CenterContainer" parent="." unique_id=996720092]
+[node name="ModalCard" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_left = 0.043
+anchor_top = 0.11
+anchor_right = 0.957
+anchor_bottom = 0.915
 grow_horizontal = 2
 grow_vertical = 2
-accessibility_region = true
-
-[node name="ModalCard" type="PanelContainer" parent="ModalCenter" unique_id=1714780870]
-custom_minimum_size = Vector2(841, 0)
-layout_mode = 2
+clip_contents = true
 theme_override_styles/panel = SubResource("StyleModal")
-accessibility_region = true
 
-[node name="OuterMargin" type="MarginContainer" parent="ModalCenter/ModalCard" unique_id=305740392]
+[node name="HeaderBackgroundLayer" type="Control" parent="ModalCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 40
-accessibility_region = true
+mouse_filter = 2
 
-[node name="Content" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin" unique_id=443990277]
+[node name="HeaderBackground" type="NinePatchRect" parent="ModalCard/HeaderBackgroundLayer"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 174.0
+grow_horizontal = 2
+texture = ExtResource("3_header_bg")
+patch_margin_left = 40
+patch_margin_top = 40
+patch_margin_right = 40
+mouse_filter = 2
+
+[node name="OuterMargin" type="MarginContainer" parent="ModalCard"]
 layout_mode = 2
-theme_override_constants/separation = 24
-accessibility_region = true
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 34
 
-[node name="BusinessHeader" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=348730829]
+[node name="Content" type="VBoxContainer" parent="ModalCard/OuterMargin"]
 layout_mode = 2
-theme_override_constants/separation = 40
-accessibility_region = true
+theme_override_constants/separation = 18
 
-[node name="BuildingImage" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader" unique_id=391035973]
-custom_minimum_size = Vector2(250, 155)
+[node name="BusinessHeader" type="HBoxContainer" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 145)
+layout_mode = 2
+theme_override_constants/separation = 34
+
+[node name="BuildingImage" type="TextureRect" parent="ModalCard/OuterMargin/Content/BusinessHeader"]
+custom_minimum_size = Vector2(226, 140)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BusinessInfo" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader" unique_id=279939074]
+[node name="BusinessInfo" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/BusinessHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 6
-accessibility_region = true
+alignment = 1
+theme_override_constants/separation = 7
 
-[node name="IconTitle" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo" unique_id=2030982653]
+[node name="IconTitle" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo"]
 layout_mode = 2
-theme_override_constants/separation = 8
-accessibility_region = true
+theme_override_constants/separation = 10
 
-[node name="BusinessIcon" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle" unique_id=1888908138]
-custom_minimum_size = Vector2(38, 38)
+[node name="BusinessIcon" type="TextureRect" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BusinessTitle" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle" unique_id=1013325730]
+[node name="BusinessTitle" type="Label" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
 theme_override_font_sizes/font_size = 40
 text = "HOSPITAL"
 
-[node name="BusinessLevel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo" unique_id=1060987471]
+[node name="BusinessLevel" type="Label" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
 theme_override_font_sizes/font_size = 28
 text = "Level 3"
 
-[node name="FinancialSummary" type="PanelContainer" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=1194715461]
+[node name="FinancialSummary" type="PanelContainer" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 116)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleSoftCard")
-accessibility_region = true
+theme_override_styles/panel = SubResource("StyleFinancialCard")
 
-[node name="FinancialMargin" type="MarginContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary" unique_id=580364851]
+[node name="FinancialMargin" type="MarginContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary"]
 layout_mode = 2
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_bottom = 24
-accessibility_region = true
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
 
-[node name="Columns" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin" unique_id=97745139]
+[node name="Columns" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin"]
 layout_mode = 2
-theme_override_constants/separation = 0
-accessibility_region = true
 
-[node name="IncomeCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns" unique_id=1886899600]
+[node name="IncomeWrap" type="MarginContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
-accessibility_region = true
+theme_override_constants/margin_left = 24
 
-[node name="IncomeLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard" unique_id=1921668780]
+[node name="IncomeCard" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 8
+
+[node name="IncomeLabel" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard"]
+layout_mode = 2
 text = "MONTHLY INCOME"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="IncomeValueRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard" unique_id=479438972]
+[node name="IncomeValueRow" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard"]
 layout_mode = 2
-theme_override_constants/separation = 24
-accessibility_region = true
-alignment = 1
+theme_override_constants/separation = 14
 
-[node name="IncomeValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow" unique_id=1705191285]
+[node name="IncomeValue" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard/IncomeValueRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
-theme_override_font_sizes/font_size = 28
 text = "+420,000"
 
-[node name="IncomeTrend" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow" unique_id=1213905917]
+[node name="IncomeTrend" type="TextureRect" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard/IncomeValueRow"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Separator1" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns" unique_id=349647720]
+[node name="Separator1" type="VSeparator" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
 custom_minimum_size = Vector2(2, 0)
 layout_mode = 2
-theme_override_constants/separation = 2
-theme_override_styles/separator = SubResource("StyleBoxLine_f7vsq")
+theme_override_styles/separator = SubResource("StyleVerticalSeparator")
 
-[node name="ExpenseCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns" unique_id=1420615545]
+[node name="ExpenseWrap" type="MarginContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
-accessibility_region = true
+theme_override_constants/margin_left = 24
 
-[node name="ExpenseLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard" unique_id=1289524462]
+[node name="ExpenseCard" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 8
+
+[node name="ExpenseLabel" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard"]
+layout_mode = 2
 text = "MONTHLY EXPENSE"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="ExpenseValueRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard" unique_id=1558881268]
+[node name="ExpenseValueRow" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard"]
 layout_mode = 2
-theme_override_constants/separation = 24
-accessibility_region = true
-alignment = 1
+theme_override_constants/separation = 14
 
-[node name="ExpenseValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow" unique_id=2104299441]
+[node name="ExpenseValue" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard/ExpenseValueRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.25098, 0.243137, 1)
-theme_override_font_sizes/font_size = 28
 text = "-180,000"
 
-[node name="ExpenseTrend" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow" unique_id=1054745965]
+[node name="ExpenseTrend" type="TextureRect" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard/ExpenseValueRow"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Separator2" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns" unique_id=1752186923]
+[node name="Separator2" type="VSeparator" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
 custom_minimum_size = Vector2(2, 0)
 layout_mode = 2
-theme_override_constants/separation = 2
-theme_override_styles/separator = SubResource("StyleBoxLine_44a2s")
+theme_override_styles/separator = SubResource("StyleVerticalSeparator")
 
-[node name="NetCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns" unique_id=67432281]
+[node name="NetWrap" type="MarginContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
-accessibility_region = true
+theme_override_constants/margin_left = 24
 
-[node name="NetLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard" unique_id=905420442]
+[node name="NetCard" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetWrap"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_constants/separation = 8
+
+[node name="NetLabel" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetWrap/NetCard"]
+layout_mode = 2
 text = "NET PROFIT"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="NetValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard" unique_id=728537306]
+[node name="NetValue" type="Label" parent="ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetWrap/NetCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
-theme_override_font_sizes/font_size = 28
 text = "+240,000"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="SectionHeader" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=1939095516]
+[node name="SectionHeader" type="HBoxContainer" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
-theme_override_constants/separation = 24
-accessibility_region = true
+theme_override_constants/separation = 20
 
-[node name="StaffPositionsLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/SectionHeader" unique_id=594845990]
+[node name="StaffPositionsLabel" type="Label" parent="ModalCard/OuterMargin/Content/SectionHeader"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
-theme_override_font_sizes/font_size = 24
 text = "STAFF POSITIONS"
+vertical_alignment = 1
 
-[node name="StaffSeparator" type="HSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/SectionHeader" unique_id=616940676]
+[node name="StaffSeparator" type="HSeparator" parent="ModalCard/OuterMargin/Content/SectionHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleHorizontalSeparator")
 
-[node name="StaffScroll" type="ScrollContainer" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=281568676]
-custom_minimum_size = Vector2(0, 190)
+[node name="StaffScroll" type="ScrollContainer" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
 size_flags_vertical = 3
-accessibility_region = true
 horizontal_scroll_mode = 0
 
-[node name="StaffList" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/StaffScroll" unique_id=1737583820]
+[node name="StaffList" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/StaffScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
-accessibility_region = true
 
-[node name="UpgradeCard" type="PanelContainer" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=1416058678]
+[node name="UpgradeCard" type="PanelContainer" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleSoftCard")
-accessibility_region = true
+theme_override_styles/panel = SubResource("StyleUpgradeCard")
 
-[node name="UpgradeMargin" type="MarginContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard" unique_id=1226214484]
+[node name="UpgradeMargin" type="MarginContainer" parent="ModalCard/OuterMargin/Content/UpgradeCard"]
 layout_mode = 2
 theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 16
+theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 16
-accessibility_region = true
+theme_override_constants/margin_bottom = 14
 
-[node name="UpgradeRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin" unique_id=1970120342]
+[node name="UpgradeRow" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin"]
 layout_mode = 2
-theme_override_constants/separation = 24
-accessibility_region = true
+theme_override_constants/separation = 22
 
-[node name="UpgradeBuildingInfo" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow" unique_id=432764052]
+[node name="UpgradeBuildingInfo" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 24
-accessibility_region = true
+theme_override_constants/separation = 18
 
-[node name="UpgradeIcon" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo" unique_id=1933658185]
-custom_minimum_size = Vector2(52, 52)
+[node name="UpgradeIcon" type="TextureRect" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo"]
+custom_minimum_size = Vector2(66, 66)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="UpgradeDetails" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo" unique_id=1599688905]
+[node name="UpgradeDetails" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo"]
 layout_mode = 2
-theme_override_constants/separation = 12
-accessibility_region = true
+alignment = 1
+theme_override_constants/separation = 6
 
-[node name="UpgradeLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails" unique_id=1864790258]
+[node name="UpgradeLabel" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "NEXT UPGRADE"
 
-[node name="NextLevel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails" unique_id=284391000]
+[node name="NextLevel" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Level 4 (Medical Complex)"
+text = "Level 4"
 
-[node name="UpgradeSeparator" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow" unique_id=142480095]
+[node name="UpgradeSeparator" type="VSeparator" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
 custom_minimum_size = Vector2(2, 0)
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleVerticalSeparator")
 
-[node name="UpgradeInfo" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow" unique_id=119738774]
+[node name="UpgradeInfo" type="VBoxContainer" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
-accessibility_region = true
+alignment = 1
+theme_override_constants/separation = 4
 
-[node name="NewSlot" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo" unique_id=1818834118]
+[node name="NewSlot" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "+ New Surgeon Slot"
 
-[node name="PotentialIncome" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo" unique_id=1605242477]
+[node name="PotentialIncome" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
-theme_override_font_sizes/font_size = 20
 text = "+220,000 Potential Income"
 
-[node name="AddedExpense" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo" unique_id=1521612562]
+[node name="AddedExpense" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.25098, 0.243137, 1)
-theme_override_font_sizes/font_size = 20
-text = "+30,000 Monthly Expense"
+text = "+30,000 Expense"
 
-[node name="UpgradeButton" type="Button" parent="ModalCenter/ModalCard/OuterMargin/Content" unique_id=476185786]
-custom_minimum_size = Vector2(0, 82)
+[node name="UpgradeButton" type="Button" parent="ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 78)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
-theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleUpgradeButton")
-theme_override_styles/pressed = SubResource("StyleUpgradeButton")
 theme_override_styles/hover = SubResource("StyleUpgradeButton")
-text = "UPGRADE BUILDING     500,000"
+theme_override_styles/pressed = SubResource("StyleUpgradeButton")
+text = ""
 
-[node name="CloseButton" type="Button" parent="ModalCenter" unique_id=141025300]
-custom_minimum_size = Vector2(70, 70)
+[node name="UpgradeButtonContent" type="CenterContainer" parent="ModalCard/OuterMargin/Content/UpgradeButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="UpgradeButtonRow" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent"]
 layout_mode = 2
-text = "×"
+alignment = 1
+theme_override_constants/separation = 14
+mouse_filter = 2
 
-[node name="WorkerFlowConnector" type="Node" parent="." unique_id=708509018]
-script = ExtResource("2_eb72x")
+[node name="UpgradeButtonLabel" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow"]
+layout_mode = 2
+text = "UPGRADE BUILDING"
+mouse_filter = 2
+
+[node name="UpgradeCoins" type="TextureRect" parent="ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="UpgradeButtonAmount" type="Label" parent="ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow"]
+layout_mode = 2
+text = "500,000"
+mouse_filter = 2
+
+[node name="CloseButton" type="Button" parent="."]
+custom_minimum_size = Vector2(58, 58)
+layout_mode = 1
+anchor_left = 0.957
+anchor_top = 0.11
+anchor_right = 0.957
+anchor_bottom = 0.11
+offset_left = -82.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 82.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_font_sizes/font_size = 37
+theme_override_styles/normal = SubResource("StyleClose")
+theme_override_styles/hover = SubResource("StyleClose")
+theme_override_styles/pressed = SubResource("StyleClose")
+text = "×"
+mouse_filter = 0
+
+[node name="WorkerFlowConnector" type="Node" parent="."]
+script = ExtResource("2_connector")

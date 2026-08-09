@@ -1,6 +1,34 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://UI/Business/WorkerSelection/WorkerTypeSheet.gd" id="1"]
+[ext_resource type="Script" path="res://UI/Business/WorkerSelection/WorkerTypeSheet.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleSheet"]
+bg_color = Color(0.988235, 0.937255, 0.870588, 1)
+corner_radius_top_left = 42
+corner_radius_top_right = 42
+
+[sub_resource type="StyleBoxFlat" id="StyleHandle"]
+bg_color = Color(0.827451, 0.713725, 0.607843, 0.68)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleSourceButton"]
+bg_color = Color(0.996078, 0.976471, 0.960784, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.952941, 0.87451, 0.827451, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 24
+content_margin_left = 26.0
+content_margin_right = 26.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleEmpty"]
 
 [node name="WorkerTypeSheet" type="Control"]
 layout_mode = 3
@@ -10,7 +38,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-script = ExtResource("1")
+script = ExtResource("1_script")
 
 [node name="Dimmer" type="ColorRect" parent="."]
 layout_mode = 1
@@ -19,55 +47,96 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+mouse_filter = 2
+color = Color(0.0705882, 0.0980392, 0.0941176, 0.86)
+
+[node name="BackdropButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+theme_override_styles/normal = SubResource("StyleEmpty")
+theme_override_styles/hover = SubResource("StyleEmpty")
+theme_override_styles/pressed = SubResource("StyleEmpty")
+theme_override_styles/focus = SubResource("StyleEmpty")
 
 [node name="Sheet" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 12
+anchor_top = 0.63
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -340.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleSheet")
 
 [node name="Margin" type="MarginContainer" parent="Sheet"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 32
+theme_override_constants/margin_left = 54
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 54
+theme_override_constants/margin_bottom = 38
 
 [node name="VBox" type="VBoxContainer" parent="Sheet/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 
-[node name="Header" type="HBoxContainer" parent="Sheet/Margin/VBox"]
+[node name="HandleCenter" type="CenterContainer" parent="Sheet/Margin/VBox"]
+custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Sheet/Margin/VBox/Header"]
+[node name="Handle" type="PanelContainer" parent="Sheet/Margin/VBox/HandleCenter"]
+custom_minimum_size = Vector2(210, 8)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Assign Position"
-theme_override_font_sizes/font_size = 28
+theme_override_styles/panel = SubResource("StyleHandle")
 
-[node name="CloseButton" type="Button" parent="Sheet/Margin/VBox/Header"]
+[node name="Header" type="VBoxContainer" parent="Sheet/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="TitleLabel" type="Label" parent="Sheet/Margin/VBox/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-text = "×"
+text = "ASSIGN POSITION"
+horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Sheet/Margin/VBox"]
+[node name="SubtitleLabel" type="Label" parent="Sheet/Margin/VBox/Header"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Who would you like to assign?"
+horizontal_alignment = 1
+
+[node name="RoleLabel" type="Label" parent="Sheet/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Chief Physician"
+horizontal_alignment = 1
+visible = false
+
+[node name="Spacer" type="Control" parent="Sheet/Margin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="FamilyButton" type="Button" parent="Sheet/Margin/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleSourceButton")
+theme_override_styles/hover = SubResource("StyleSourceButton")
+theme_override_styles/pressed = SubResource("StyleSourceButton")
+theme_override_styles/focus = SubResource("StyleSourceButton")
 text = "Family Member"
+alignment = 0
 
 [node name="NPCButton" type="Button" parent="Sheet/Margin/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 112)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleSourceButton")
+theme_override_styles/hover = SubResource("StyleSourceButton")
+theme_override_styles/pressed = SubResource("StyleSourceButton")
+theme_override_styles/focus = SubResource("StyleSourceButton")
 text = "NPC Worker"
+alignment = 0

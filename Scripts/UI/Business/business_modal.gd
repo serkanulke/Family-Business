@@ -1,10 +1,6 @@
 extends Control
 class_name BusinessModal
 
-## UI-only adapter for the Business Manager layer.
-## This scene does not mutate business data directly.
-## It emits signals so the existing manager/controller can remain the source of truth.
-
 signal closed
 signal assign_requested(business_instance_id: String, slot_index: int)
 signal replace_requested(business_instance_id: String, slot_index: int)
@@ -12,49 +8,62 @@ signal upgrade_requested(business_instance_id: String)
 
 const COLOR_TEXT := Color("#1E1E1E")
 const COLOR_BROWN := Color("#6D4534")
-const COLOR_GREEN := Color("#047D48")
+const COLOR_GREEN := Color("#07884F")
 const COLOR_RED := Color("#E8403E")
-const COLOR_SOFT := Color("#FDF1EA")
-const COLOR_BORDER := Color("#F4E2D8")
-const COLOR_STAFF := Color("#FFF9F4")
-const COLOR_ASSIGN := Color("#63A579")
+const COLOR_MODAL := Color("#FCEFDE")
+const COLOR_SOFT := Color("#FDF5EA")
+const COLOR_BORDER := Color("#F3DFD3")
+const COLOR_STAFF := Color("#FEF9F5")
+const COLOR_ASSIGN := Color("#63A479")
+const COLOR_SELECTED := Color("#E2CBB5")
 
 const PATH_BUILDING_IMAGE := "res://Resources/Buildings/Hospital/Hospital.png"
 const PATH_BUSINESS_ICON := "res://Resources/Icons/hospital-sign.png"
 const PATH_INCOME_TREND := "res://Resources/Icons/upper-chart.svg"
 const PATH_EXPENSE_TREND := "res://Resources/Icons/down-chart.svg"
 const PATH_EMPTY_SLOT := "res://Resources/Icons/empty-slot.svg"
-const PATH_ARROW_RIGHT := "res://Resources/Icons/arrow-right.svg"
 const PATH_UPGRADE_ICON := "res://Resources/Icons/building_icon.svg"
+const PATH_UPGRADE_COINS := "res://Resources/Icons/upgrade_coins.svg"
+const PATH_TIER_DIR := "res://Resources/Icons/performance-tier/"
 
 const FONT_REGULAR := "res://Resources/Fonts/Roboto-Regular.ttf"
 const FONT_MEDIUM := "res://Resources/Fonts/Roboto-Medium.ttf"
 const FONT_SEMIBOLD := "res://Resources/Fonts/Roboto-SemiBold.ttf"
 const FONT_BOLD := "res://Resources/Fonts/Roboto-Bold.ttf"
 
+const BUSINESS_MODAL_DATA_ADAPTER := preload("res://Scripts/UI/Business/business_modal_data_adapter.gd")
+
 @export var business_instance_id: String = ""
 
-@onready var building_image: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BuildingImage
-@onready var business_icon: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessIcon
-@onready var business_title: Label = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessTitle
-@onready var business_level: Label = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/BusinessLevel
+@onready var building_image: TextureRect = $ModalCard/OuterMargin/Content/BusinessHeader/BuildingImage
+@onready var business_icon: TextureRect = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessIcon
+@onready var business_title: Label = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessTitle
+@onready var business_level: Label = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/BusinessLevel
 
-@onready var income_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow/IncomeValue
-@onready var expense_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow/ExpenseValue
-@onready var net_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard/NetValue
+@onready var income_label: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard/IncomeLabel
+@onready var income_value: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard/IncomeValueRow/IncomeValue
+@onready var expense_label: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard/ExpenseLabel
+@onready var expense_value: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard/ExpenseValueRow/ExpenseValue
+@onready var net_label: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetWrap/NetCard/NetLabel
+@onready var net_value: Label = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetWrap/NetCard/NetValue
+@onready var income_trend: TextureRect = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeWrap/IncomeCard/IncomeValueRow/IncomeTrend
+@onready var expense_trend: TextureRect = $ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseWrap/ExpenseCard/ExpenseValueRow/ExpenseTrend
 
-@onready var income_trend: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow/IncomeTrend
-@onready var expense_trend: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow/ExpenseTrend
+@onready var section_label: Label = $ModalCard/OuterMargin/Content/SectionHeader/StaffPositionsLabel
+@onready var staff_list: VBoxContainer = $ModalCard/OuterMargin/Content/StaffScroll/StaffList
 
-@onready var staff_list: VBoxContainer = $ModalCenter/ModalCard/OuterMargin/Content/StaffScroll/StaffList
-
-@onready var next_level: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails/NextLevel
-@onready var new_slot: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/NewSlot
-@onready var potential_income: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/PotentialIncome
-@onready var added_expense: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/AddedExpense
-
-@onready var upgrade_button: Button = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeButton
-@onready var close_button: Button = $ModalCenter/CloseButton
+@onready var upgrade_card: PanelContainer = $ModalCard/OuterMargin/Content/UpgradeCard
+@onready var upgrade_icon: TextureRect = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeIcon
+@onready var upgrade_label: Label = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails/UpgradeLabel
+@onready var next_level: Label = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails/NextLevel
+@onready var new_slot: Label = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/NewSlot
+@onready var potential_income: Label = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/PotentialIncome
+@onready var added_expense: Label = $ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/AddedExpense
+@onready var upgrade_button: Button = $ModalCard/OuterMargin/Content/UpgradeButton
+@onready var upgrade_button_label: Label = $ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow/UpgradeButtonLabel
+@onready var upgrade_button_amount: Label = $ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow/UpgradeButtonAmount
+@onready var upgrade_button_coins: TextureRect = $ModalCard/OuterMargin/Content/UpgradeButton/UpgradeButtonContent/UpgradeButtonRow/UpgradeCoins
+@onready var close_button: Button = $CloseButton
 
 var _business_data: Dictionary = {}
 
@@ -62,26 +71,33 @@ var _business_data: Dictionary = {}
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	upgrade_button.pressed.connect(_on_upgrade_pressed)
-	_apply_fonts()
+	_apply_static_fonts()
 	_load_default_assets()
 
-	# Editor/standalone preview until real BusinessManager data is supplied.
-	if _business_data.is_empty():
+	# Standalone F6 preview only. Embedded instances wait for real manager data.
+	if (
+		_business_data.is_empty()
+		and business_instance_id.is_empty()
+		and get_tree().current_scene == self
+	):
 		configure_from_data(_preview_data())
 
 
-## Preferred integration point:
-## BusinessManager (or your screen controller) retrieves the business instance and
-## passes its Dictionary here. This keeps this UI independent from save/data logic.
 func configure_from_data(data: Dictionary) -> void:
 	_business_data = data.duplicate(true)
 
-	if data.has("id"):
-		business_instance_id = str(data["id"])
-	elif data.has("instance_id"):
-		business_instance_id = str(data["instance_id"])
+	business_instance_id = str(_first(
+		data,
+		["business_instance_id", "id", "instance_id"],
+		business_instance_id
+	))
 
-	business_title.text = str(_first(data, ["display_name", "name", "business_name"], "BUSINESS"))
+	business_title.text = str(_first(
+		data,
+		["display_name", "name", "business_name"],
+		"BUSINESS"
+	)).to_upper()
+
 	var level := int(_first(data, ["level"], 1))
 	business_level.text = "Level %d" % level
 
@@ -101,30 +117,6 @@ func configure_from_data(data: Dictionary) -> void:
 	_apply_upgrade_data(_first(data, ["next_upgrade", "upgrade"], {}))
 
 
-## Optional convenience method. Use only if BusinessManager is an Autoload in your project.
-## Because the repository BusinessManager could not be read while this package was generated,
-## this adapter supports common read APIs without hard-coding a mutation API.
-func refresh_from_business_manager() -> bool:
-	var manager := get_node_or_null("/root/BusinessManager")
-	if manager == null:
-		push_warning("BusinessManager Autoload not found. Pass data with configure_from_data().")
-		return false
-
-	var data: Variant = null
-
-	if manager.has_method("get_business_instance"):
-		data = manager.call("get_business_instance", business_instance_id)
-	elif manager.has_method("get_business"):
-		data = manager.call("get_business", business_instance_id)
-
-	if data is Dictionary:
-		configure_from_data(data)
-		return true
-
-	push_warning("BusinessManager found, but no compatible read method returned a Dictionary.")
-	return false
-
-
 func open_for_business(id: String, data: Dictionary = {}) -> void:
 	business_instance_id = id
 	visible = true
@@ -132,6 +124,18 @@ func open_for_business(id: String, data: Dictionary = {}) -> void:
 		configure_from_data(data)
 	else:
 		refresh_from_business_manager()
+
+
+func refresh_from_business_manager() -> bool:
+	if business_instance_id.is_empty():
+		return false
+
+	var data: Dictionary = BUSINESS_MODAL_DATA_ADAPTER.build(business_instance_id)
+	if data.is_empty():
+		return false
+
+	configure_from_data(data)
+	return true
 
 
 func close_modal() -> void:
@@ -143,129 +147,184 @@ func _build_staff_rows(slots: Array) -> void:
 	for child in staff_list.get_children():
 		child.queue_free()
 
-	if slots.is_empty():
+	if slots.is_empty() and business_instance_id == "hospital_preview":
 		slots = _preview_data()["slots"]
 
-	for i in slots.size():
+	for i in range(slots.size()):
 		var slot: Dictionary = slots[i] if slots[i] is Dictionary else {}
 		staff_list.add_child(_create_staff_row(slot, i))
 
 
 func _create_staff_row(slot: Dictionary, slot_index: int) -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(0, 170)
+	panel.custom_minimum_size = Vector2(0, 166)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", _staff_style())
+	panel.clip_contents = true
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	panel.add_child(row)
 
+	# Left: position + required stat chips.
 	var job_margin := MarginContainer.new()
-	job_margin.custom_minimum_size = Vector2(317, 0)
-	job_margin.add_theme_constant_override("margin_left", 24)
-	job_margin.add_theme_constant_override("margin_top", 22)
-	job_margin.add_theme_constant_override("margin_right", 24)
-	job_margin.add_theme_constant_override("margin_bottom", 22)
+	job_margin.custom_minimum_size = Vector2(310, 0)
+	job_margin.add_theme_constant_override("margin_left", 22)
+	job_margin.add_theme_constant_override("margin_top", 19)
+	job_margin.add_theme_constant_override("margin_right", 20)
+	job_margin.add_theme_constant_override("margin_bottom", 18)
 	row.add_child(job_margin)
 
 	var job_box := VBoxContainer.new()
-	job_box.add_theme_constant_override("separation", 12)
+	job_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	job_box.add_theme_constant_override("separation", 0)
 	job_margin.add_child(job_box)
 
 	var role_label := Label.new()
 	role_label.text = str(_first(slot, ["role_name", "name", "title", "slot_name"], "Position"))
+	role_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_set_label_font(role_label, FONT_SEMIBOLD, 28, COLOR_TEXT)
 	job_box.add_child(role_label)
+
+	var role_spacer := Control.new()
+	role_spacer.custom_minimum_size = Vector2(0, 24)
+	job_box.add_child(role_spacer)
 
 	var requires := Label.new()
 	requires.text = "REQUIRES"
 	_set_label_font(requires, FONT_SEMIBOLD, 16, COLOR_BROWN)
 	job_box.add_child(requires)
 
+	var requires_spacer := Control.new()
+	requires_spacer.custom_minimum_size = Vector2(0, 8)
+	job_box.add_child(requires_spacer)
+
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override("separation", 8)
 	job_box.add_child(chips)
 
 	var required_stats := _as_array(_first(slot, ["required_stats", "requirements"], []))
-	if required_stats.is_empty():
-		required_stats = ["Logic", "Health", "+1"]
+	var displayed_stats: Array = []
 	for stat in required_stats:
+		if displayed_stats.size() >= 2:
+			break
+		displayed_stats.append(stat)
+	for stat in displayed_stats:
 		chips.add_child(_create_chip(str(stat)))
+	if required_stats.size() > 2:
+		chips.add_child(_create_chip("+%d" % (required_stats.size() - 2)))
 
-	var sep := VSeparator.new()
-	sep.custom_minimum_size.x = 2
-	sep.add_theme_color_override("separator", COLOR_BORDER)
-	row.add_child(sep)
+	row.add_child(_staff_middle_separator())
 
+	# Middle: portrait and worker/empty-position information.
 	var staff_margin := MarginContainer.new()
 	staff_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	staff_margin.add_theme_constant_override("margin_left", 24)
-	staff_margin.add_theme_constant_override("margin_top", 20)
-	staff_margin.add_theme_constant_override("margin_right", 24)
-	staff_margin.add_theme_constant_override("margin_bottom", 20)
+	staff_margin.add_theme_constant_override("margin_left", 22)
+	staff_margin.add_theme_constant_override("margin_top", 17)
+	staff_margin.add_theme_constant_override("margin_right", 18)
+	staff_margin.add_theme_constant_override("margin_bottom", 17)
 	row.add_child(staff_margin)
 
 	var staff_row := HBoxContainer.new()
-	staff_row.add_theme_constant_override("separation", 24)
+	staff_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	staff_row.add_theme_constant_override("separation", 22)
 	staff_margin.add_child(staff_row)
 
 	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(120, 120)
+	portrait.custom_minimum_size = Vector2(112, 112)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	staff_row.add_child(portrait)
 
-	var assigned_character_id := str(_first(slot, ["assigned_character_id"], ""))
-	var assigned_npc_id := str(_first(slot, ["assigned_npc_id"], ""))
-	var is_filled := not assigned_character_id.is_empty() or not assigned_npc_id.is_empty()
+	var assigned_character_id = _first(slot, ["assigned_character_id"], null)
+	var assigned_npc_id = _first(slot, ["assigned_npc_id"], null)
+	var is_filled := assigned_character_id != null or (assigned_npc_id != null and not str(assigned_npc_id).is_empty())
 	var worker_name := str(_first(slot, ["worker_name", "staff_name", "assignee_name"], ""))
 
-	if not is_filled:
+	if is_filled:
+		var portrait_path := str(_first(slot, ["portrait_path"], ""))
+		if not portrait_path.is_empty():
+			_try_set_texture(portrait, portrait_path)
+		else:
+			_try_set_texture(portrait, "res://Resources/Characters/default_avatar.png")
+	else:
 		_try_set_texture(portrait, PATH_EMPTY_SLOT)
-	elif slot.has("portrait_path"):
-		_try_set_texture(portrait, str(slot["portrait_path"]))
 
 	var details := VBoxContainer.new()
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details.add_theme_constant_override("separation", 8)
+	details.alignment = BoxContainer.ALIGNMENT_CENTER
+	details.add_theme_constant_override("separation", 0)
 	staff_row.add_child(details)
 
 	var staff_name := Label.new()
-	staff_name.text = worker_name if not worker_name.is_empty() else ("Assigned" if is_filled else "Empty Position")
+	staff_name.text = worker_name if is_filled and not worker_name.is_empty() else ("Assigned" if is_filled else "Empty Position")
+	staff_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	staff_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_set_label_font(staff_name, FONT_SEMIBOLD, 28, COLOR_TEXT)
 	details.add_child(staff_name)
 
-	var performance_row := HBoxContainer.new()
-	performance_row.add_theme_constant_override("separation", 8)
-	details.add_child(performance_row)
+	var staff_name_spacer := Control.new()
+	staff_name_spacer.custom_minimum_size = Vector2(0, 24)
+	details.add_child(staff_name_spacer)
 
-	var performance := Label.new()
-	var performance_value := str(_first(slot, ["performance_grade", "performance"], ""))
-	performance.text = ("%s Performance" % performance_value) if not performance_value.is_empty() else ("Performance" if is_filled else "Potential Income")
-	_set_label_font(performance, FONT_REGULAR, 16, COLOR_TEXT)
-	performance_row.add_child(performance)
+	if is_filled:
+		var performance_row := HBoxContainer.new()
+		performance_row.add_theme_constant_override("separation", 7)
+		details.add_child(performance_row)
+
+		var tier := str(_first(slot, ["performance_grade", "performance_tier", "performance"], ""))
+		if not tier.is_empty():
+			var tier_icon := TextureRect.new()
+			tier_icon.custom_minimum_size = Vector2(27, 27)
+			tier_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tier_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			_try_set_texture(tier_icon, PATH_TIER_DIR + tier.to_upper() + ".svg")
+			performance_row.add_child(tier_icon)
+
+		var performance_label := Label.new()
+		performance_label.text = "Performance"
+		_set_label_font(performance_label, FONT_REGULAR, 16, COLOR_TEXT)
+		performance_row.add_child(performance_label)
+	else:
+		var potential_label := Label.new()
+		potential_label.text = "Potential Income"
+		_set_label_font(potential_label, FONT_REGULAR, 16, Color("#4B4642"))
+		details.add_child(potential_label)
+
+		var potential_spacer := Control.new()
+		potential_spacer.custom_minimum_size = Vector2(0, 8)
+		details.add_child(potential_spacer)
 
 	var amount := Label.new()
-	var slot_income := float(_first(slot, ["income", "revenue", "potential_income"], 0.0))
+	var slot_income := float(_first(
+		slot,
+		["income", "revenue"] if is_filled else ["potential_income", "base_gross_contribution"],
+		0.0
+	))
 	amount.text = _money(slot_income, true)
 	_set_label_font(amount, FONT_MEDIUM, 24, COLOR_GREEN)
 	details.add_child(amount)
 
+	# Right: Assign / Replace action block.
 	var action := Button.new()
-	action.custom_minimum_size = Vector2(121, 0)
-	action.text = "Replace" if is_filled else "Assign"
+	action.custom_minimum_size = Vector2(126, 0)
+	action.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	action.text = "➜\nReplace" if is_filled else "➜\nAssign"
+	action.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	action.add_theme_font_size_override("font_size", 18)
 	action.add_theme_color_override("font_color", COLOR_BROWN if is_filled else Color.WHITE)
+	_try_set_button_font(action, FONT_MEDIUM)
 
 	var button_style := _action_style(is_filled)
 	action.add_theme_stylebox_override("normal", button_style)
 	action.add_theme_stylebox_override("hover", button_style)
 	action.add_theme_stylebox_override("pressed", button_style)
+	action.add_theme_stylebox_override("focus", button_style)
 
 	if is_filled:
-		action.pressed.connect(func(): replace_requested.emit(business_instance_id, slot_index))
+		action.pressed.connect(func() -> void: replace_requested.emit(business_instance_id, slot_index))
 	else:
-		action.pressed.connect(func(): assign_requested.emit(business_instance_id, slot_index))
+		action.pressed.connect(func() -> void: assign_requested.emit(business_instance_id, slot_index))
 
 	row.add_child(action)
 	return panel
@@ -273,23 +332,28 @@ func _create_staff_row(slot: Dictionary, slot_index: int) -> Control:
 
 func _apply_upgrade_data(value: Variant) -> void:
 	if not value is Dictionary or value.is_empty():
+		upgrade_card.visible = false
+		upgrade_button.visible = false
 		return
 
+	upgrade_card.visible = true
+	upgrade_button.visible = true
 	var data: Dictionary = value
 	var level := int(_first(data, ["level", "next_level"], 0))
 	var upgrade_name := str(_first(data, ["name", "display_name", "upgrade_name"], ""))
-	next_level.text = "Level %d%s" % [level, (" (%s)" % upgrade_name) if not name.is_empty() else ""]
+	var suffix := " (%s)" % upgrade_name if not upgrade_name.is_empty() else ""
+	next_level.text = "Level %d%s" % [level, suffix]
 
-	var slot_text := str(_first(data, ["new_slot_text", "new_slot", "slot_unlock"], ""))
-	new_slot.text = slot_text if not slot_text.is_empty() else "+ New Slot"
+	var slot_text := str(_first(data, ["new_slot_text", "new_slot", "slot_unlock"], "+ New Slot"))
+	new_slot.text = slot_text
 
 	var potential := float(_first(data, ["potential_income", "income_increase", "revenue_increase"], 0.0))
 	var expense := float(_first(data, ["monthly_expense", "expense_increase", "upkeep_increase"], 0.0))
 	var cost := float(_first(data, ["cost", "upgrade_cost"], 0.0))
 
 	potential_income.text = "%s Potential Income" % _money(potential, true)
-	added_expense.text = "%s Monthly Expense" % _money(expense, true)
-	upgrade_button.text = "UPGRADE BUILDING     %s" % _money(cost, false)
+	added_expense.text = "%s Expense" % _money(expense, true)
+	upgrade_button_amount.text = _money(cost, false)
 
 
 func _on_close_pressed() -> void:
@@ -305,15 +369,30 @@ func _load_default_assets() -> void:
 	_try_set_texture(business_icon, PATH_BUSINESS_ICON)
 	_try_set_texture(income_trend, PATH_INCOME_TREND)
 	_try_set_texture(expense_trend, PATH_EXPENSE_TREND)
+	_try_set_texture(upgrade_icon, PATH_UPGRADE_ICON)
+	_try_set_texture(upgrade_button_coins, PATH_UPGRADE_COINS)
 
 
-func _apply_fonts() -> void:
+func _apply_static_fonts() -> void:
 	_set_label_font(business_title, FONT_BOLD, 40, COLOR_TEXT)
 	_set_label_font(business_level, FONT_REGULAR, 28, COLOR_TEXT)
+	_set_label_font(income_label, FONT_SEMIBOLD, 20, COLOR_TEXT)
+	_set_label_font(expense_label, FONT_SEMIBOLD, 20, COLOR_TEXT)
+	_set_label_font(net_label, FONT_SEMIBOLD, 20, COLOR_TEXT)
 	_set_label_font(income_value, FONT_SEMIBOLD, 28, COLOR_GREEN)
 	_set_label_font(expense_value, FONT_SEMIBOLD, 28, COLOR_RED)
 	_set_label_font(net_value, FONT_SEMIBOLD, 28, COLOR_GREEN)
+	_set_label_font(section_label, FONT_SEMIBOLD, 22, COLOR_BROWN)
+	_set_label_font(upgrade_label, FONT_SEMIBOLD, 20, COLOR_TEXT)
+	_set_label_font(next_level, FONT_REGULAR, 20, COLOR_TEXT)
+	_set_label_font(new_slot, FONT_REGULAR, 20, COLOR_TEXT)
+	_set_label_font(potential_income, FONT_REGULAR, 20, COLOR_GREEN)
+	_set_label_font(added_expense, FONT_REGULAR, 20, COLOR_RED)
+	_set_label_font(upgrade_button_label, FONT_SEMIBOLD, 28, COLOR_BROWN)
+	_set_label_font(upgrade_button_amount, FONT_SEMIBOLD, 28, COLOR_BROWN)
 	_try_set_button_font(upgrade_button, FONT_SEMIBOLD)
+	upgrade_button.add_theme_font_size_override("font_size", 28)
+	_try_set_button_font(close_button, FONT_REGULAR)
 
 
 func _set_label_font(label: Label, path: String, font_size: int, color: Color) -> void:
@@ -337,29 +416,49 @@ func _create_chip(text_value: String) -> PanelContainer:
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_SOFT
 	style.border_color = COLOR_BORDER
-	style.set_border_width_all(1)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
 	style.corner_radius_top_left = 50
 	style.corner_radius_top_right = 50
 	style.corner_radius_bottom_left = 50
 	style.corner_radius_bottom_right = 50
 	style.content_margin_left = 10
 	style.content_margin_right = 10
-	style.content_margin_top = 7
-	style.content_margin_bottom = 7
+	style.content_margin_top = 5
+	style.content_margin_bottom = 5
 	panel.add_theme_stylebox_override("panel", style)
 
 	var label := Label.new()
-	label.text = text_value
-	_set_label_font(label, FONT_SEMIBOLD, 16, COLOR_BROWN)
+	label.text = text_value.capitalize() if not text_value.begins_with("+") else text_value
+	_set_label_font(label, FONT_MEDIUM, 16, COLOR_BROWN)
 	panel.add_child(label)
 	return panel
+
+
+func _staff_middle_separator() -> MarginContainer:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
+
+	var line := ColorRect.new()
+	line.custom_minimum_size = Vector2(2, 0)
+	line.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	line.color = COLOR_BORDER
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(line)
+	return margin
 
 
 func _staff_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_STAFF
 	style.border_color = COLOR_BORDER
-	style.set_border_width_all(2)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
 	style.corner_radius_top_left = 24
 	style.corner_radius_top_right = 24
 	style.corner_radius_bottom_left = 24
@@ -370,10 +469,10 @@ func _staff_style() -> StyleBoxFlat:
 func _action_style(is_replace: bool) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_SOFT if is_replace else COLOR_ASSIGN
-	style.border_color = COLOR_BORDER if is_replace else COLOR_GREEN
-	style.border_width_left = 2 if is_replace else 1
-	style.corner_radius_top_right = 24
-	style.corner_radius_bottom_right = 24
+	style.border_color = COLOR_BORDER if is_replace else COLOR_ASSIGN
+	style.border_width_left = 1
+	style.corner_radius_top_right = 22
+	style.corner_radius_bottom_right = 22
 	return style
 
 
@@ -384,7 +483,7 @@ func _try_set_texture(target: TextureRect, path: String) -> void:
 			target.texture = resource
 
 
-func _set_texture_from_data(target: TextureRect, data: Dictionary, keys: Array[String]) -> void:
+func _set_texture_from_data(target: TextureRect, data: Dictionary, keys: Array) -> void:
 	for key in keys:
 		if data.has(key) and not str(data[key]).is_empty():
 			_try_set_texture(target, str(data[key]))
@@ -423,20 +522,29 @@ func _as_array(value: Variant) -> Array:
 
 func _preview_data() -> Dictionary:
 	return {
-		"id": "hospital_preview",
-		"name": "HOSPITAL",
+		"business_instance_id": "hospital_preview",
+		"display_name": "HOSPITAL",
 		"level": 3,
 		"monthly_income": 420000,
 		"monthly_expense": 180000,
 		"net_profit": 240000,
+		"image_path": PATH_BUILDING_IMAGE,
+		"icon_path": PATH_BUSINESS_ICON,
 		"slots": [
 			{
 				"role_name": "Chief Physician",
-				"required_stats": ["Logic", "Health", "+1"],
-				"assigned_character_id": "",
-				"assigned_npc_id": "",
+				"required_stats": ["logic", "health"],
+				"assigned_npc_id": "preview_worker",
+				"worker_name": "Rolando Anderson",
+				"portrait_path": "res://Resources/Characters/NPC/Worker/worker_female_01.png",
+				"performance_grade": "S",
+				"income": 200000,
 				"potential_income": 200000
-			}
+			},
+			{"role_name": "Surgeon", "required_stats": ["logic", "health", "discipline"], "assigned_character_id": null, "assigned_npc_id": null, "potential_income": 100000},
+			{"role_name": "Doctor", "required_stats": ["logic", "health"], "assigned_character_id": null, "assigned_npc_id": null, "potential_income": 80000},
+			{"role_name": "Nurse", "required_stats": ["social", "health"], "assigned_character_id": null, "assigned_npc_id": null, "potential_income": 60000},
+			{"role_name": "Cleaner", "required_stats": ["discipline", "health"], "assigned_character_id": null, "assigned_npc_id": null, "potential_income": 20000}
 		],
 		"next_upgrade": {
 			"level": 4,
