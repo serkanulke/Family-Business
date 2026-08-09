@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://b7wxm4jvb107y"
-path="res://.godot/imported/Inter_18pt-Black.ttf-8189316c321b40063bfab481a6af6df6.fontdata"
+uid="uid://bsfvklb2m6jgp"
+path="res://.godot/imported/Roboto-Light.ttf-74d6f185267119978e7ae7df30c524d4.fontdata"
 
 [deps]
 
-source_file="res://Resources/Fonts/Inter_18pt-Black.ttf"
-dest_files=["res://.godot/imported/Inter_18pt-Black.ttf-8189316c321b40063bfab481a6af6df6.fontdata"]
+source_file="res://Resources/Fonts/Roboto-Light.ttf"
+dest_files=["res://.godot/imported/Roboto-Light.ttf-74d6f185267119978e7ae7df30c524d4.fontdata"]
 
 [params]
 

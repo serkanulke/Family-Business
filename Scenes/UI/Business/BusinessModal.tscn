@@ -1,0 +1,342 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/Business/business_modal.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleModal"]
+bg_color = Color(0.988235, 0.937255, 0.870588, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleSoftCard"]
+bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956863, 0.886275, 0.847059, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleStaffCard"]
+bg_color = Color(1, 0.976471, 0.956863, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956863, 0.886275, 0.847059, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleAssignButton"]
+bg_color = Color(0.388235, 0.647059, 0.47451, 1)
+border_width_left = 1
+border_color = Color(0.0156863, 0.490196, 0.282353, 1)
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleUpgradeButton"]
+bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956863, 0.886275, 0.847059, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[node name="BusinessModal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.117647, 0.117647, 0.117647, 0.9)
+
+[node name="ModalCenter" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ModalCard" type="PanelContainer" parent="ModalCenter"]
+custom_minimum_size = Vector2(841, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleModal")
+
+[node name="OuterMargin" type="MarginContainer" parent="ModalCenter/ModalCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 40
+
+[node name="Content" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="BusinessHeader" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="BuildingImage" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader"]
+custom_minimum_size = Vector2(250, 155)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BusinessInfo" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="IconTitle" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BusinessIcon" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BusinessTitle" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_font_sizes/font_size = 40
+text = "HOSPITAL"
+
+[node name="BusinessLevel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_font_sizes/font_size = 28
+text = "Level 3"
+
+[node name="FinancialSummary" type="PanelContainer" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSoftCard")
+
+[node name="FinancialMargin" type="MarginContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary"]
+layout_mode = 2
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Columns" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="IncomeCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="IncomeLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "MONTHLY INCOME"
+horizontal_alignment = 1
+
+[node name="IncomeValueRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="IncomeValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
+theme_override_font_sizes/font_size = 28
+text = "+420,000"
+
+[node name="IncomeTrend" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Separator1" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+theme_override_colors/separator = Color(0.956863, 0.886275, 0.847059, 1)
+theme_override_constants/separation = 2
+
+[node name="ExpenseCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ExpenseLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "MONTHLY EXPENSE"
+horizontal_alignment = 1
+
+[node name="ExpenseValueRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="ExpenseValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.25098, 0.243137, 1)
+theme_override_font_sizes/font_size = 28
+text = "-180,000"
+
+[node name="ExpenseTrend" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Separator2" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+theme_override_colors/separator = Color(0.956863, 0.886275, 0.847059, 1)
+theme_override_constants/separation = 2
+
+[node name="NetCard" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="NetLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NET PROFIT"
+horizontal_alignment = 1
+
+[node name="NetValue" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
+theme_override_font_sizes/font_size = 28
+text = "+240,000"
+horizontal_alignment = 1
+
+[node name="SectionHeader" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="StaffPositionsLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/SectionHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_font_sizes/font_size = 24
+text = "STAFF POSITIONS"
+
+[node name="StaffSeparator" type="HSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/SectionHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/separator = Color(0.427451, 0.270588, 0.203922, 1)
+
+[node name="StaffScroll" type="ScrollContainer" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 190)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="StaffList" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/StaffScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="UpgradeCard" type="PanelContainer" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSoftCard")
+
+[node name="UpgradeMargin" type="MarginContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="UpgradeRow" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="UpgradeBuildingInfo" type="HBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="UpgradeIcon" type="TextureRect" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UpgradeDetails" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="UpgradeLabel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NEXT UPGRADE"
+
+[node name="NextLevel" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Level 4 (Medical Complex)"
+
+[node name="UpgradeSeparator" type="VSeparator" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+theme_override_colors/separator = Color(0.956863, 0.886275, 0.847059, 1)
+
+[node name="UpgradeInfo" type="VBoxContainer" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="NewSlot" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "+ New Surgeon Slot"
+
+[node name="PotentialIncome" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.0156863, 0.490196, 0.282353, 1)
+theme_override_font_sizes/font_size = 20
+text = "+220,000 Potential Income"
+
+[node name="AddedExpense" type="Label" parent="ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.25098, 0.243137, 1)
+theme_override_font_sizes/font_size = 20
+text = "+30,000 Monthly Expense"
+
+[node name="UpgradeButton" type="Button" parent="ModalCenter/ModalCard/OuterMargin/Content"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleUpgradeButton")
+theme_override_styles/hover = SubResource("StyleUpgradeButton")
+theme_override_styles/pressed = SubResource("StyleUpgradeButton")
+text = "UPGRADE BUILDING     500,000"
+
+[node name="CloseButton" type="Button" parent="ModalCenter"]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+text = "×"

@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://d0y7vi514fxyk"
-path="res://.godot/imported/Inter_18pt-SemiBold.ttf-422c3b540ddabcd43914cc44e3b4aab5.fontdata"
+uid="uid://bsxpp2otj7oyq"
+path="res://.godot/imported/Roboto-Black.ttf-9849fdf05c6c13923d9b9c15616523d4.fontdata"
 
 [deps]
 
-source_file="res://Resources/Fonts/Inter_18pt-SemiBold.ttf"
-dest_files=["res://.godot/imported/Inter_18pt-SemiBold.ttf-422c3b540ddabcd43914cc44e3b4aab5.fontdata"]
+source_file="res://Resources/Fonts/Roboto-Black.ttf"
+dest_files=["res://.godot/imported/Roboto-Black.ttf-9849fdf05c6c13923d9b9c15616523d4.fontdata"]
 
 [params]
 
