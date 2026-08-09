@@ -12,6 +12,7 @@ const BUSINESS_MODAL_DATA_ADAPTER := preload(
 
 var saved_businesses: Array = []
 var saved_family_money: int = 0
+var saved_time_paused: bool = false
 
 var test_business_id: String = ""
 var business_modal: Control = null
@@ -24,6 +25,8 @@ func _ready() -> void:
 	print("========================================")
 
 	_save_state()
+
+	TimeManager.pause()
 
 	GameManager.set_family_money(
 		500000
@@ -133,6 +136,8 @@ func _save_state() -> void:
 		GameManager.family_money
 	)
 
+	saved_time_paused = TimeManager.is_paused
+
 
 func _restore_state() -> void:
 	BusinessManager.businesses = (
@@ -144,6 +149,11 @@ func _restore_state() -> void:
 	GameManager.set_family_money(
 		saved_family_money
 	)
+
+	if saved_time_paused:
+		TimeManager.pause()
+	else:
+		TimeManager.play()
 
 
 func _exit_tree() -> void:
