@@ -181,10 +181,10 @@ func _create_candidate_card(candidate: Dictionary, required_stats: Array[String]
 	panel.add_theme_stylebox_override("panel", _card_style())
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_right", 22)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_top", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_bottom", 24)
 	panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -197,19 +197,24 @@ func _create_candidate_card(candidate: Dictionary, required_stats: Array[String]
 	vbox.add_child(portrait_center)
 
 	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(118, 118)
+	portrait.custom_minimum_size = Vector2(120, 120)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait_center.add_child(portrait)
 	var portrait_path := str(candidate.get("portrait_path", ""))
 	_set_texture(portrait, portrait_path if not portrait_path.is_empty() else PATH_DEFAULT_AVATAR)
 
+	# With VBox separation 8, this zero-height spacer creates 16 px
+	# total distance between portrait and name.
+	var portrait_name_spacer := Control.new()
+	portrait_name_spacer.custom_minimum_size = Vector2(0, 0)
+	vbox.add_child(portrait_name_spacer)
+
 	var name_label := Label.new()
 	name_label.text = _get_candidate_name(candidate)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.custom_minimum_size.y = 58
-	_set_label_font(name_label, FONT_SEMIBOLD, 29, COLOR_TEXT)
+	_set_label_font(name_label, FONT_SEMIBOLD, 40, COLOR_TEXT)
 	vbox.add_child(name_label)
 
 	var age_label := Label.new()
@@ -218,7 +223,7 @@ func _create_candidate_card(candidate: Dictionary, required_stats: Array[String]
 		_format_life_stage(str(candidate.get("life_stage", "")))
 	]
 	age_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_set_label_font(age_label, FONT_REGULAR, 20, COLOR_TEXT)
+	_set_label_font(age_label, FONT_REGULAR, 24, COLOR_TEXT)
 	vbox.add_child(age_label)
 
 	var tier_center := CenterContainer.new()
@@ -236,33 +241,36 @@ func _create_candidate_card(candidate: Dictionary, required_stats: Array[String]
 	var income_label := Label.new()
 	income_label.text = "%s /mo" % _money(int(candidate.get("business_income", 0)), true)
 	income_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_set_label_font(income_label, FONT_SEMIBOLD, 22, COLOR_GREEN)
+	_set_label_font(income_label, FONT_MEDIUM, 24, COLOR_GREEN)
 	vbox.add_child(income_label)
 
 	var income_caption := Label.new()
 	income_caption.text = "Business Income"
 	income_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_set_label_font(income_caption, FONT_REGULAR, 14, COLOR_TEXT)
+	_set_label_font(income_caption, FONT_REGULAR, 16, COLOR_TEXT)
 	vbox.add_child(income_caption)
 
+	var stats_center := CenterContainer.new()
+	stats_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(stats_center)
+
 	var stats_panel := PanelContainer.new()
-	stats_panel.custom_minimum_size = Vector2(0, 205)
-	stats_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	stats_panel.custom_minimum_size = Vector2(272, 224)
+	stats_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	stats_panel.add_theme_stylebox_override("panel", _stats_style())
-	vbox.add_child(stats_panel)
+	stats_center.add_child(stats_panel)
 
 	var stats_margin := MarginContainer.new()
-	stats_margin.add_theme_constant_override("margin_left", 16)
-	stats_margin.add_theme_constant_override("margin_top", 14)
-	stats_margin.add_theme_constant_override("margin_right", 16)
-	stats_margin.add_theme_constant_override("margin_bottom", 14)
+	stats_margin.add_theme_constant_override("margin_left", 24)
+	stats_margin.add_theme_constant_override("margin_top", 24)
+	stats_margin.add_theme_constant_override("margin_right", 24)
+	stats_margin.add_theme_constant_override("margin_bottom", 24)
 	stats_panel.add_child(stats_margin)
 
 	var stats_grid := GridContainer.new()
 	stats_grid.columns = 2
-	stats_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats_grid.add_theme_constant_override("h_separation", 22)
-	stats_grid.add_theme_constant_override("v_separation", 11)
+	stats_grid.add_theme_constant_override("h_separation", 40)
+	stats_grid.add_theme_constant_override("v_separation", 16)
 	stats_margin.add_child(stats_grid)
 
 	var stats_value = candidate.get("stats", {})
@@ -301,11 +309,11 @@ func _create_candidate_card(candidate: Dictionary, required_stats: Array[String]
 
 func _create_stat_cell(stat_name: String, stat_value: int, highlighted: bool) -> Control:
 	var row := HBoxContainer.new()
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 12)
+	row.custom_minimum_size = Vector2(96, 32)
+	row.add_theme_constant_override("separation", 32)
 
 	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(31, 31)
+	icon.custom_minimum_size = Vector2(32, 32)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	var icon_file := str(STAT_ICONS.get(stat_name, ""))
@@ -315,15 +323,15 @@ func _create_stat_cell(stat_name: String, stat_value: int, highlighted: bool) ->
 
 	var value_label := Label.new()
 	value_label.text = str(stat_value)
-	value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_set_label_font(
 		value_label,
 		FONT_MEDIUM,
-		20,
+		24,
 		COLOR_RED if highlighted else COLOR_TEXT
 	)
 	row.add_child(value_label)
 	return row
+
 
 
 func _required_stat_keys(slot_definition: Dictionary) -> Array[String]:
@@ -436,21 +444,21 @@ func _set_texture(target: TextureRect, path: String) -> void:
 		target.texture = resource
 
 
-func _set_label_font(label: Label, path: String, size: int, color: Color) -> void:
+func _set_label_font(label: Label, path: String, font_size: int, color: Color) -> void:
 	if ResourceLoader.exists(path):
 		var font := load(path)
 		if font:
 			label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 
 
-func _set_button_font(button: Button, path: String, size: int, color: Color) -> void:
+func _set_button_font(button: Button, path: String, font_size: int, color: Color) -> void:
 	if ResourceLoader.exists(path):
 		var font := load(path)
 		if font:
 			button.add_theme_font_override("font", font)
-	button.add_theme_font_size_override("font_size", size)
+	button.add_theme_font_size_override("font_size", font_size)
 	button.add_theme_color_override("font_color", color)
 
 
