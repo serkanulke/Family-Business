@@ -34,22 +34,27 @@ const FONT_BOLD := "res://Resources/Fonts/Roboto-Bold.ttf"
 
 @export var business_instance_id: String = ""
 
-@onready var building_image: TextureRect = %BuildingImage
-@onready var business_icon: TextureRect = %BusinessIcon
-@onready var business_title: Label = %BusinessTitle
-@onready var business_level: Label = %BusinessLevel
-@onready var income_value: Label = %IncomeValue
-@onready var expense_value: Label = %ExpenseValue
-@onready var net_value: Label = %NetValue
-@onready var income_trend: TextureRect = %IncomeTrend
-@onready var expense_trend: TextureRect = %ExpenseTrend
-@onready var staff_list: VBoxContainer = %StaffList
-@onready var next_level: Label = %NextLevel
-@onready var new_slot: Label = %NewSlot
-@onready var potential_income: Label = %PotentialIncome
-@onready var added_expense: Label = %AddedExpense
-@onready var upgrade_button: Button = %UpgradeButton
-@onready var close_button: Button = %CloseButton
+@onready var building_image: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BuildingImage
+@onready var business_icon: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessIcon
+@onready var business_title: Label = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessTitle
+@onready var business_level: Label = $ModalCenter/ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/BusinessLevel
+
+@onready var income_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow/IncomeValue
+@onready var expense_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow/ExpenseValue
+@onready var net_value: Label = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/NetCard/NetValue
+
+@onready var income_trend: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/IncomeCard/IncomeValueRow/IncomeTrend
+@onready var expense_trend: TextureRect = $ModalCenter/ModalCard/OuterMargin/Content/FinancialSummary/FinancialMargin/Columns/ExpenseCard/ExpenseValueRow/ExpenseTrend
+
+@onready var staff_list: VBoxContainer = $ModalCenter/ModalCard/OuterMargin/Content/StaffScroll/StaffList
+
+@onready var next_level: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeBuildingInfo/UpgradeDetails/NextLevel
+@onready var new_slot: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/NewSlot
+@onready var potential_income: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/PotentialIncome
+@onready var added_expense: Label = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeCard/UpgradeMargin/UpgradeRow/UpgradeInfo/AddedExpense
+
+@onready var upgrade_button: Button = $ModalCenter/ModalCard/OuterMargin/Content/UpgradeButton
+@onready var close_button: Button = $ModalCenter/CloseButton
 
 var _business_data: Dictionary = {}
 
@@ -272,8 +277,8 @@ func _apply_upgrade_data(value: Variant) -> void:
 
 	var data: Dictionary = value
 	var level := int(_first(data, ["level", "next_level"], 0))
-	var name := str(_first(data, ["name", "display_name", "upgrade_name"], ""))
-	next_level.text = "Level %d%s" % [level, (" (%s)" % name) if not name.is_empty() else ""]
+	var upgrade_name := str(_first(data, ["name", "display_name", "upgrade_name"], ""))
+	next_level.text = "Level %d%s" % [level, (" (%s)" % upgrade_name) if not name.is_empty() else ""]
 
 	var slot_text := str(_first(data, ["new_slot_text", "new_slot", "slot_unlock"], ""))
 	new_slot.text = slot_text if not slot_text.is_empty() else "+ New Slot"
@@ -311,12 +316,12 @@ func _apply_fonts() -> void:
 	_try_set_button_font(upgrade_button, FONT_SEMIBOLD)
 
 
-func _set_label_font(label: Label, path: String, size: int, color: Color) -> void:
+func _set_label_font(label: Label, path: String, font_size: int, color: Color) -> void:
 	if ResourceLoader.exists(path):
 		var font := load(path)
 		if font:
 			label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 
 
