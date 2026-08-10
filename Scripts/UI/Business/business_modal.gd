@@ -23,7 +23,7 @@ const PATH_INCOME_TREND := "res://Resources/Icons/upper-chart.svg"
 const PATH_EXPENSE_TREND := "res://Resources/Icons/down-chart.svg"
 const PATH_EMPTY_SLOT := "res://Resources/Icons/empty-slot.svg"
 const PATH_UPGRADE_ICON := "res://Resources/Icons/building_icon.svg"
-const PATH_UPGRADE_COINS := "res://Resources/Icons/upgrade_coins.svg"
+const PATH_UPGRADE_COINS := "res://Resources/Icons/coin.png"
 const PATH_TIER_DIR := "res://Resources/Icons/performance-tier/"
 
 const FONT_REGULAR := "res://Resources/Fonts/Roboto-Regular.ttf"

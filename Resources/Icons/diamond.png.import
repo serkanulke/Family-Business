@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://balahsv7cncbd"
-path="res://.godot/imported/family-money.png-c048a728695ef1f6dee8218708b88194.ctex"
+uid="uid://c5enyvhkrgvh6"
+path="res://.godot/imported/diamond.png-9ef3ec1a98376a1f6a4003b8045ac729.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Icons/family-money.png"
-dest_files=["res://.godot/imported/family-money.png-c048a728695ef1f6dee8218708b88194.ctex"]
+source_file="res://Resources/Icons/diamond.png"
+dest_files=["res://.godot/imported/diamond.png-9ef3ec1a98376a1f6a4003b8045ac729.ctex"]
 
 [params]
 
