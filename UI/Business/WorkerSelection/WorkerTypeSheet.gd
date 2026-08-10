@@ -55,6 +55,7 @@ func _apply_button_icons() -> void:
 		button.expand_icon = true
 		button.add_theme_constant_override("icon_max_width", 28)
 
+
 func _apply_fonts() -> void:
 	_set_label_font(title_label, FONT_BOLD, 34, COLOR_BROWN)
 	_set_label_font(subtitle_label, FONT_REGULAR, 22, COLOR_TEXT)
@@ -63,21 +64,21 @@ func _apply_fonts() -> void:
 	_set_button_font(npc_button, FONT_SEMIBOLD, 27, COLOR_BROWN)
 
 
-func _set_label_font(label: Label, path: String, size: int, color: Color) -> void:
+func _set_label_font(label: Label, path: String, font_size: int, color: Color) -> void:
 	if ResourceLoader.exists(path):
 		var font := load(path)
 		if font:
 			label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 
 
-func _set_button_font(button: Button, path: String, size: int, color: Color) -> void:
+func _set_button_font(button: Button, path: String, font_size: int, color: Color) -> void:
 	if ResourceLoader.exists(path):
 		var font := load(path)
 		if font:
 			button.add_theme_font_override("font", font)
-	button.add_theme_font_size_override("font_size", size)
+	button.add_theme_font_size_override("font_size", font_size)
 	button.add_theme_color_override("font_color", color)
 
 

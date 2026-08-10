@@ -110,11 +110,11 @@ static func _add_worker_presentation(
 
 		row["worker_name"] = _full_name(character)
 		row["portrait_path"] = CharacterManager.get_avatar_path(character)
-		var performance: Dictionary = BusinessManager.get_worker_slot_performance(
+		var character_performance: Dictionary = BusinessManager.get_worker_slot_performance(
 			character,
 			slot_definition
 		)
-		row["performance_grade"] = str(performance.get("tier", ""))
+		row["performance_grade"] = str(character_performance.get("tier", ""))
 		return
 
 	var npc_id_value = slot.get("assigned_npc_id", null)
@@ -135,11 +135,11 @@ static func _add_worker_presentation(
 
 	row["worker_name"] = _full_name(worker)
 	row["portrait_path"] = str(worker.get("portrait_path", ""))
-	var performance: Dictionary = BusinessManager.get_worker_slot_performance(
+	var npc_performance: Dictionary = BusinessManager.get_worker_slot_performance(
 		worker,
 		slot_definition
 	)
-	row["performance_grade"] = str(performance.get("tier", ""))
+	row["performance_grade"] = str(npc_performance.get("tier", ""))
 
 
 static func _get_npc_manager() -> Node:
