@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://1a46yhl38ghe"]
+
+[ext_resource type="Script" uid="uid://bwighj3kxtlp5" path="res://Tests/RelationshipNPCManagerTest.gd" id="1_relationship_npc"]
+
+[node name="RelationshipNPCManagerTest" type="Node" unique_id=420901879]
+script = ExtResource("1_relationship_npc")

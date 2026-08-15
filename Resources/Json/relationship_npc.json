@@ -1,0 +1,44 @@
+{
+  "generation": {
+    "minimum_age": 18,
+    "maximum_age": 50,
+    "maximum_age_gap": 14,
+    "minimum_relationship_age": 18,
+    "maximum_relationship_age": 54,
+    "maximum_female_fertility_age": 49,
+    "university_track_chance": 0.7,
+    "unemployment_chance": 0.02,
+    "public_high_school_id": 3001,
+    "public_university_id": 4001
+  },
+  "names": {
+    "male": [
+      "Michael",
+      "Daniel",
+      "David",
+      "James",
+      "Robert",
+      "Thomas",
+      "William",
+      "Joseph",
+      "Andrew",
+      "Christopher",
+      "Matthew",
+      "Anthony"
+    ],
+    "female": [
+      "Lisa",
+      "Sarah",
+      "Jennifer",
+      "Laura",
+      "Emily",
+      "Anna",
+      "Rebecca",
+      "Jessica",
+      "Rachel",
+      "Michelle",
+      "Elizabeth",
+      "Amanda"
+    ]
+  }
+}

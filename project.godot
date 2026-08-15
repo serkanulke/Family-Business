@@ -25,6 +25,7 @@ CareerManager="*uid://bldfmnd2l6yde"
 EconomyManager="*uid://chaiw5v2d5ped"
 BusinessManager="*uid://dkg1jihhkocp"
 NPCManager="*uid://dmisaidp5g3ui"
+RelationshipNpcManager="*uid://c28e336oj8xjl"
 
 [display]
 
