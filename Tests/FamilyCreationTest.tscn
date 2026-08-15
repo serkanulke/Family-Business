@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bd06whwx754mm"]
+
+[ext_resource type="Script" uid="uid://cqoxaopqunxeg" path="res://Tests/FamilyCreationTest.gd" id="1_family_creation"]
+
+[node name="FamilyCreationTest" type="Node" unique_id=872841337]
+script = ExtResource("1_family_creation")

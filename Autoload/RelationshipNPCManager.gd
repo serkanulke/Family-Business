@@ -308,8 +308,8 @@ func create_relationship_candidate(
 		"is_player_family": false,
 		"linked_character_id": linked_character_id,
 		"relationship_status": "candidate",
-		"father_id": null,
-		"mother_id": null,
+		"parent_ids": [],
+		"is_adopted": false,
 		"partner_id": null,
 		"children_ids": [],
 		"school_id": null,
@@ -827,7 +827,7 @@ func can_have_biological_child(
 	)
 
 
-func can_adopt(
+func are_married_partners(
 	partner_one: Dictionary,
 	partner_two: Dictionary
 ) -> bool:
@@ -850,21 +850,106 @@ func can_adopt(
 	):
 		return false
 
-	if partner_one.get(
-		"partner_id",
-		null
-	) != partner_two.get(
-		"character_id",
-		null
+	var partner_one_id := int(
+		partner_one.get(
+			"character_id",
+			0
+		)
+	)
+
+	var partner_two_id := int(
+		partner_two.get(
+			"character_id",
+			0
+		)
+	)
+
+	if partner_one_id <= 0 or partner_two_id <= 0:
+		return false
+
+	return (
+		partner_one.get(
+			"partner_id",
+			null
+		) == partner_two_id
+		and partner_two.get(
+			"partner_id",
+			null
+		) == partner_one_id
+	)
+
+
+func can_use_donor_conception(
+	carrier: Dictionary,
+	spouse: Dictionary
+) -> bool:
+	if not are_married_partners(
+		carrier,
+		spouse
 	):
 		return false
 
-	if partner_two.get(
-		"partner_id",
-		null
-	) != partner_one.get(
-		"character_id",
-		null
+	if String(
+		carrier.get(
+			"gender",
+			""
+		)
+	) != "female":
+		return false
+
+	if String(
+		spouse.get(
+			"gender",
+			""
+		)
+	) != "female":
+		return false
+
+	return can_have_biological_child(
+		carrier
+	)
+
+
+func create_donor_conceived_child(
+	first_name: String,
+	gender: String,
+	carrier_id: int,
+	spouse_id: int
+) -> Dictionary:
+	var carrier := CharacterManager.get_character_by_id(
+		carrier_id
+	)
+
+	var spouse := CharacterManager.get_character_by_id(
+		spouse_id
+	)
+
+	if not can_use_donor_conception(
+		carrier,
+		spouse
+	):
+		return {}
+
+	var donor_genetics := (
+		CharacterManager.generate_random_genetics()
+	)
+
+	return CharacterManager.create_donor_conceived_baby_character(
+		first_name,
+		gender,
+		carrier_id,
+		spouse_id,
+		donor_genetics
+	)
+
+
+func can_adopt(
+	partner_one: Dictionary,
+	partner_two: Dictionary
+) -> bool:
+	if not are_married_partners(
+		partner_one,
+		partner_two
 	):
 		return false
 
@@ -905,4 +990,32 @@ func can_adopt(
 		and age_one <= maximum_relationship_age
 		and age_two >= 18
 		and age_two <= maximum_relationship_age
+	)
+
+
+func create_adopted_child(
+	first_name: String,
+	gender: String,
+	parent_one_id: int,
+	parent_two_id: int
+) -> Dictionary:
+	var parent_one := CharacterManager.get_character_by_id(
+		parent_one_id
+	)
+
+	var parent_two := CharacterManager.get_character_by_id(
+		parent_two_id
+	)
+
+	if not can_adopt(
+		parent_one,
+		parent_two
+	):
+		return {}
+
+	return CharacterManager.create_adopted_child_character(
+		first_name,
+		gender,
+		parent_one_id,
+		parent_two_id
 	)

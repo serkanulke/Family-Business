@@ -7,8 +7,8 @@ signal character_died(
 
 signal character_born(
 	character_id: int,
-	mother_id: int,
-	father_id: int
+	parent_one_id: int,
+	parent_two_id: int
 )
 
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
@@ -115,18 +115,18 @@ func _ready() -> void:
 	load_major_data()
 	load_job_data()
 
-	TimeManager.date_changed.connect(_on_date_changed)
+	TimeManager.date_changed.connect(
+		_on_date_changed
+	)
 
 	update_all_life_stages()
 	update_all_retirements()
 
-	
-		
-		
-
 
 func load_characters() -> void:
-	if not FileAccess.file_exists(CHARACTER_DATA_PATH):
+	if not FileAccess.file_exists(
+		CHARACTER_DATA_PATH
+	):
 		push_error(
 			"Character file could not be found: "
 			+ CHARACTER_DATA_PATH
@@ -146,9 +146,10 @@ func load_characters() -> void:
 		return
 
 	var json_text := file.get_as_text()
-
 	var json := JSON.new()
-	var parse_result := json.parse(json_text)
+	var parse_result := json.parse(
+		json_text
+	)
 
 	if parse_result != OK:
 		push_error(
@@ -168,40 +169,60 @@ func load_characters() -> void:
 		)
 		return
 
-	if not data.has("characters"):
+	if not data.has(
+		"characters"
+	):
 		push_error(
 			"Character JSON does not contain a characters array."
 		)
 		return
 
-	if typeof(data["characters"]) != TYPE_ARRAY:
+	if typeof(
+		data["characters"]
+	) != TYPE_ARRAY:
 		push_error(
 			"The characters value must be an Array."
 		)
 		return
 
 	characters = data["characters"]
+
 	normalize_character_ids()
+	normalize_character_parent_links()
 	initialize_next_character_id()
 
-	print("Characters loaded: ", characters.size())
+	print(
+		"Characters loaded: ",
+		characters.size()
+	)
 
 	if not characters.is_empty():
-		var test_character: Dictionary = characters[0]
+		var test_character: Dictionary = (
+			characters[0]
+		)
 
 		print(
 			"Test character ID: ",
-			test_character.get("character_id", null)
+			test_character.get(
+				"character_id",
+				null
+			)
 		)
 
 		print(
 			"Test character gender: ",
-			test_character.get("gender", "")
+			test_character.get(
+				"gender",
+				""
+			)
 		)
 
 		print(
 			"Test character genetics: ",
-			test_character.get("genetics", {})
+			test_character.get(
+				"genetics",
+				{}
+			)
 		)
 
 
@@ -209,7 +230,9 @@ func load_json_array(
 	file_path: String,
 	root_key: String
 ) -> Array:
-	if not FileAccess.file_exists(file_path):
+	if not FileAccess.file_exists(
+		file_path
+	):
 		push_error(
 			"JSON file could not be found: "
 			+ file_path
@@ -230,7 +253,9 @@ func load_json_array(
 
 	var json_text := file.get_as_text()
 	var json := JSON.new()
-	var parse_result := json.parse(json_text)
+	var parse_result := json.parse(
+		json_text
+	)
 
 	if parse_result != OK:
 		push_error(
@@ -252,17 +277,27 @@ func load_json_array(
 		)
 		return []
 
-	if not data.has(root_key):
+	if not data.has(
+		root_key
+	):
 		push_error(
 			"JSON does not contain '%s': %s"
-			% [root_key, file_path]
+			% [
+				root_key,
+				file_path
+			]
 		)
 		return []
 
-	if typeof(data[root_key]) != TYPE_ARRAY:
+	if typeof(
+		data[root_key]
+	) != TYPE_ARRAY:
 		push_error(
 			"'%s' must be an Array: %s"
-			% [root_key, file_path]
+			% [
+				root_key,
+				file_path
+			]
 		)
 		return []
 
@@ -276,15 +311,26 @@ func load_major_data() -> void:
 	)
 
 	for major_value in majors:
-		if typeof(major_value) != TYPE_DICTIONARY:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var major: Dictionary = major_value
-		major["major_id"] = int(
-			major.get("major_id", 0)
+		var major: Dictionary = (
+			major_value
 		)
 
-	print("Majors loaded: ", majors.size())
+		major["major_id"] = int(
+			major.get(
+				"major_id",
+				0
+			)
+		)
+
+	print(
+		"Majors loaded: ",
+		majors.size()
+	)
 
 
 func load_job_data() -> void:
@@ -294,13 +340,20 @@ func load_job_data() -> void:
 	)
 
 	for job_value in jobs:
-		if typeof(job_value) != TYPE_DICTIONARY:
+		if typeof(
+			job_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var job: Dictionary = job_value
+		var job: Dictionary = (
+			job_value
+		)
 
 		job["job_id"] = int(
-			job.get("job_id", 0)
+			job.get(
+				"job_id",
+				0
+			)
 		)
 
 		var required_major_id = job.get(
@@ -314,54 +367,78 @@ func load_job_data() -> void:
 			)
 
 		job["base_salary"] = int(
-			job.get("base_salary", 0)
+			job.get(
+				"base_salary",
+				0
+			)
 		)
 
-	print("Jobs loaded: ", jobs.size())
+	print(
+		"Jobs loaded: ",
+		jobs.size()
+	)
 
 
+func get_avatar_path(
+	character: Dictionary
+) -> String:
+	var genetics_value = character.get(
+		"genetics",
+		{}
+	)
 
-
-
-func get_avatar_path(character: Dictionary) -> String:
-	var genetics_value = character.get("genetics", {})
-
-	if typeof(genetics_value) != TYPE_DICTIONARY:
+	if typeof(
+		genetics_value
+	) != TYPE_DICTIONARY:
 		push_error(
 			"Character genetics must be a Dictionary."
 		)
 		return DEFAULT_AVATAR_PATH
 
-	var genetics: Dictionary = genetics_value
-
-	var avatar_theme: String = character.get(
-		"avatar_theme",
-		""
+	var genetics: Dictionary = (
+		genetics_value
 	)
 
-	var gender: String = character.get(
-		"gender",
-		""
+	var avatar_theme: String = String(
+		character.get(
+			"avatar_theme",
+			""
+		)
 	)
 
-	var life_stage: String = character.get(
-		"life_stage",
-		""
+	var gender: String = String(
+		character.get(
+			"gender",
+			""
+		)
 	)
 
-	var hair_color: String = genetics.get(
-		"hair_color",
-		""
+	var life_stage: String = String(
+		character.get(
+			"life_stage",
+			""
+		)
 	)
 
-	var skin_tone: String = genetics.get(
-		"skin_tone",
-		""
+	var hair_color: String = String(
+		genetics.get(
+			"hair_color",
+			""
+		)
 	)
 
-	var eye_color: String = genetics.get(
-		"eye_color",
-		""
+	var skin_tone: String = String(
+		genetics.get(
+			"skin_tone",
+			""
+		)
+	)
+
+	var eye_color: String = String(
+		genetics.get(
+			"eye_color",
+			""
+		)
 	)
 
 	var avatar_file_name := (
@@ -381,7 +458,9 @@ func get_avatar_path(character: Dictionary) -> String:
 		+ avatar_file_name
 	)
 
-	if ResourceLoader.exists(avatar_path):
+	if ResourceLoader.exists(
+		avatar_path
+	):
 		return avatar_path
 
 	return DEFAULT_AVATAR_PATH
@@ -390,17 +469,23 @@ func get_avatar_path(character: Dictionary) -> String:
 func get_avatar_texture(
 	character: Dictionary
 ) -> Texture2D:
-	var avatar_path := get_avatar_path(character)
+	var avatar_path := get_avatar_path(
+		character
+	)
 
-	if not ResourceLoader.exists(avatar_path):
+	if not ResourceLoader.exists(
+		avatar_path
+	):
 		push_error(
 			"Avatar image could not be found: "
 			+ avatar_path
 		)
 		return null
 
-	var avatar_resource := ResourceLoader.load(
-		avatar_path
+	var avatar_resource := (
+		ResourceLoader.load(
+			avatar_path
+		)
 	)
 
 	if avatar_resource is not Texture2D:
@@ -411,9 +496,11 @@ func get_avatar_texture(
 		return null
 
 	return avatar_resource as Texture2D
-	
-	
-func _on_date_changed(_date_text: String) -> void:
+
+
+func _on_date_changed(
+	_date_text: String
+) -> void:
 	update_all_life_stages()
 	update_all_retirements()
 	update_all_death_checks()
@@ -421,39 +508,64 @@ func _on_date_changed(_date_text: String) -> void:
 
 func update_all_life_stages() -> void:
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
 
-		if not character.get("is_alive", true):
+		if not bool(
+			character.get(
+				"is_alive",
+				true
+			)
+		):
 			continue
 
-		update_character_life_stage(character)
+		update_character_life_stage(
+			character
+		)
 
 
 func update_character_life_stage(
 	character: Dictionary
 ) -> void:
-	var age := get_character_age(character)
+	var age := get_character_age(
+		character
+	)
 
 	if age < 0:
 		return
 
-	var new_life_stage := get_life_stage_from_age(age)
-	var current_life_stage: String = character.get(
-		"life_stage",
-		""
+	var new_life_stage := (
+		get_life_stage_from_age(
+			age
+		)
+	)
+
+	var current_life_stage: String = String(
+		character.get(
+			"life_stage",
+			""
+		)
 	)
 
 	if current_life_stage == new_life_stage:
 		return
 
-	character["life_stage"] = new_life_stage
+	character["life_stage"] = (
+		new_life_stage
+	)
 
 	print(
 		"Character ",
-		character.get("character_id", null),
+		character.get(
+			"character_id",
+			null
+		),
 		" life stage updated: ",
 		current_life_stage,
 		" -> ",
@@ -461,13 +573,19 @@ func update_character_life_stage(
 	)
 
 
-func get_character_age(character: Dictionary) -> int:
-	var birth_date: String = character.get(
-		"birth_date",
-		""
+func get_character_age(
+	character: Dictionary
+) -> int:
+	var birth_date: String = String(
+		character.get(
+			"birth_date",
+			""
+		)
 	)
 
-	var date_parts := birth_date.split("-")
+	var date_parts := birth_date.split(
+		"-"
+	)
 
 	if date_parts.size() != 3:
 		push_error(
@@ -476,11 +594,22 @@ func get_character_age(character: Dictionary) -> int:
 		)
 		return -1
 
-	var birth_year := int(date_parts[0])
-	var birth_month := int(date_parts[1])
-	var birth_day := int(date_parts[2])
+	var birth_year := int(
+		date_parts[0]
+	)
 
-	var age := TimeManager.current_year - birth_year
+	var birth_month := int(
+		date_parts[1]
+	)
+
+	var birth_day := int(
+		date_parts[2]
+	)
+
+	var age := (
+		TimeManager.current_year
+		- birth_year
+	)
 
 	var birthday_has_not_happened := (
 		TimeManager.current_month < birth_month
@@ -496,7 +625,9 @@ func get_character_age(character: Dictionary) -> int:
 	return age
 
 
-func get_life_stage_from_age(age: int) -> String:
+func get_life_stage_from_age(
+	age: int
+) -> String:
 	if age <= 5:
 		return "baby"
 
@@ -514,28 +645,52 @@ func get_life_stage_from_age(age: int) -> String:
 
 	return "elder"
 
+
 func update_all_retirements() -> void:
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
 
-		if not character.get("is_alive", true):
+		if not bool(
+			character.get(
+				"is_alive",
+				true
+			)
+		):
 			continue
 
-		if character.get("is_retired", false):
+		if bool(
+			character.get(
+				"is_retired",
+				false
+			)
+		):
 			continue
 
-		var age := get_character_age(character)
+		var age := get_character_age(
+			character
+		)
 
 		if age >= RETIREMENT_AGE:
-			retire_character(character)
+			retire_character(
+				character
+			)
 
 
-func retire_character(character: Dictionary) -> void:
+func retire_character(
+	character: Dictionary
+) -> void:
 	var current_salary: int = int(
-		character.get("salary", 0)
+		character.get(
+			"salary",
+			0
+		)
 	)
 
 	var pensionable_salary: int = mini(
@@ -545,34 +700,143 @@ func retire_character(character: Dictionary) -> void:
 
 	var calculated_pension: int = int(
 		round(
-			float(pensionable_salary) * PENSION_RATE
+			float(
+				pensionable_salary
+			)
+			* PENSION_RATE
 		)
 	)
 
-	character["last_salary"] = current_salary
-	character["pension"] = calculated_pension
+	character["last_salary"] = (
+		current_salary
+	)
+
+	character["pension"] = (
+		calculated_pension
+	)
+
 	character["salary"] = 0
 	character["is_retired"] = true
 
 	print(
 		"Character retired: ",
-		character.get("character_id", null),
+		character.get(
+			"character_id",
+			null
+		),
 		" | Last salary: ",
 		current_salary,
 		" | Pension: ",
 		calculated_pension
 	)
 
+
 func normalize_character_ids() -> void:
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
 
 		character["character_id"] = int(
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		)
+
+
+func normalize_character_parent_links() -> void:
+	for character_value in characters:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = (
+			character_value
+		)
+
+		var normalized_parent_ids: Array[int] = []
+
+		var parent_ids_value = character.get(
+			"parent_ids",
+			null
+		)
+
+		if typeof(
+			parent_ids_value
+		) == TYPE_ARRAY:
+			for parent_id_value in parent_ids_value:
+				if parent_id_value == null:
+					continue
+
+				var parent_id := int(
+					parent_id_value
+				)
+
+				if parent_id <= 0:
+					continue
+
+				if parent_id not in normalized_parent_ids:
+					normalized_parent_ids.append(
+						parent_id
+					)
+		else:
+			var legacy_mother_id = character.get(
+				"mother_id",
+				null
+			)
+
+			var legacy_father_id = character.get(
+				"father_id",
+				null
+			)
+
+			if legacy_mother_id != null:
+				var mother_id := int(
+					legacy_mother_id
+				)
+
+				if mother_id > 0:
+					normalized_parent_ids.append(
+						mother_id
+					)
+
+			if legacy_father_id != null:
+				var father_id := int(
+					legacy_father_id
+				)
+
+				if (
+					father_id > 0
+					and father_id not in normalized_parent_ids
+				):
+					normalized_parent_ids.append(
+						father_id
+					)
+
+		character["parent_ids"] = (
+			normalized_parent_ids
+		)
+
+		if not character.has(
+			"is_adopted"
+		):
+			character["is_adopted"] = false
+
+		character.erase(
+			"mother_id"
+		)
+
+		character.erase(
+			"father_id"
+		)
+
 
 func get_selected_lifespan_threshold() -> int:
 	if not GameManager.has_lifespan_setting():
@@ -595,38 +859,60 @@ func get_selected_lifespan_threshold() -> int:
 		return -1
 
 	return int(
-		LIFESPAN_THRESHOLDS[lifespan_setting]
+		LIFESPAN_THRESHOLDS[
+			lifespan_setting
+		]
 	)
 
 
 func is_death_check_eligible(
 	character: Dictionary
 ) -> bool:
-	if not character.get("is_alive", true):
+	if not bool(
+		character.get(
+			"is_alive",
+			true
+		)
+	):
 		return false
 
-	var threshold := get_selected_lifespan_threshold()
+	var threshold := (
+		get_selected_lifespan_threshold()
+	)
 
 	if threshold < 0:
 		return false
 
-	var effective_age := get_effective_death_age(
-		character
+	var effective_age := (
+		get_effective_death_age(
+			character
+		)
 	)
 
 	if effective_age < 0.0:
 		return false
 
-	return effective_age >= float(threshold)
+	return effective_age >= float(
+		threshold
+	)
+
 
 func kill_character(
 	character: Dictionary
 ) -> void:
-	if not character.get("is_alive", true):
+	if not bool(
+		character.get(
+			"is_alive",
+			true
+		)
+	):
 		return
 
 	var character_id := int(
-		character.get("character_id", 0)
+		character.get(
+			"character_id",
+			0
+		)
 	)
 
 	var death_date := (
@@ -648,39 +934,62 @@ func kill_character(
 		death_date
 	)
 
+
 func get_effective_death_age(
 	character: Dictionary
 ) -> float:
-	var actual_age := get_character_age(character)
+	var actual_age := (
+		get_character_age(
+			character
+		)
+	)
 
 	if actual_age < 0:
 		return -1.0
 
 	var health := clampf(
-		float(character.get("health", 50)),
+		float(
+			character.get(
+				"health",
+				50
+			)
+		),
 		0.0,
 		100.0
 	)
 
 	var health_age_modifier := (
-		(NEUTRAL_HEALTH - health)
+		(
+			NEUTRAL_HEALTH
+			- health
+		)
 		/ HEALTH_POINTS_PER_AGE_YEAR
 	)
 
-	return float(actual_age) + health_age_modifier
+	return (
+		float(
+			actual_age
+		)
+		+ health_age_modifier
+	)
+
 
 func get_annual_death_chance(
 	character: Dictionary
 ) -> float:
-	if not is_death_check_eligible(character):
+	if not is_death_check_eligible(
+		character
+	):
 		return 0.0
 
 	var threshold := float(
 		get_selected_lifespan_threshold()
 	)
 
-	var effective_age := get_effective_death_age(
-		character
+	var effective_age := (
+		get_effective_death_age(
+			character
+		)
 	)
 
 	var years_after_threshold := maxf(
@@ -699,13 +1008,20 @@ func get_annual_death_chance(
 		)
 	)
 
-	return clampf(annual_chance, 0.0, 1.0)
+	return clampf(
+		annual_chance,
+		0.0,
+		1.0
+	)
+
 
 func get_daily_death_chance(
 	character: Dictionary
 ) -> float:
-	var annual_chance := get_annual_death_chance(
-		character
+	var annual_chance := (
+		get_annual_death_chance(
+			character
+		)
 	)
 
 	if annual_chance <= 0.0:
@@ -714,43 +1030,66 @@ func get_daily_death_chance(
 	if annual_chance >= 1.0:
 		return 1.0
 
-	return 1.0 - pow(
-		1.0 - annual_chance,
-		1.0 / 365.0
+	return (
+		1.0
+		- pow(
+			1.0 - annual_chance,
+			1.0 / 365.0
+		)
 	)
+
 
 func update_all_death_checks() -> void:
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
 
-		if not character.get("is_alive", true):
+		if not bool(
+			character.get(
+				"is_alive",
+				true
+			)
+		):
 			continue
 
-		if not is_death_check_eligible(character):
+		if not is_death_check_eligible(
+			character
+		):
 			continue
 
-		check_character_death(character)
+		check_character_death(
+			character
+		)
 
 
 func check_character_death(
 	character: Dictionary
 ) -> void:
-	var daily_chance := get_daily_death_chance(
-		character
+	var daily_chance := (
+		get_daily_death_chance(
+			character
+		)
 	)
 
 	if daily_chance <= 0.0:
 		return
 
 	if daily_chance >= 1.0:
-		kill_character(character)
+		kill_character(
+			character
+		)
 		return
 
 	if randf() <= daily_chance:
-		kill_character(character)
+		kill_character(
+			character
+		)
 
 
 func character_meets_required_stats(
@@ -758,14 +1097,22 @@ func character_meets_required_stats(
 	required_stats: Dictionary
 ) -> bool:
 	for stat_name_value in required_stats.keys():
-		var stat_name := String(stat_name_value)
+		var stat_name := String(
+			stat_name_value
+		)
 
 		var required_value := float(
-			required_stats.get(stat_name, 0)
+			required_stats.get(
+				stat_name,
+				0
+			)
 		)
 
 		var character_value := float(
-			character.get(stat_name, 0)
+			character.get(
+				stat_name,
+				0
+			)
 		)
 
 		if character_value < required_value:
@@ -773,20 +1120,30 @@ func character_meets_required_stats(
 
 	return true
 
+
 func get_eligible_starting_majors(
 	character: Dictionary
 ) -> Array:
 	var eligible_majors: Array = []
-	var character_age := get_character_age(character)
+
+	var character_age := (
+		get_character_age(
+			character
+		)
+	)
 
 	if character_age < 0:
 		return eligible_majors
 
 	for major_value in majors:
-		if typeof(major_value) != TYPE_DICTIONARY:
+		if typeof(
+			major_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var major: Dictionary = major_value
+		var major: Dictionary = (
+			major_value
+		)
 
 		if bool(
 			major.get(
@@ -797,7 +1154,10 @@ func get_eligible_starting_majors(
 			continue
 
 		var duration_years := int(
-			major.get("duration_years", 0)
+			major.get(
+				"duration_years",
+				0
+			)
 		)
 
 		var graduation_age := (
@@ -813,7 +1173,9 @@ func get_eligible_starting_majors(
 			{}
 		)
 
-		if typeof(required_stats_value) != TYPE_DICTIONARY:
+		if typeof(
+			required_stats_value
+		) != TYPE_DICTIONARY:
 			continue
 
 		var required_stats: Dictionary = (
@@ -826,9 +1188,12 @@ func get_eligible_starting_majors(
 		):
 			continue
 
-		eligible_majors.append(major)
+		eligible_majors.append(
+			major
+		)
 
 	return eligible_majors
+
 
 func get_date_for_character_age(
 	character: Dictionary,
@@ -841,7 +1206,9 @@ func get_date_for_character_age(
 		)
 	)
 
-	var date_parts := birth_date.split("-")
+	var date_parts := birth_date.split(
+		"-"
+	)
 
 	if date_parts.size() != 3:
 		push_error(
@@ -850,15 +1217,24 @@ func get_date_for_character_age(
 		)
 		return ""
 
-	var birth_year := int(date_parts[0])
-	var birth_month := int(date_parts[1])
-	var birth_day := int(date_parts[2])
+	var birth_year := int(
+		date_parts[0]
+	)
+
+	var birth_month := int(
+		date_parts[1]
+	)
+
+	var birth_day := int(
+		date_parts[2]
+	)
 
 	return "%04d-%02d-%02d" % [
 		birth_year + target_age,
 		birth_month,
 		birth_day
 	]
+
 
 func apply_starting_education_history(
 	character: Dictionary,
@@ -935,10 +1311,14 @@ func apply_starting_education_history(
 		[]
 	)
 
-	if typeof(event_log_value) != TYPE_ARRAY:
+	if typeof(
+		event_log_value
+	) != TYPE_ARRAY:
 		event_log_value = []
 
-	var event_log: Array = event_log_value
+	var event_log: Array = (
+		event_log_value
+	)
 
 	event_log.append({
 		"event_type": "education_started",
@@ -963,26 +1343,35 @@ func apply_starting_education_history(
 
 	character["event_log"] = event_log
 
+
 func assign_starting_major(
 	character: Dictionary
 ) -> void:
 	character["major_id"] = null
 
 	var eligible_majors := (
-		get_eligible_starting_majors(character)
+		get_eligible_starting_majors(
+			character
+		)
 	)
 
 	if eligible_majors.is_empty():
 		print(
 			"No eligible starting major for character: ",
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		)
 		return
 
 	if randf() > STARTING_MAJOR_CHANCE:
 		print(
 			"Character started without a major: ",
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		)
 		return
 
@@ -990,7 +1379,9 @@ func assign_starting_major(
 		eligible_majors.pick_random()
 	)
 
-	if typeof(selected_major_value) != TYPE_DICTIONARY:
+	if typeof(
+		selected_major_value
+	) != TYPE_DICTIONARY:
 		return
 
 	var selected_major: Dictionary = (
@@ -998,16 +1389,23 @@ func assign_starting_major(
 	)
 
 	apply_starting_education_history(
-	character,
-	selected_major
+		character,
+		selected_major
 	)
 
 	print(
 		"Starting major assigned: ",
-		selected_major.get("major_name", ""),
+		selected_major.get(
+			"major_name",
+			""
+		),
 		" | Character: ",
-		character.get("character_id", 0)
+		character.get(
+			"character_id",
+			0
+		)
 	)
+
 
 func get_eligible_no_diploma_jobs(
 	character: Dictionary
@@ -1015,12 +1413,19 @@ func get_eligible_no_diploma_jobs(
 	var eligible_jobs: Array = []
 
 	for job_value in jobs:
-		if typeof(job_value) != TYPE_DICTIONARY:
+		if typeof(
+			job_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var job: Dictionary = job_value
+		var job: Dictionary = (
+			job_value
+		)
 
-		if job.get("required_major_id", null) != null:
+		if job.get(
+			"required_major_id",
+			null
+		) != null:
 			continue
 
 		var required_stats_value = job.get(
@@ -1028,7 +1433,9 @@ func get_eligible_no_diploma_jobs(
 			{}
 		)
 
-		if typeof(required_stats_value) != TYPE_DICTIONARY:
+		if typeof(
+			required_stats_value
+		) != TYPE_DICTIONARY:
 			continue
 
 		if not character_meets_required_stats(
@@ -1037,9 +1444,12 @@ func get_eligible_no_diploma_jobs(
 		):
 			continue
 
-		eligible_jobs.append(job)
+		eligible_jobs.append(
+			job
+		)
 
 	return eligible_jobs
+
 
 func get_eligible_major_jobs(
 	character: Dictionary,
@@ -1048,10 +1458,15 @@ func get_eligible_major_jobs(
 	var eligible_jobs: Array = []
 
 	for job_value in jobs:
-		if typeof(job_value) != TYPE_DICTIONARY:
+		if typeof(
+			job_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var job: Dictionary = job_value
+		var job: Dictionary = (
+			job_value
+		)
+
 		var required_major_id = job.get(
 			"required_major_id",
 			null
@@ -1060,7 +1475,9 @@ func get_eligible_major_jobs(
 		if required_major_id == null:
 			continue
 
-		if int(required_major_id) != major_id:
+		if int(
+			required_major_id
+		) != major_id:
 			continue
 
 		var required_stats_value = job.get(
@@ -1068,7 +1485,9 @@ func get_eligible_major_jobs(
 			{}
 		)
 
-		if typeof(required_stats_value) != TYPE_DICTIONARY:
+		if typeof(
+			required_stats_value
+		) != TYPE_DICTIONARY:
 			continue
 
 		if not character_meets_required_stats(
@@ -1077,30 +1496,49 @@ func get_eligible_major_jobs(
 		):
 			continue
 
-		eligible_jobs.append(job)
+		eligible_jobs.append(
+			job
+		)
 
 	return eligible_jobs
+
 
 func apply_starting_job(
 	character: Dictionary,
 	job: Dictionary
 ) -> void:
 	character["job_id"] = int(
-		job.get("job_id", 0)
+		job.get(
+			"job_id",
+			0
+		)
 	)
 
 	character["salary"] = int(
-		job.get("base_salary", 0)
+		job.get(
+			"base_salary",
+			0
+		)
 	)
 
 	print(
 		"Starting job assigned: ",
-		job.get("job_name", ""),
+		job.get(
+			"job_name",
+			""
+		),
 		" | Salary: ",
-		character.get("salary", 0),
+		character.get(
+			"salary",
+			0
+		),
 		" | Character: ",
-		character.get("character_id", 0)
+		character.get(
+			"character_id",
+			0
+		)
 	)
+
 
 func assign_starting_job(
 	character: Dictionary
@@ -1118,7 +1556,9 @@ func assign_starting_job(
 
 	if major_id_value == null:
 		selected_job_pool = (
-			get_eligible_no_diploma_jobs(character)
+			get_eligible_no_diploma_jobs(
+				character
+			)
 		)
 	else:
 		var should_use_no_diploma_job := (
@@ -1136,7 +1576,9 @@ func assign_starting_job(
 			selected_job_pool = (
 				get_eligible_major_jobs(
 					character,
-					int(major_id_value)
+					int(
+						major_id_value
+					)
 				)
 			)
 
@@ -1150,7 +1592,10 @@ func assign_starting_job(
 	if selected_job_pool.is_empty():
 		print(
 			"No eligible starting job for character: ",
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		)
 		return
 
@@ -1158,13 +1603,16 @@ func assign_starting_job(
 		selected_job_pool.pick_random()
 	)
 
-	if typeof(selected_job_value) != TYPE_DICTIONARY:
+	if typeof(
+		selected_job_value
+	) != TYPE_DICTIONARY:
 		return
 
 	apply_starting_job(
 		character,
 		selected_job_value
 	)
+
 
 func generate_starting_stat_value() -> int:
 	var roll := randf()
@@ -1191,6 +1639,7 @@ func generate_starting_stat_value() -> int:
 		STARTING_STRONG_STAT_MAX
 	)
 
+
 func generate_starting_character_stats() -> Dictionary:
 	var generated_stats: Dictionary = {}
 
@@ -1207,15 +1656,18 @@ func generate_starting_character_stats() -> Dictionary:
 
 	return generated_stats
 
+
 func apply_stats_to_character(
 	character: Dictionary,
 	generated_stats: Dictionary
 ) -> void:
 	for stat_name in CHARACTER_STAT_NAMES:
 		character[stat_name] = int(
-			generated_stats.get(stat_name, 0)
+			generated_stats.get(
+				stat_name,
+				0
+			)
 		)
-		
 
 
 func parent_has_max_stat(
@@ -1226,15 +1678,21 @@ func parent_has_max_stat(
 		return false
 
 	return int(
-		parent.get(stat_name, 0)
+		parent.get(
+			stat_name,
+			0
+		)
 	) >= MAX_STAT_VALUE
+
 
 func should_baby_inherit_stat_bonus(
 	stat_name: String,
 	parent_one: Dictionary,
 	parent_two: Dictionary
 ) -> bool:
-	if not INHERITABLE_STAT_NAMES.has(stat_name):
+	if not INHERITABLE_STAT_NAMES.has(
+		stat_name
+	):
 		return false
 
 	return (
@@ -1247,6 +1705,7 @@ func should_baby_inherit_stat_bonus(
 			stat_name
 		)
 	)
+
 
 func generate_baby_stats(
 	parent_one: Dictionary,
@@ -1269,20 +1728,43 @@ func generate_baby_stats(
 				MAX_PARENT_STAT_INHERITANCE_BONUS
 			)
 
-		generated_stats[stat_name] = stat_value
+		generated_stats[stat_name] = (
+			stat_value
+		)
 
 	return generated_stats
+
+
+func generate_baby_stats_without_parent_inheritance() -> Dictionary:
+	var generated_stats: Dictionary = {}
+
+	for stat_name in CHARACTER_STAT_NAMES:
+		generated_stats[stat_name] = randi_range(
+			BABY_STAT_MIN,
+			BABY_STAT_MAX
+		)
+
+	return generated_stats
+
 
 func initialize_next_character_id() -> void:
 	var highest_character_id := 0
 
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
+
 		var character_id := int(
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		)
 
 		highest_character_id = maxi(
@@ -1290,26 +1772,40 @@ func initialize_next_character_id() -> void:
 			character_id
 		)
 
-	next_character_id = highest_character_id + 1
+	next_character_id = (
+		highest_character_id
+		+ 1
+	)
 
 
 func generate_character_id() -> int:
-	var generated_id := next_character_id
+	var generated_id := (
+		next_character_id
+	)
+
 	next_character_id += 1
 
 	return generated_id
 
+
 func generate_birth_date_for_age(
 	target_age: int
 ) -> String:
-	var birth_month := randi_range(1, 12)
-	
+	var birth_month := randi_range(
+		1,
+		12
+	)
 
-	var max_day: int = TimeManager.DAYS_IN_MONTH[
-	birth_month - 1
-]
+	var max_day: int = (
+		TimeManager.DAYS_IN_MONTH[
+			birth_month - 1
+		]
+	)
 
-	var birth_day := randi_range(1, max_day)
+	var birth_day := randi_range(
+		1,
+		max_day
+	)
 
 	var birth_year := (
 		TimeManager.current_year
@@ -1333,6 +1829,7 @@ func generate_birth_date_for_age(
 		birth_day
 	]
 
+
 func generate_starting_birth_date_for_age(
 	target_age: int
 ) -> String:
@@ -1341,20 +1838,28 @@ func generate_starting_birth_date_for_age(
 		- target_age
 	)
 
-	var latest_birth_month := TimeManager.current_month
+	var latest_birth_month := (
+		TimeManager.current_month
+	)
+
 	var birth_month := randi_range(
 		1,
 		latest_birth_month
 	)
 
-	var max_day: int = TimeManager.DAYS_IN_MONTH[
-		birth_month - 1
-	]
+	var max_day: int = (
+		TimeManager.DAYS_IN_MONTH[
+			birth_month - 1
+		]
+	)
 
 	var birth_day: int
 
 	if birth_month == TimeManager.current_month:
-		var latest_birth_day := TimeManager.current_day - 1
+		var latest_birth_day := (
+			TimeManager.current_day
+			- 1
+		)
 
 		if latest_birth_day < 1:
 			birth_month -= 1
@@ -1363,9 +1868,11 @@ func generate_starting_birth_date_for_age(
 				birth_month = 12
 				birth_year -= 1
 
-			max_day = TimeManager.DAYS_IN_MONTH[
-				birth_month - 1
-			]
+			max_day = (
+				TimeManager.DAYS_IN_MONTH[
+					birth_month - 1
+				]
+			)
 
 			birth_day = randi_range(
 				1,
@@ -1395,6 +1902,7 @@ func generate_random_genetics() -> Dictionary:
 		"skin_tone": SKIN_TONES.pick_random(),
 		"eye_color": EYE_COLORS.pick_random()
 	}
+
 
 func create_base_starting_character(
 	first_name: String,
@@ -1437,8 +1945,8 @@ func create_base_starting_character(
 
 		"is_player_family": true,
 
-		"father_id": null,
-		"mother_id": null,
+		"parent_ids": [],
+		"is_adopted": false,
 		"partner_id": null,
 		"children_ids": [],
 
@@ -1476,58 +1984,107 @@ func create_base_starting_character(
 
 	return character
 
+
 func create_starting_character(
 	first_name: String,
 	gender: String
 ) -> Dictionary:
-	var character := create_base_starting_character(
-		first_name,
-		gender
+	var character := (
+		create_base_starting_character(
+			first_name,
+			gender
+		)
 	)
 
 	if character.is_empty():
 		return {}
 
-	assign_starting_major(character)
-	assign_starting_job(character)
+	assign_starting_major(
+		character
+	)
 
-	characters.append(character)
+	assign_starting_job(
+		character
+	)
+
+	characters.append(
+		character
+	)
 
 	print(
 		"Starting character created: ",
-		character.get("character_id", 0),
+		character.get(
+			"character_id",
+			0
+		),
 		" | Name: ",
-		character.get("first_name", ""),
+		character.get(
+			"first_name",
+			""
+		),
 		" | Gender: ",
-		character.get("gender", ""),
+		character.get(
+			"gender",
+			""
+		),
 		" | Age: ",
-		get_character_age(character),
+		get_character_age(
+			character
+		),
 		" | Major: ",
-		character.get("major_id", null),
+		character.get(
+			"major_id",
+			null
+		),
 		" | Job: ",
-		character.get("job_id", null),
+		character.get(
+			"job_id",
+			null
+		),
 		" | Salary: ",
-		character.get("salary", 0)
+		character.get(
+			"salary",
+			0
+		)
 	)
 
 	return character
+
 
 func reset_characters_for_new_game() -> void:
 	characters.clear()
 	next_character_id = 1
 
-	print("Characters reset for new game.")
+	print(
+		"Characters reset for new game."
+	)
+
 
 func get_parent_genetic_value(
 	parent: Dictionary,
 	genetic_name: String
 ) -> String:
-	var genetics: Dictionary = parent["genetics"]
+	var genetics_value = parent.get(
+		"genetics",
+		{}
+	)
+
+	if typeof(
+		genetics_value
+	) != TYPE_DICTIONARY:
+		return ""
+
+	var genetics: Dictionary = (
+		genetics_value
+	)
 
 	return String(
-		genetics[genetic_name]
+		genetics.get(
+			genetic_name,
+			""
+		)
 	)
-	
+
 
 func generate_inherited_eye_color(
 	parent_one: Dictionary,
@@ -1566,7 +2123,7 @@ func generate_inherited_eye_color(
 			eye_two
 		].pick_random()
 	)
-	
+
 
 func generate_inherited_hair_color(
 	parent_one: Dictionary,
@@ -1592,6 +2149,7 @@ func generate_inherited_hair_color(
 		].pick_random()
 	)
 
+
 func generate_inherited_skin_tone(
 	parent_one: Dictionary,
 	parent_two: Dictionary
@@ -1612,8 +2170,7 @@ func generate_inherited_skin_tone(
 	return String(
 		SKIN_TONES.pick_random()
 	)
-	
-	
+
 
 func generate_baby_genetics(
 	parent_one: Dictionary,
@@ -1634,21 +2191,61 @@ func generate_baby_genetics(
 		)
 	}
 
+
+func is_valid_genetics_profile(
+	genetics: Dictionary
+) -> bool:
+	var hair_color := String(
+		genetics.get(
+			"hair_color",
+			""
+		)
+	)
+
+	var skin_tone := String(
+		genetics.get(
+			"skin_tone",
+			""
+		)
+	)
+
+	var eye_color := String(
+		genetics.get(
+			"eye_color",
+			""
+		)
+	)
+
+	return (
+		hair_color in HAIR_COLORS
+		and skin_tone in SKIN_TONES
+		and eye_color in EYE_COLORS
+	)
+
+
 func get_character_by_id(
 	character_id: int
 ) -> Dictionary:
 	for character_value in characters:
-		if typeof(character_value) != TYPE_DICTIONARY:
+		if typeof(
+			character_value
+		) != TYPE_DICTIONARY:
 			continue
 
-		var character: Dictionary = character_value
+		var character: Dictionary = (
+			character_value
+		)
 
 		if int(
-			character.get("character_id", 0)
+			character.get(
+				"character_id",
+				0
+			)
 		) == character_id:
 			return character
 
 	return {}
+
 
 func add_child_id_to_parent(
 	parent: Dictionary,
@@ -1659,31 +2256,48 @@ func add_child_id_to_parent(
 		[]
 	)
 
-	if typeof(children_ids_value) != TYPE_ARRAY:
+	if typeof(
+		children_ids_value
+	) != TYPE_ARRAY:
 		push_error(
 			"Parent children_ids must be an Array."
 		)
 		return
 
-	var children_ids: Array = children_ids_value
+	var children_ids: Array = (
+		children_ids_value
+	)
 
-	if children_ids.has(child_id):
+	if children_ids.has(
+		child_id
+	):
 		return
 
-	children_ids.append(child_id)
-	parent["children_ids"] = children_ids
+	children_ids.append(
+		child_id
+	)
 
-func create_base_baby_character(
+	parent["children_ids"] = (
+		children_ids
+	)
+
+
+func create_base_child_character(
 	first_name: String,
 	gender: String,
-	mother: Dictionary,
-	father: Dictionary
+	parent_one: Dictionary,
+	parent_two: Dictionary,
+	genetic_source_one: Dictionary,
+	genetic_source_two: Dictionary,
+	is_adopted: bool
 ) -> Dictionary:
-	var cleaned_name := first_name.strip_edges()
+	var cleaned_name := (
+		first_name.strip_edges()
+	)
 
 	if cleaned_name.is_empty():
 		push_error(
-			"Baby first name cannot be empty."
+			"Child first name cannot be empty."
 		)
 		return {}
 
@@ -1696,22 +2310,72 @@ func create_base_baby_character(
 		"male"
 	]:
 		push_error(
-			"Invalid baby gender: "
+			"Invalid child gender: "
 			+ gender
 		)
 		return {}
 
-	var baby: Dictionary = {
+	var parent_one_id := int(
+		parent_one[
+			"character_id"
+		]
+	)
+
+	var parent_two_id := int(
+		parent_two[
+			"character_id"
+		]
+	)
+
+	var child_genetics: Dictionary
+
+	if is_adopted:
+		child_genetics = generate_random_genetics()
+	else:
+		var genetics_one_value = genetic_source_one.get(
+			"genetics",
+			{}
+		)
+
+		var genetics_two_value = genetic_source_two.get(
+			"genetics",
+			{}
+		)
+
+		if (
+			typeof(genetics_one_value) != TYPE_DICTIONARY
+			or typeof(genetics_two_value) != TYPE_DICTIONARY
+		):
+			push_error(
+				"Biological genetic sources must contain genetics Dictionaries."
+			)
+			return {}
+
+		var genetics_one: Dictionary = genetics_one_value
+		var genetics_two: Dictionary = genetics_two_value
+
+		if (
+			not is_valid_genetics_profile(genetics_one)
+			or not is_valid_genetics_profile(genetics_two)
+		):
+			push_error(
+				"Biological genetic source contains an invalid genetics profile."
+			)
+			return {}
+
+		child_genetics = generate_baby_genetics(
+			genetic_source_one,
+			genetic_source_two
+		)
+
+	var child: Dictionary = {
 		"character_id": generate_character_id(),
 
 		"first_name": cleaned_name,
 		"gender": normalized_gender,
 
 		"avatar_theme": "classic",
-		"genetics": generate_baby_genetics(
-			mother,
-			father
-		),
+		"genetics": child_genetics,
 
 		"is_alive": true,
 		"birth_date": TimeManager.get_iso_date_string(),
@@ -1720,12 +2384,11 @@ func create_base_baby_character(
 
 		"is_player_family": true,
 
-		"father_id": int(
-			father["character_id"]
-		),
-		"mother_id": int(
-			mother["character_id"]
-		),
+		"parent_ids": [
+			parent_one_id,
+			parent_two_id
+		],
+		"is_adopted": is_adopted,
 		"partner_id": null,
 		"children_ids": [],
 
@@ -1745,116 +2408,353 @@ func create_base_baby_character(
 		"last_salary": 0,
 		"pension": 0,
 
+		"unemployment_start_date": null,
+		"job_offer_cooldown_until": null,
+
 		"flag_ids": [],
 		"event_log": []
 	}
 
-	var baby_stats := generate_baby_stats(
-		mother,
-		father
-	)
+	var child_stats: Dictionary
+
+	if is_adopted:
+		child_stats = (
+			generate_baby_stats_without_parent_inheritance()
+		)
+	else:
+		child_stats = generate_baby_stats(
+			genetic_source_one,
+			genetic_source_two
+		)
 
 	apply_stats_to_character(
-		baby,
-		baby_stats
+		child,
+		child_stats
 	)
 
-	return baby
+	return child
+
+
+func create_base_baby_character(
+	first_name: String,
+	gender: String,
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> Dictionary:
+	return create_base_child_character(
+		first_name,
+		gender,
+		parent_one,
+		parent_two,
+		parent_one,
+		parent_two,
+		false
+	)
+
+
+func _finalize_new_child(
+	child: Dictionary,
+	parent_one: Dictionary,
+	parent_two: Dictionary
+) -> Dictionary:
+	if child.is_empty():
+		return {}
+
+	var child_id := int(
+		child[
+			"character_id"
+		]
+	)
+
+	var parent_one_id := int(
+		parent_one[
+			"character_id"
+		]
+	)
+
+	var parent_two_id := int(
+		parent_two[
+			"character_id"
+		]
+	)
+
+	characters.append(
+		child
+	)
+
+	add_child_id_to_parent(
+		parent_one,
+		child_id
+	)
+
+	add_child_id_to_parent(
+		parent_two,
+		child_id
+	)
+
+	character_born.emit(
+		child_id,
+		parent_one_id,
+		parent_two_id
+	)
+
+	return child
+
+
+func _get_valid_child_parents(
+	parent_one_id: int,
+	parent_two_id: int
+) -> Array:
+	if parent_one_id == parent_two_id:
+		push_error(
+			"A child cannot have the same character in both parent slots."
+		)
+		return []
+
+	var parent_one := get_character_by_id(
+		parent_one_id
+	)
+
+	if parent_one.is_empty():
+		push_error(
+			"Parent one could not be found: "
+			+ str(
+				parent_one_id
+			)
+		)
+		return []
+
+	var parent_two := get_character_by_id(
+		parent_two_id
+	)
+
+	if parent_two.is_empty():
+		push_error(
+			"Parent two could not be found: "
+			+ str(
+				parent_two_id
+			)
+		)
+		return []
+
+	if not bool(
+		parent_one.get(
+			"is_alive",
+			true
+		)
+	):
+		push_error(
+			"Parent one is not alive: "
+			+ str(
+				parent_one_id
+			)
+		)
+		return []
+
+	if not bool(
+		parent_two.get(
+			"is_alive",
+			true
+		)
+	):
+		push_error(
+			"Parent two is not alive: "
+			+ str(
+				parent_two_id
+			)
+		)
+		return []
+
+	return [
+		parent_one,
+		parent_two
+	]
+
 
 func create_baby_character(
 	first_name: String,
 	gender: String,
-	mother_id: int,
-	father_id: int
+	parent_one_id: int,
+	parent_two_id: int
 ) -> Dictionary:
-	if mother_id == father_id:
-		push_error(
-			"Mother and father cannot have the same character ID."
-		)
-		return {}
-
-	var mother := get_character_by_id(
-		mother_id
+	var parents := _get_valid_child_parents(
+		parent_one_id,
+		parent_two_id
 	)
 
-	if mother.is_empty():
-		push_error(
-			"Mother character could not be found: "
-			+ str(mother_id)
-		)
+	if parents.size() != 2:
 		return {}
 
-	var father := get_character_by_id(
-		father_id
-	)
-
-	if father.is_empty():
-		push_error(
-			"Father character could not be found: "
-			+ str(father_id)
-		)
-		return {}
-
-	if not mother.get("is_alive", true):
-		push_error(
-			"Mother character is not alive: "
-			+ str(mother_id)
-		)
-		return {}
-
-	if not father.get("is_alive", true):
-		push_error(
-			"Father character is not alive: "
-			+ str(father_id)
-		)
-		return {}
+	var parent_one: Dictionary = parents[0]
+	var parent_two: Dictionary = parents[1]
 
 	var baby := create_base_baby_character(
 		first_name,
 		gender,
-		mother,
-		father
+		parent_one,
+		parent_two
 	)
 
 	if baby.is_empty():
 		return {}
 
-	var baby_id := int(
-		baby["character_id"]
-	)
-
-	characters.append(baby)
-
-	add_child_id_to_parent(
-		mother,
-		baby_id
-	)
-
-	add_child_id_to_parent(
-		father,
-		baby_id
-	)
-
-	character_born.emit(
-		baby_id,
-		mother_id,
-		father_id
+	_finalize_new_child(
+		baby,
+		parent_one,
+		parent_two
 	)
 
 	print(
 		"Baby character created: ",
-		baby_id,
+		baby.get(
+			"character_id",
+			0
+		),
 		" | Name: ",
-		baby.get("first_name", ""),
+		baby.get(
+			"first_name",
+			""
+		),
 		" | Gender: ",
-		baby.get("gender", ""),
-		" | Mother: ",
-		mother_id,
-		" | Father: ",
-		father_id,
+		baby.get(
+			"gender",
+			""
+		),
+		" | Parent 1: ",
+		parent_one_id,
+		" | Parent 2: ",
+		parent_two_id,
 		" | Birth date: ",
-		baby.get("birth_date", "")
+		baby.get(
+			"birth_date",
+			""
+		)
 	)
 
 	return baby
-	
+
+
+func create_donor_conceived_baby_character(
+	first_name: String,
+	gender: String,
+	carrier_id: int,
+	second_parent_id: int,
+	donor_genetics: Dictionary
+) -> Dictionary:
+	var parents := _get_valid_child_parents(
+		carrier_id,
+		second_parent_id
+	)
+
+	if parents.size() != 2:
+		return {}
+
+	var carrier: Dictionary = parents[0]
+	var second_parent: Dictionary = parents[1]
+
+	if String(
+		carrier.get(
+			"gender",
+			""
+		)
+	) != "female":
+		push_error(
+			"Donor-conceived baby's carrier must be female."
+		)
+		return {}
+
+	if not is_valid_genetics_profile(
+		donor_genetics
+	):
+		push_error(
+			"Anonymous donor genetics are invalid."
+		)
+		return {}
+
+	var anonymous_donor: Dictionary = {
+		"genetics": donor_genetics.duplicate(true)
+	}
+
+	var baby := create_base_child_character(
+		first_name,
+		gender,
+		carrier,
+		second_parent,
+		carrier,
+		anonymous_donor,
+		false
+	)
+
+	if baby.is_empty():
+		return {}
+
+	_finalize_new_child(
+		baby,
+		carrier,
+		second_parent
+	)
+
+	print(
+		"Donor-conceived baby created: ",
+		baby.get(
+			"character_id",
+			0
+		),
+		" | Carrier: ",
+		carrier_id,
+		" | Second parent: ",
+		second_parent_id
+	)
+
+	return baby
+
+
+func create_adopted_child_character(
+	first_name: String,
+	gender: String,
+	parent_one_id: int,
+	parent_two_id: int
+) -> Dictionary:
+	var parents := _get_valid_child_parents(
+		parent_one_id,
+		parent_two_id
+	)
+
+	if parents.size() != 2:
+		return {}
+
+	var parent_one: Dictionary = parents[0]
+	var parent_two: Dictionary = parents[1]
+
+	var child := create_base_child_character(
+		first_name,
+		gender,
+		parent_one,
+		parent_two,
+		{},
+		{},
+		true
+	)
+
+	if child.is_empty():
+		return {}
+
+	_finalize_new_child(
+		child,
+		parent_one,
+		parent_two
+	)
+
+	print(
+		"Adopted child created: ",
+		child.get(
+			"character_id",
+			0
+		),
+		" | Parent 1: ",
+		parent_one_id,
+		" | Parent 2: ",
+		parent_two_id
+	)
+
+	return child
