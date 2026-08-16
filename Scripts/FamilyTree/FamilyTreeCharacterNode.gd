@@ -14,10 +14,12 @@ const PORTRAIT_BACKGROUND_RADIUS := 66.0
 @onready var portrait: TextureRect = $Portrait
 @onready var name_label: Label = $NameLabel
 @onready var info_label: Label = $InfoLabel
+@onready var reference_link_icon: TextureRect = $ReferenceLinkIcon
 @onready var hit_button: Button = $HitButton
 
 var character_id: int = 0
 var is_alive: bool = true
+var is_reference_node: bool = false
 
 
 func _ready() -> void:
@@ -27,7 +29,8 @@ func _ready() -> void:
 
 
 func setup_character(
-	character: Dictionary
+	character: Dictionary,
+	reference_mode: bool = false
 ) -> void:
 	character_id = int(
 		character.get(
@@ -42,6 +45,9 @@ func setup_character(
 			true
 		)
 	)
+
+	is_reference_node = reference_mode
+	reference_link_icon.visible = is_reference_node
 
 	name_label.text = String(
 		character.get(
@@ -72,9 +78,7 @@ func setup_character(
 
 	if age >= 0:
 		info_label.text = (
-			str(
-				age
-			)
+			str(age)
 			+ " • "
 			+ readable_stage
 		)
@@ -89,7 +93,7 @@ func setup_character(
 
 	portrait.texture = avatar_texture
 
-	var alive_alpha: float = (
+	var alive_alpha := (
 		1.0
 		if is_alive
 		else 0.42
@@ -98,6 +102,7 @@ func setup_character(
 	portrait.modulate.a = alive_alpha
 	name_label.modulate.a = alive_alpha
 	info_label.modulate.a = alive_alpha
+	reference_link_icon.modulate.a = alive_alpha
 
 	queue_redraw()
 

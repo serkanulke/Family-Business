@@ -2,6 +2,9 @@ extends Node
 
 
 signal lifespan_setting_changed(value: String)
+signal same_sex_marriage_setting_changed(value: bool)
+signal distant_relative_marriage_setting_changed(value: bool)
+signal ex_spouse_remarriage_setting_changed(value: bool)
 
 signal new_game_started(
 	starting_character: Dictionary
@@ -21,8 +24,12 @@ const STARTING_FAMILY_MONEY := 15000
 
 
 var lifespan_setting: String = "normal"
+var allow_same_sex_marriage: bool = true
+var allow_distant_relative_marriage: bool = false
+var allow_ex_spouse_remarriage: bool = false
 
 var family_money: int = 0
+
 
 func set_lifespan_setting(value: String) -> void:
 	var normalized_value := value.strip_edges().to_lower()
@@ -45,8 +52,46 @@ func set_lifespan_setting(value: String) -> void:
 		lifespan_setting
 	)
 
+
 func has_lifespan_setting() -> bool:
 	return not lifespan_setting.is_empty()
+
+
+func set_same_sex_marriage_enabled(
+	value: bool
+) -> void:
+	if allow_same_sex_marriage == value:
+		return
+
+	allow_same_sex_marriage = value
+	same_sex_marriage_setting_changed.emit(
+		allow_same_sex_marriage
+	)
+
+
+func set_distant_relative_marriage_enabled(
+	value: bool
+) -> void:
+	if allow_distant_relative_marriage == value:
+		return
+
+	allow_distant_relative_marriage = value
+	distant_relative_marriage_setting_changed.emit(
+		allow_distant_relative_marriage
+	)
+
+
+func set_ex_spouse_remarriage_enabled(
+	value: bool
+) -> void:
+	if allow_ex_spouse_remarriage == value:
+		return
+
+	allow_ex_spouse_remarriage = value
+	ex_spouse_remarriage_setting_changed.emit(
+		allow_ex_spouse_remarriage
+	)
+
 
 func start_new_game(
 	first_name: String,
@@ -127,6 +172,7 @@ func start_new_game(
 
 	return starting_character
 
+
 func set_family_money(
 	amount: int
 ) -> void:
@@ -169,6 +215,7 @@ func spend_family_money(
 	)
 
 	return true
+
 
 func add_family_money(
 	amount: int

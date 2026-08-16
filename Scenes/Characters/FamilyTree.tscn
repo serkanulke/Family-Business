@@ -9,6 +9,9 @@ script = ExtResource("1_family_tree")
 [node name="CharacterLayer" type="Node2D" parent="."]
 z_index = 1
 
+[node name="LinkLayer" type="Node2D" parent="."]
+z_index = 2
+
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(540, 960)
 enabled = true
