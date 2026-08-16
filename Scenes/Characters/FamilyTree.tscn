@@ -1,3 +1,20 @@
-[gd_scene format=3 uid="uid://xrc7oqop7nwp"]
+[gd_scene load_steps=3 format=3 uid="uid://xrc7oqop7nwp"]
+
+[ext_resource type="Script" path="res://Scripts/FamilyTree/FamilyTree.gd" id="1_family_tree"]
+[ext_resource type="Script" path="res://Scripts/FamilyTree/FamilyTreeCamera.gd" id="2_family_tree_camera"]
 
 [node name="FamilyTree" type="Node2D" unique_id=1688157946]
+script = ExtResource("1_family_tree")
+
+[node name="CharacterLayer" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(540, 960)
+enabled = true
+script = ExtResource("2_family_tree_camera")
+min_zoom = 0.9
+max_zoom = 1.2
+default_zoom = 1.0
+mouse_zoom_step = 0.05
+default_position = Vector2(540, 960)

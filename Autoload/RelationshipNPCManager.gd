@@ -5,6 +5,9 @@ signal relationship_candidate_created(
 	linked_character_id: int
 )
 
+
+signal family_relationship_changed()
+
 const RELATIONSHIP_NPC_DATA_PATH := \
 	"res://Resources/Json/relationship_npc.json"
 
@@ -778,6 +781,8 @@ func make_candidate_family_member(
 	relationship_candidate_ids.erase(
 		candidate_id
 	)
+
+	family_relationship_changed.emit()
 
 	return true
 
