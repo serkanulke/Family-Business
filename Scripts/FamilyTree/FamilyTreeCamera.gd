@@ -13,9 +13,17 @@ extends Camera2D
 	960.0
 )
 
+@export var bounds_padding: Vector2 = Vector2(
+	220.0,
+	260.0
+)
+
 var active_touches: Dictionary = {}
 var last_pinch_distance: float = 0.0
 var mouse_dragging: bool = false
+
+var content_bounds: Rect2 = Rect2()
+var has_content_bounds: bool = false
 
 
 func _ready() -> void:
@@ -158,6 +166,8 @@ func _pan_by_screen_delta(
 		/ current_zoom
 	)
 
+	_clamp_position_to_content()
+
 
 func _get_current_pinch_distance() -> float:
 	if active_touches.size() != 2:
@@ -192,6 +202,8 @@ func set_zoom_level(
 		clamped_zoom
 	)
 
+	_clamp_position_to_content()
+
 
 func get_zoom_level() -> float:
 	return zoom.x
@@ -213,6 +225,115 @@ func reset_view() -> void:
 	position = default_position
 	set_zoom_level(
 		default_zoom
+	)
+
+	_clamp_position_to_content()
+
+
+func set_content_bounds(
+	bounds: Rect2
+) -> void:
+	if (
+		bounds.size.x <= 0.0
+		or bounds.size.y <= 0.0
+	):
+		clear_content_bounds()
+		return
+
+	content_bounds = bounds.grow_individual(
+		bounds_padding.x,
+		bounds_padding.y,
+		bounds_padding.x,
+		bounds_padding.y
+	)
+
+	has_content_bounds = true
+	_clamp_position_to_content()
+
+
+func clear_content_bounds() -> void:
+	content_bounds = Rect2()
+	has_content_bounds = false
+
+
+func _clamp_position_to_content() -> void:
+	if not has_content_bounds:
+		return
+
+	var viewport_size: Vector2 = get_viewport_rect().size
+
+	if (
+		viewport_size.x <= 0.0
+		or viewport_size.y <= 0.0
+	):
+		return
+
+	var current_zoom: float = maxf(
+		get_zoom_level(),
+		0.001
+	)
+
+	var half_visible_world_size: Vector2 = (
+		viewport_size
+		/ current_zoom
+		* 0.5
+	)
+
+	var bounds_left: float = content_bounds.position.x
+	var bounds_right: float = content_bounds.end.x
+	var bounds_top: float = content_bounds.position.y
+	var bounds_bottom: float = content_bounds.end.y
+
+	var minimum_x: float = (
+		bounds_left
+		+ half_visible_world_size.x
+	)
+
+	var maximum_x: float = (
+		bounds_right
+		- half_visible_world_size.x
+	)
+
+	var minimum_y: float = (
+		bounds_top
+		+ half_visible_world_size.y
+	)
+
+	var maximum_y: float = (
+		bounds_bottom
+		- half_visible_world_size.y
+	)
+
+	var clamped_x: float
+	var clamped_y: float
+
+	if minimum_x > maximum_x:
+		clamped_x = (
+			bounds_left
+			+ bounds_right
+		) * 0.5
+	else:
+		clamped_x = clampf(
+			position.x,
+			minimum_x,
+			maximum_x
+		)
+
+	if minimum_y > maximum_y:
+		clamped_y = (
+			bounds_top
+			+ bounds_bottom
+		) * 0.5
+	else:
+		clamped_y = clampf(
+			position.y,
+			minimum_y,
+			maximum_y
+		)
+
+	position = Vector2(
+		clamped_x,
+		clamped_y
 	)
 
 

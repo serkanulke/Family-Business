@@ -18,3 +18,4 @@ max_zoom = 1.2
 default_zoom = 1.0
 mouse_zoom_step = 0.05
 default_position = Vector2(540, 960)
+bounds_padding = Vector2(220, 260)

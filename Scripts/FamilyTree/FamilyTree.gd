@@ -37,6 +37,7 @@ const PORTRAIT_CENTER_OFFSET := Vector2(
 @export var connection_width: float = 4.0
 
 @onready var character_layer: Node2D = $CharacterLayer
+@onready var family_tree_camera: Camera2D = $Camera2D
 
 var layout_positions: Dictionary = {}
 var relationship_data: Dictionary = {}
@@ -164,6 +165,7 @@ func rebuild_tree() -> void:
 				_on_character_node_pressed
 			)
 
+	_update_camera_bounds()
 	queue_redraw()
 
 
@@ -371,6 +373,91 @@ func _draw_parent_child_connections() -> void:
 			connection_width,
 			true
 		)
+
+
+func _update_camera_bounds() -> void:
+	if family_tree_camera == null:
+		return
+
+	if not family_tree_camera.has_method(
+		"set_content_bounds"
+	):
+		return
+
+	if layout_positions.is_empty():
+		family_tree_camera.call(
+			"clear_content_bounds"
+		)
+		return
+
+	var first_position_set: bool = false
+	var minimum_x: float = 0.0
+	var maximum_x: float = 0.0
+	var minimum_y: float = 0.0
+	var maximum_y: float = 0.0
+
+	for position_value in layout_positions.values():
+		if typeof(position_value) != TYPE_VECTOR2:
+			continue
+
+		var portrait_position: Vector2 = position_value
+
+		if not first_position_set:
+			minimum_x = portrait_position.x
+			maximum_x = portrait_position.x
+			minimum_y = portrait_position.y
+			maximum_y = portrait_position.y
+			first_position_set = true
+			continue
+
+		minimum_x = minf(
+			minimum_x,
+			portrait_position.x
+		)
+
+		maximum_x = maxf(
+			maximum_x,
+			portrait_position.x
+		)
+
+		minimum_y = minf(
+			minimum_y,
+			portrait_position.y
+		)
+
+		maximum_y = maxf(
+			maximum_y,
+			portrait_position.y
+		)
+
+	if not first_position_set:
+		family_tree_camera.call(
+			"clear_content_bounds"
+		)
+		return
+
+	var portrait_half_size: Vector2 = Vector2(
+		90.0,
+		105.0
+	)
+
+	var bounds_position: Vector2 = Vector2(
+		minimum_x,
+		minimum_y
+	) - portrait_half_size
+
+	var bounds_size: Vector2 = Vector2(
+		maximum_x - minimum_x,
+		maximum_y - minimum_y
+	) + portrait_half_size * 2.0
+
+	family_tree_camera.call(
+		"set_content_bounds",
+		Rect2(
+			bounds_position,
+			bounds_size
+		)
+	)
 
 
 func _clear_character_nodes() -> void:
