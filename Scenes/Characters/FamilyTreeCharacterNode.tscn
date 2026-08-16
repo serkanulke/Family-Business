@@ -1,79 +1,21 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://Scripts/FamilyTree/FamilyTreeCharacterNode.gd" id="1_character_node"]
-[ext_resource type="Texture2D" path="res://Resources/Icons/link-icon.svg" id="2_link_icon"]
-
-[sub_resource type="Shader" id="Shader_circle_mask"]
-code = "shader_type canvas_item;\n\nvoid fragment() {\n\tvec2 centered_uv = UV - vec2(0.5);\n\tif (length(centered_uv) > 0.5) {\n\t\tdiscard;\n\t}\n\tCOLOR = texture(TEXTURE, UV) * COLOR;\n}\n"
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_circle_mask"]
-shader = SubResource("Shader_circle_mask")
 
 [node name="FamilyTreeCharacterNode" type="Control"]
-custom_minimum_size = Vector2(180, 205)
+custom_minimum_size = Vector2(180, 250)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 180.0
-offset_bottom = 205.0
+offset_bottom = 250.0
 mouse_filter = 2
 script = ExtResource("1_character_node")
 
-[node name="Portrait" type="TextureRect" parent="."]
-material = SubResource("ShaderMaterial_circle_mask")
-layout_mode = 0
-offset_left = 30.0
-offset_top = 12.0
-offset_right = 150.0
-offset_bottom = 132.0
-mouse_filter = 2
-texture_filter = 1
-expand_mode = 1
-stretch_mode = 5
-
-[node name="ReferenceLinkIcon" type="TextureRect" parent="."]
-visible = false
-layout_mode = 0
-offset_left = 126.0
-offset_top = 0.0
-offset_right = 170.0
-offset_bottom = 44.0
-mouse_filter = 2
-texture = ExtResource("2_link_icon")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 143.0
-offset_right = 176.0
-offset_bottom = 171.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 24
-text = "Character"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="InfoLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 174.0
-offset_right = 176.0
-offset_bottom = 198.0
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.43, 0.45, 0.5, 1)
-theme_override_font_sizes/font_size = 17
-text = "Age • Stage"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="HitButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_top = -18.0
+offset_right = 180.0
+offset_bottom = 242.0
 mouse_default_cursor_shape = 2
 focus_mode = 0
 flat = true

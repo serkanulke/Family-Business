@@ -1,91 +1,86 @@
-extends Control
+extends Node
 
-const FamilyTreeScreenScript = preload("res://Scenes/FamilyTree/FamilyTreeScreen.gd")
-const OUTFIT_SEMIBOLD_PATH := "res://Resources/Fonts/Outfit-SemiBold.ttf"
+const FAMILY_TREE_SCREEN_SCENE := preload(
+	"res://Scenes/FamilyTree/FamilyTreeScreen.tscn"
+)
 
-var screen: Control
-var debug_bar: Panel
-var scenario_label: Label
-var debug_font: FontFile
+var family_tree_screen: Control
+
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if ResourceLoader.exists(OUTFIT_SEMIBOLD_PATH):
-		debug_font = load(OUTFIT_SEMIBOLD_PATH) as FontFile
+	_prepare_real_runtime_family()
 
-	screen = FamilyTreeScreenScript.new()
-	screen.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(screen)
+	var screen_instance := FAMILY_TREE_SCREEN_SCENE.instantiate()
+	family_tree_screen = screen_instance as Control
 
-	_build_debug_bar()
-	await get_tree().process_frame
-	_set_scenario("normal")
-
-func _build_debug_bar() -> void:
-	debug_bar = Panel.new()
-	debug_bar.name = "VisualTestControls"
-	debug_bar.position = Vector2(300, 18)
-	debug_bar.size = Vector2(480, 86)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.05, 0.10, 0.84)
-	style.corner_radius_top_left = 22
-	style.corner_radius_top_right = 22
-	style.corner_radius_bottom_left = 22
-	style.corner_radius_bottom_right = 22
-	debug_bar.add_theme_stylebox_override("panel", style)
-	add_child(debug_bar)
-
-	scenario_label = Label.new()
-	scenario_label.text = "VISUAL TEST"
-	scenario_label.position = Vector2(14, 7)
-	scenario_label.size = Vector2(452, 22)
-	scenario_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	scenario_label.add_theme_font_size_override("font_size", 14)
-	if debug_font != null:
-		scenario_label.add_theme_font_override("font", debug_font)
-	scenario_label.add_theme_color_override("font_color", Color.WHITE)
-	debug_bar.add_child(scenario_label)
-
-	var scenarios: Array[Dictionary] = [
-		{"title": "NORMAL", "key": "normal"},
-		{"title": "DIVORCE", "key": "divorce"},
-		{"title": "REMARRY", "key": "remarriage"},
-		{"title": "DISTANT", "key": "distant_relative"}
-	]
-
-	for i in range(scenarios.size()):
-		var data: Dictionary = scenarios[i]
-		var button := Button.new()
-		button.text = str(data["title"])
-		button.position = Vector2(12 + i * 112, 35)
-		button.size = Vector2(104, 40)
-		button.focus_mode = Control.FOCUS_NONE
-		button.add_theme_font_size_override("font_size", 13)
-		if debug_font != null:
-			button.add_theme_font_override("font", debug_font)
-		button.pressed.connect(_set_scenario.bind(str(data["key"])))
-		debug_bar.add_child(button)
-
-	var reset_button := Button.new()
-	reset_button.text = "RESET VIEW"
-	reset_button.position = Vector2(490, 35)
-	reset_button.size = Vector2(110, 40)
-	reset_button.focus_mode = Control.FOCUS_NONE
-	reset_button.add_theme_font_size_override("font_size", 13)
-	if debug_font != null:
-		reset_button.add_theme_font_override("font", debug_font)
-	reset_button.pressed.connect(_reset_view)
-	debug_bar.add_child(reset_button)
-	debug_bar.size.x = 614
-	debug_bar.position.x = (1080.0 - debug_bar.size.x) * 0.5
-
-func _set_scenario(scenario: String) -> void:
-	if screen == null:
+	if family_tree_screen == null:
+		push_error("FamilyTreeScreen could not be instantiated.")
 		return
-	await screen.set_demo_scenario(scenario)
-	scenario_label.text = "VISUAL TEST • " + scenario.replace("_", " ").to_upper()
 
-func _reset_view() -> void:
-	if screen != null:
-		screen.reset_view()
+	# Family surname and Diamonds do not yet have runtime state in GameManager.
+	# These two presentation-only values are intentionally explicit here so
+	# the rest of the screen can be tested entirely against real managers.
+	family_tree_screen.set("family_name", "JOHNSON")
+	family_tree_screen.set("unsupported_diamond_text", "—")
+	add_child(family_tree_screen)
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	print("")
+	print("========================================")
+	print("Family Tree REAL-DATA UI visual test")
+	print("========================================")
+	print("Characters from CharacterManager: ", CharacterManager.characters.size())
+	print("Date from TimeManager: ", TimeManager.get_date_string())
+	print("Money from GameManager: ", GameManager.family_money)
+	print("")
+	print("Controls:")
+	print("- Right mouse drag: pan Family Tree + family logo")
+	print("- Mouse wheel: zoom 0.9 - 1.2")
+	print("- Touch: one-finger pan / two-finger pinch")
+	print("- Pause / Play / x2 / x3 use the real TimeManager")
+	print("========================================")
+
+
+func _prepare_real_runtime_family() -> void:
+	GameManager.set_same_sex_marriage_enabled(false)
+	GameManager.set_distant_relative_marriage_enabled(false)
+
+	var starting_character: Dictionary = GameManager.start_new_game(
+		"William",
+		"male"
+	)
+
+	if starting_character.is_empty():
+		push_error("Real-data UI test could not create the starting Character.")
+		return
+
+	var starting_id: int = int(starting_character.get("character_id", 0))
+	var candidate: Dictionary = RelationshipNpcManager.create_relationship_candidate(
+		starting_id
+	)
+
+	if candidate.is_empty():
+		push_error("Real-data UI test could not create a Relationship candidate.")
+		return
+
+	var candidate_id: int = int(candidate.get("character_id", 0))
+	var married: bool = RelationshipNpcManager.make_candidate_family_member(
+		candidate_id,
+		starting_id
+	)
+
+	if not married:
+		push_error("Real-data UI test could not marry the generated candidate.")
+		return
+
+	var child: Dictionary = CharacterManager.create_baby_character(
+		"Mia",
+		"female",
+		starting_id,
+		candidate_id
+	)
+
+	if child.is_empty():
+		push_error("Real-data UI test could not create the child through CharacterManager.")

@@ -14,6 +14,10 @@ signal family_money_changed(
 	new_amount: int
 )
 
+signal diamonds_changed(
+	new_amount: int
+)
+
 const VALID_LIFESPAN_SETTINGS: Array[String] = [
 	"short",
 	"normal",
@@ -21,6 +25,7 @@ const VALID_LIFESPAN_SETTINGS: Array[String] = [
 ]
 
 const STARTING_FAMILY_MONEY := 15000
+const STARTING_DIAMONDS := 0
 
 
 var lifespan_setting: String = "normal"
@@ -29,6 +34,7 @@ var allow_distant_relative_marriage: bool = false
 var allow_ex_spouse_remarriage: bool = false
 
 var family_money: int = 0
+var diamonds: int = 0
 
 
 func set_lifespan_setting(value: String) -> void:
@@ -125,6 +131,10 @@ func start_new_game(
 		STARTING_FAMILY_MONEY
 	)
 
+	set_diamonds(
+		STARTING_DIAMONDS
+	)
+
 	CharacterManager.reset_characters_for_new_game()
 
 	var starting_character := (
@@ -166,6 +176,8 @@ func start_new_game(
 		),
 		" | Money: ",
 		family_money,
+		" | Diamonds: ",
+		diamonds,
 		" | Date: ",
 		TimeManager.get_iso_date_string()
 	)
@@ -183,6 +195,19 @@ func set_family_money(
 
 	family_money_changed.emit(
 		family_money
+	)
+
+
+func set_diamonds(
+	amount: int
+) -> void:
+	diamonds = maxi(
+		amount,
+		0
+	)
+
+	diamonds_changed.emit(
+		diamonds
 	)
 
 
