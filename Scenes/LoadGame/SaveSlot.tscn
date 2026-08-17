@@ -1,0 +1,210 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://Scenes/LoadGame/SaveSlot.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-SemiBold.ttf" id="2_semibold"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Regular.ttf" id="3_regular"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/wealth.png" id="4_wealth"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/population.png" id="5_population"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/owned-businesses.png" id="6_businesses"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/load-btn-bg.png" id="7_load_bg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleSlot"]
+bg_color = Color(1, 0.976471, 0.956863, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956863, 0.886275, 0.847059, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleLine"]
+bg_color = Color(0.956863, 0.886275, 0.847059, 1)
+
+[node name="SaveSlot" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 248)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSlot")
+script = ExtResource("1_script")
+
+[node name="Padding" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Content" type="HBoxContainer" parent="Padding"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Info" type="VBoxContainer" parent="Padding/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="FamilyName" type="Label" parent="Padding/Content/Info"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("2_semibold")
+theme_override_font_sizes/font_size = 40
+text = "Williams Family"
+
+[node name="Metrics" type="VBoxContainer" parent="Padding/Content/Info"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="WealthRow" type="HBoxContainer" parent="Padding/Content/Info/Metrics"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+
+[node name="Left" type="HBoxContainer" parent="Padding/Content/Info/Metrics/WealthRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Padding/Content/Info/Metrics/WealthRow/Left"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("4_wealth")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Padding/Content/Info/Metrics/WealthRow/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "Wealth"
+
+[node name="Spacer" type="Control" parent="Padding/Content/Info/Metrics/WealthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Value" type="Label" parent="Padding/Content/Info/Metrics/WealthRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "240k"
+horizontal_alignment = 2
+
+[node name="Line1" type="ColorRect" parent="Padding/Content/Info/Metrics"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.956863, 0.886275, 0.847059, 1)
+mouse_filter = 2
+
+[node name="PopulationRow" type="HBoxContainer" parent="Padding/Content/Info/Metrics"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+
+[node name="Left" type="HBoxContainer" parent="Padding/Content/Info/Metrics/PopulationRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Padding/Content/Info/Metrics/PopulationRow/Left"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("5_population")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Padding/Content/Info/Metrics/PopulationRow/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "Population"
+
+[node name="Spacer" type="Control" parent="Padding/Content/Info/Metrics/PopulationRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Value" type="Label" parent="Padding/Content/Info/Metrics/PopulationRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "10"
+horizontal_alignment = 2
+
+[node name="Line2" type="ColorRect" parent="Padding/Content/Info/Metrics"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.956863, 0.886275, 0.847059, 1)
+mouse_filter = 2
+
+[node name="BusinessesRow" type="HBoxContainer" parent="Padding/Content/Info/Metrics"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+
+[node name="Left" type="HBoxContainer" parent="Padding/Content/Info/Metrics/BusinessesRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Padding/Content/Info/Metrics/BusinessesRow/Left"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("6_businesses")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Padding/Content/Info/Metrics/BusinessesRow/Left"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "Owned Businesses"
+
+[node name="Spacer" type="Control" parent="Padding/Content/Info/Metrics/BusinessesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Value" type="Label" parent="Padding/Content/Info/Metrics/BusinessesRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("3_regular")
+theme_override_font_sizes/font_size = 28
+text = "1"
+horizontal_alignment = 2
+
+[node name="Divider" type="ColorRect" parent="Padding/Content"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+color = Color(0.956863, 0.886275, 0.847059, 1)
+mouse_filter = 2
+
+[node name="LoadCenter" type="CenterContainer" parent="Padding/Content"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+
+[node name="LoadButton" type="TextureButton" parent="Padding/Content/LoadCenter"]
+custom_minimum_size = Vector2(146, 91)
+layout_mode = 2
+texture_normal = ExtResource("7_load_bg")
+ignore_texture_size = true
+stretch_mode = 0
+mouse_default_cursor_shape = 2
+
+[node name="Label" type="Label" parent="Padding/Content/LoadCenter/LoadButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_semibold")
+theme_override_font_sizes/font_size = 32
+text = "LOAD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="Padding/Content/LoadCenter/LoadButton" to="." method="_on_load_button_pressed"]

@@ -5,6 +5,8 @@ signal load_game_requested
 signal new_game_requested
 signal settings_requested
 
+const LOAD_GAME_SCENE := "res://Scenes/LoadGame/LoadGameScreen.tscn"
+
 
 func _on_continue_button_pressed() -> void:
 	continue_requested.emit()
@@ -12,6 +14,7 @@ func _on_continue_button_pressed() -> void:
 
 func _on_load_game_button_pressed() -> void:
 	load_game_requested.emit()
+	get_tree().change_scene_to_file(LOAD_GAME_SCENE)
 
 
 func _on_new_game_button_pressed() -> void:

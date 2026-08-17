@@ -1,0 +1,284 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://Scenes/LoadGame/LoadGameScreen.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/bg-image.jpg" id="2_bg"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/logo.png" id="3_logo"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/load-game.png" id="4_header_icon"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/separator.svg" id="5_separator"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/save-icon.svg" id="6_save_icon"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/back-arrow.svg" id="7_back_arrow"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-ExtraBold.ttf" id="8_extrabold"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Regular.ttf" id="9_regular"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Medium.ttf" id="10_medium"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-SemiBold.ttf" id="11_semibold"]
+[ext_resource type="PackedScene" path="res://Scenes/LoadGame/SaveSlot.tscn" id="12_slot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleOuterModal"]
+bg_color = Color(0.988235, 0.937255, 0.870588, 1)
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleInnerModal"]
+bg_color = Color(0.988235, 0.937255, 0.870588, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.886275, 0.796078, 0.709804, 1)
+content_margin_left = 24.0
+content_margin_top = 0.0
+content_margin_right = 24.0
+content_margin_bottom = 24.0
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleSaveIndicator"]
+bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.886275, 0.796078, 0.709804, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBackButton"]
+bg_color = Color(0.992157, 0.945098, 0.917647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.886275, 0.796078, 0.709804, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxEmpty" id="StyleEmpty"]
+
+[node name="LoadGameScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 72.0
+offset_right = 240.0
+offset_bottom = 342.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Modal" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -468.0
+offset_top = 390.0
+offset_right = 468.0
+offset_bottom = 1634.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleOuterModal")
+
+[node name="Inner" type="PanelContainer" parent="Modal"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleInnerModal")
+
+[node name="Content" type="VBoxContainer" parent="Modal/Inner"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="MarginContainer" parent="Modal/Inner/Content"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="HeaderRow" type="HBoxContainer" parent="Modal/Inner/Content/Header"]
+layout_mode = 2
+theme_override_constants/separation = 58
+
+[node name="Icon" type="TextureRect" parent="Modal/Inner/Content/Header/HeaderRow"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+texture = ExtResource("4_header_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextCenter" type="CenterContainer" parent="Modal/Inner/Content/Header/HeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Text" type="VBoxContainer" parent="Modal/Inner/Content/Header/HeaderRow/TextCenter"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Modal/Inner/Content/Header/HeaderRow/TextCenter/Text"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("8_extrabold")
+theme_override_font_sizes/font_size = 64
+text = "LOAD GAME"
+
+[node name="Subtitle" type="Label" parent="Modal/Inner/Content/Header/HeaderRow/TextCenter/Text"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("9_regular")
+theme_override_font_sizes/font_size = 28
+text = "Choose a family to continue"
+
+[node name="Separator" type="TextureRect" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+texture = ExtResource("5_separator")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="HeaderToSaveGap" type="Control" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SaveIndicator" type="PanelContainer" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSaveIndicator")
+
+[node name="Center" type="CenterContainer" parent="Modal/Inner/Content/SaveIndicator"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Modal/Inner/Content/SaveIndicator/Center"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="Modal/Inner/Content/SaveIndicator/Center/Row"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("6_save_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Modal/Inner/Content/SaveIndicator/Center/Row"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("10_medium")
+theme_override_font_sizes/font_size = 28
+text = "4 Save Files"
+
+[node name="SaveToSlotsGap" type="Control" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Slots" type="VBoxContainer" parent="Modal/Inner/Content"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Williams" parent="Modal/Inner/Content/Slots" instance=ExtResource("12_slot")]
+layout_mode = 2
+slot_index = 0
+family_name = "Williams Family"
+wealth_text = "240k"
+population_text = "10"
+owned_businesses_text = "1"
+
+[node name="Anderson" parent="Modal/Inner/Content/Slots" instance=ExtResource("12_slot")]
+layout_mode = 2
+slot_index = 1
+family_name = "Anderson Family"
+wealth_text = "120k"
+population_text = "6"
+owned_businesses_text = "2"
+
+[node name="Johnson" parent="Modal/Inner/Content/Slots" instance=ExtResource("12_slot")]
+layout_mode = 2
+slot_index = 2
+family_name = "Johnson Family"
+wealth_text = "12k"
+population_text = "3"
+owned_businesses_text = "0"
+
+[node name="SlotsToBackGap" type="Control" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="BackButton" type="Button" parent="Modal/Inner/Content"]
+custom_minimum_size = Vector2(0, 84)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBackButton")
+theme_override_styles/hover = SubResource("StyleBackButton")
+theme_override_styles/pressed = SubResource("StyleBackButton")
+theme_override_styles/focus = SubResource("StyleEmpty")
+text = ""
+
+[node name="Center" type="CenterContainer" parent="Modal/Inner/Content/BackButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="Modal/Inner/Content/BackButton/Center"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="TextureRect" parent="Modal/Inner/Content/BackButton/Center/Row"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("7_back_arrow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="Modal/Inner/Content/BackButton/Center/Row"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("11_semibold")
+theme_override_font_sizes/font_size = 28
+text = "BACK TO MAIN MENU"
+
+[connection signal="load_requested" from="Modal/Inner/Content/Slots/Williams" to="." method="_on_slot_load_requested"]
+[connection signal="load_requested" from="Modal/Inner/Content/Slots/Anderson" to="." method="_on_slot_load_requested"]
+[connection signal="load_requested" from="Modal/Inner/Content/Slots/Johnson" to="." method="_on_slot_load_requested"]
+[connection signal="pressed" from="Modal/Inner/Content/BackButton" to="." method="_on_back_button_pressed"]
