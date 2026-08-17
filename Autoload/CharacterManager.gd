@@ -379,9 +379,134 @@ func load_job_data() -> void:
 	)
 
 
+func get_portrait_folder_path(
+	gender: String,
+	skin_tone: String
+) -> String:
+	var normalized_gender := (
+		gender.strip_edges().to_lower()
+	)
+
+	var normalized_skin_tone := (
+		skin_tone.strip_edges().to_lower()
+	)
+
+	var gender_folder := ""
+
+	if normalized_gender == "male":
+		gender_folder = "man"
+	elif normalized_gender == "female":
+		gender_folder = "woman"
+	else:
+		return ""
+
+	if not SKIN_TONES.has(
+		normalized_skin_tone
+	):
+		return ""
+
+	return (
+		AVATAR_FOLDER_PATH
+		+ gender_folder
+		+ "/"
+		+ normalized_skin_tone
+	)
+
+
+func get_portrait_paths(
+	gender: String,
+	skin_tone: String
+) -> Array[String]:
+	var result: Array[String] = []
+	var folder_path := get_portrait_folder_path(
+		gender,
+		skin_tone
+	)
+
+	if folder_path.is_empty():
+		return result
+
+	var directory := DirAccess.open(
+		folder_path
+	)
+
+	if directory == null:
+		return result
+
+	directory.list_dir_begin()
+	var file_name := directory.get_next()
+
+	while not file_name.is_empty():
+		if (
+			not directory.current_is_dir()
+			and file_name.to_lower().ends_with(
+				".png"
+			)
+		):
+			var full_path := folder_path.path_join(
+				file_name
+			)
+
+			if ResourceLoader.exists(
+				full_path
+			):
+				result.append(
+					full_path
+				)
+
+		file_name = directory.get_next()
+
+	directory.list_dir_end()
+	result.sort()
+
+	return result
+
+
+func get_random_portrait_path(
+	gender: String,
+	skin_tone: String
+) -> String:
+	var portrait_paths := get_portrait_paths(
+		gender,
+		skin_tone
+	)
+
+	if portrait_paths.is_empty():
+		push_warning(
+			"No portrait PNG found for gender '%s' and skin tone '%s'."
+			% [
+				gender,
+				skin_tone
+			]
+		)
+		return DEFAULT_AVATAR_PATH
+
+	return String(
+		portrait_paths.pick_random()
+	)
+
+
 func get_avatar_path(
 	character: Dictionary
 ) -> String:
+	var direct_portrait_path := String(
+		character.get(
+			"portrait_path",
+			""
+		)
+	).strip_edges()
+
+	if not direct_portrait_path.is_empty():
+		if ResourceLoader.exists(
+			direct_portrait_path
+		):
+			return direct_portrait_path
+
+		push_warning(
+			"Character portrait_path could not be found: "
+			+ direct_portrait_path
+		)
+
 	var genetics_value = character.get(
 		"genetics",
 		{}
@@ -1906,7 +2031,9 @@ func generate_random_genetics() -> Dictionary:
 
 func create_base_starting_character(
 	first_name: String,
-	gender: String
+	gender: String,
+	selected_skin_tone: String = "",
+	selected_portrait_path: String = ""
 ) -> Dictionary:
 	var normalized_gender := (
 		gender.strip_edges().to_lower()
@@ -1922,6 +2049,42 @@ func create_base_starting_character(
 		)
 		return {}
 
+	var normalized_skin_tone := (
+		selected_skin_tone.strip_edges().to_lower()
+	)
+
+	var genetics := generate_random_genetics()
+
+	if not normalized_skin_tone.is_empty():
+		if not SKIN_TONES.has(
+			normalized_skin_tone
+		):
+			push_error(
+				"Invalid starting character skin tone: "
+				+ selected_skin_tone
+			)
+			return {}
+
+		genetics["skin_tone"] = normalized_skin_tone
+
+	var resolved_portrait_path := (
+		selected_portrait_path.strip_edges()
+	)
+
+	if not normalized_skin_tone.is_empty():
+		if (
+			resolved_portrait_path.is_empty()
+			or not ResourceLoader.exists(
+				resolved_portrait_path
+			)
+		):
+			resolved_portrait_path = (
+				get_random_portrait_path(
+					normalized_gender,
+					normalized_skin_tone
+				)
+			)
+
 	var selected_age := randi_range(
 		STARTING_CHARACTER_MIN_AGE,
 		STARTING_CHARACTER_MAX_AGE
@@ -1934,7 +2097,7 @@ func create_base_starting_character(
 		"gender": normalized_gender,
 
 		"avatar_theme": "classic",
-		"genetics": generate_random_genetics(),
+		"genetics": genetics,
 
 		"is_alive": true,
 		"birth_date": generate_starting_birth_date_for_age(
@@ -1973,6 +2136,11 @@ func create_base_starting_character(
 		"event_log": []
 	}
 
+	if not resolved_portrait_path.is_empty():
+		character["portrait_path"] = (
+			resolved_portrait_path
+		)
+
 	var starting_stats := (
 		generate_starting_character_stats()
 	)
@@ -1987,12 +2155,16 @@ func create_base_starting_character(
 
 func create_starting_character(
 	first_name: String,
-	gender: String
+	gender: String,
+	skin_tone: String = "",
+	portrait_path: String = ""
 ) -> Dictionary:
 	var character := (
 		create_base_starting_character(
 			first_name,
-			gender
+			gender,
+			skin_tone,
+			portrait_path
 		)
 	)
 

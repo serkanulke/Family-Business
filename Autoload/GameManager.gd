@@ -121,10 +121,99 @@ func set_family_name(
 	)
 
 
+func start_new_game_from_character_selection(
+	gender: String,
+	skin_tone: String,
+	portrait_path: String = ""
+) -> Dictionary:
+	var normalized_gender := (
+		gender.strip_edges().to_lower()
+	)
+
+	if normalized_gender not in [
+		"female",
+		"male"
+	]:
+		push_error(
+			"Invalid starting character gender: "
+			+ gender
+		)
+		return {}
+
+	var normalized_skin_tone := (
+		skin_tone.strip_edges().to_lower()
+	)
+
+	if not CharacterManager.SKIN_TONES.has(
+		normalized_skin_tone
+	):
+		push_error(
+			"Invalid starting character skin tone: "
+			+ skin_tone
+		)
+		return {}
+
+	var first_names_value = NPCManager.name_config.get(
+		normalized_gender,
+		[]
+	)
+
+	var family_names_value = NPCManager.name_config.get(
+		"last_names",
+		[]
+	)
+
+	if typeof(first_names_value) != TYPE_ARRAY:
+		push_error(
+			"Starting first-name list is invalid."
+		)
+		return {}
+
+	if typeof(family_names_value) != TYPE_ARRAY:
+		push_error(
+			"Starting family-name list is invalid."
+		)
+		return {}
+
+	var first_names: Array = first_names_value
+	var family_names: Array = family_names_value
+
+	if first_names.is_empty():
+		push_error(
+			"No starting first names are available for gender: "
+			+ normalized_gender
+		)
+		return {}
+
+	if family_names.is_empty():
+		push_error(
+			"No starting family names are available."
+		)
+		return {}
+
+	var selected_first_name := String(
+		first_names.pick_random()
+	)
+
+	var selected_family_name := String(
+		family_names.pick_random()
+	)
+
+	return start_new_game(
+		selected_first_name,
+		normalized_gender,
+		selected_family_name,
+		normalized_skin_tone,
+		portrait_path
+	)
+
+
 func start_new_game(
 	first_name: String,
 	gender: String,
-	new_family_name: String = ""
+	new_family_name: String = "",
+	skin_tone: String = "",
+	portrait_path: String = ""
 ) -> Dictionary:
 	var cleaned_name := first_name.strip_edges()
 
@@ -169,7 +258,9 @@ func start_new_game(
 	var starting_character := (
 		CharacterManager.create_starting_character(
 			cleaned_name,
-			normalized_gender
+			normalized_gender,
+			skin_tone,
+			portrait_path
 		)
 	)
 
