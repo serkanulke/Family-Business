@@ -18,6 +18,10 @@ signal diamonds_changed(
 	new_amount: int
 )
 
+signal family_name_changed(
+	new_name: String
+)
+
 const VALID_LIFESPAN_SETTINGS: Array[String] = [
 	"short",
 	"normal",
@@ -35,6 +39,7 @@ var allow_ex_spouse_remarriage: bool = false
 
 var family_money: int = 0
 var diamonds: int = 0
+var family_name: String = ""
 
 
 func set_lifespan_setting(value: String) -> void:
@@ -99,9 +104,25 @@ func set_ex_spouse_remarriage_enabled(
 	)
 
 
+func set_family_name(
+	value: String
+) -> void:
+	var cleaned_name := value.strip_edges()
+
+	if family_name == cleaned_name:
+		return
+
+	family_name = cleaned_name
+
+	family_name_changed.emit(
+		family_name
+	)
+
+
 func start_new_game(
 	first_name: String,
-	gender: String
+	gender: String,
+	new_family_name: String = ""
 ) -> Dictionary:
 	var cleaned_name := first_name.strip_edges()
 
@@ -133,6 +154,10 @@ func start_new_game(
 
 	set_diamonds(
 		STARTING_DIAMONDS
+	)
+
+	set_family_name(
+		new_family_name
 	)
 
 	CharacterManager.reset_characters_for_new_game()
@@ -174,6 +199,8 @@ func start_new_game(
 			"first_name",
 			""
 		),
+		" | Family: ",
+		family_name,
 		" | Money: ",
 		family_money,
 		" | Diamonds: ",
