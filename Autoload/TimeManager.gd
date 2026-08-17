@@ -12,7 +12,9 @@ var current_day: int = START_DAY
 var current_month: int = START_MONTH
 var current_year: int = START_YEAR
 
-var is_paused: bool = false
+# The application opens on the main menu. Simulation time must not run
+# until gameplay explicitly starts/resumes it.
+var is_paused: bool = true
 var speed_multiplier: float = 1.0
 
 const DAY_DURATION := 0.5
