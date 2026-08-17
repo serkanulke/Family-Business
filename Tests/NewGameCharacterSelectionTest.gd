@@ -53,6 +53,17 @@ func _ready() -> void:
 		"New Game modal defaults to male selection"
 	)
 
+	var initial_portrait_paths: Dictionary = modal.get(
+		"selected_portrait_paths"
+	)
+
+	var male_portrait_before_female_change := String(
+		initial_portrait_paths.get(
+			"male",
+			""
+		)
+	)
+
 	_assert_true(
 		String(
 			modal.get(
@@ -101,6 +112,65 @@ func _ready() -> void:
 			)
 		) == "light",
 		"Skin-tone selection can change to light"
+	)
+
+	var per_gender_skin: Dictionary = modal.get(
+		"selected_skin_tones"
+	)
+
+	var portrait_paths_after_female_change: Dictionary = modal.get(
+		"selected_portrait_paths"
+	)
+
+	_assert_true(
+		String(
+			per_gender_skin.get(
+				"male",
+				""
+			)
+		) == "mixed"
+		and String(
+			per_gender_skin.get(
+				"female",
+				""
+			)
+		) == "light",
+		"Male and female remember independent skin selections"
+	)
+
+	_assert_true(
+		String(
+			portrait_paths_after_female_change.get(
+				"male",
+				""
+			)
+		) == male_portrait_before_female_change,
+		"Changing female skin does not change the male portrait"
+	)
+
+	var start_button := modal.get_node_or_null(
+		"Modal/StartGameButton"
+	) as Button
+
+	var start_background := modal.get_node_or_null(
+		"Modal/StartGameButton/Background"
+	) as NinePatchRect
+
+	_assert_true(
+		start_button != null
+		and start_background != null,
+		"START GAME uses a Button with NinePatch background"
+	)
+
+	_assert_true(
+		start_background != null
+		and start_background.get_patch_margin(
+			SIDE_LEFT
+		) > 0
+		and start_background.get_patch_margin(
+			SIDE_RIGHT
+		) > 0,
+		"START GAME preserves PNG edges with NinePatch margins"
 	)
 
 	var female_light_path := (

@@ -22,6 +22,13 @@ const FONT_SEMIBOLD := "res://Resources/Fonts/Roboto-SemiBold.ttf"
 var selected_gender: String = "male"
 var selected_skin_tone: String = "mixed"
 
+# Each gender remembers its own skin choice. Changing the selected
+# character must never mutate the other preview.
+var selected_skin_tones: Dictionary = {
+	"male": "mixed",
+	"female": "light"
+}
+
 var modal_panel: Panel
 var male_button: Button
 var female_button: Button
@@ -42,7 +49,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_build_overlay()
-	_refresh_portraits()
+	_initialize_portraits()
 	_refresh_selection_visuals()
 
 	await get_tree().process_frame
@@ -85,6 +92,13 @@ func select_gender(
 		return
 
 	selected_gender = normalized
+	selected_skin_tone = String(
+		selected_skin_tones.get(
+			selected_gender,
+			"mixed"
+		)
+	)
+
 	_refresh_selection_visuals()
 
 
@@ -102,11 +116,26 @@ func select_skin_tone(
 	]:
 		return
 
-	if selected_skin_tone == normalized:
+	var current_gender_skin := String(
+		selected_skin_tones.get(
+			selected_gender,
+			"mixed"
+		)
+	)
+
+	if current_gender_skin == normalized:
+		selected_skin_tone = normalized
+		_refresh_selection_visuals()
 		return
 
 	selected_skin_tone = normalized
-	_refresh_portraits()
+	selected_skin_tones[
+		selected_gender
+	] = normalized
+
+	_refresh_portrait_for_gender(
+		selected_gender
+	)
 	_refresh_selection_visuals()
 
 
@@ -361,7 +390,7 @@ func _build_overlay() -> void:
 		divider
 	)
 
-	var start_button := TextureButton.new()
+	var start_button := Button.new()
 	start_button.name = "StartGameButton"
 	start_button.position = Vector2(
 		204.0,
@@ -374,21 +403,25 @@ func _build_overlay() -> void:
 	start_button.custom_minimum_size = (
 		start_button.size
 	)
-	start_button.ignore_texture_size = true
-	start_button.stretch_mode = (
-		TextureButton.STRETCH_SCALE
-	)
+	start_button.text = ""
+	start_button.focus_mode = Control.FOCUS_NONE
 	start_button.mouse_default_cursor_shape = (
 		Control.CURSOR_POINTING_HAND
 	)
 
-	var button_texture := load(
-		LOAD_BUTTON_BG
-	) as Texture2D
+	var empty_button_style := StyleBoxEmpty.new()
 
-	start_button.texture_normal = button_texture
-	start_button.texture_hover = button_texture
-	start_button.texture_pressed = button_texture
+	for state in [
+		"normal",
+		"hover",
+		"pressed",
+		"focus",
+		"disabled"
+	]:
+		start_button.add_theme_stylebox_override(
+			state,
+			empty_button_style
+		)
 
 	start_button.pressed.connect(
 		_on_start_game_pressed
@@ -396,6 +429,45 @@ func _build_overlay() -> void:
 
 	modal_panel.add_child(
 		start_button
+	)
+
+	var button_texture := load(
+		LOAD_BUTTON_BG
+	) as Texture2D
+
+	var button_background := NinePatchRect.new()
+	button_background.name = "Background"
+	button_background.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	button_background.offset_left = 0.0
+	button_background.offset_top = 0.0
+	button_background.offset_right = 0.0
+	button_background.offset_bottom = 0.0
+	button_background.texture = button_texture
+	button_background.draw_center = true
+	button_background.set_patch_margin(
+		SIDE_LEFT,
+		30
+	)
+	button_background.set_patch_margin(
+		SIDE_TOP,
+		30
+	)
+	button_background.set_patch_margin(
+		SIDE_RIGHT,
+		30
+	)
+	button_background.set_patch_margin(
+		SIDE_BOTTOM,
+		30
+	)
+	button_background.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+
+	start_button.add_child(
+		button_background
 	)
 
 	var button_label := Label.new()
@@ -553,32 +625,48 @@ func _create_skin_button(
 	return button
 
 
-func _refresh_portraits() -> void:
-	for gender in [
-		"male",
+func _initialize_portraits() -> void:
+	_refresh_portrait_for_gender(
+		"male"
+	)
+	_refresh_portrait_for_gender(
 		"female"
-	]:
-		var path := (
-			CharacterManager.get_random_portrait_path(
-				gender,
-				selected_skin_tone
-			)
+	)
+
+
+func _refresh_portrait_for_gender(
+	gender: String
+) -> void:
+	var skin_tone := String(
+		selected_skin_tones.get(
+			gender,
+			"mixed"
 		)
+	)
 
-		selected_portrait_paths[
-			gender
-		] = path
+	var path := (
+		CharacterManager.get_random_portrait_path(
+			gender,
+			skin_tone
+		)
+	)
 
-		var texture := load(
-			path
-		) as Texture2D
+	selected_portrait_paths[
+		gender
+	] = path
 
-		if gender == "male":
-			if male_portrait != null:
-				male_portrait.texture = texture
-		else:
-			if female_portrait != null:
-				female_portrait.texture = texture
+	var texture := load(
+		path
+	) as Texture2D
+
+	if gender == "male":
+		if male_portrait != null:
+			male_portrait.texture = texture
+		return
+
+	if gender == "female":
+		if female_portrait != null:
+			female_portrait.texture = texture
 
 
 func _refresh_selection_visuals() -> void:
