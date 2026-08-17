@@ -6,15 +6,40 @@ signal new_game_requested
 signal settings_requested
 
 const LOAD_GAME_SCENE := "res://Scenes/LoadGame/LoadGameScreen.tscn"
+const GAME_SCENE := "res://Scenes/Main/Main.tscn"
+
+
+func _ready() -> void:
+	# If this menu was reached from an active family, persist that family
+	# before pausing the simulation. On a fresh application launch there is
+	# no current save, so this is simply a no-op.
+	SaveManager.autosave_current_game()
+	TimeManager.pause()
 
 
 func _on_continue_button_pressed() -> void:
 	continue_requested.emit()
 
+	var save_id := SaveManager.get_most_recent_save_id()
+
+	if save_id <= 0:
+		return
+
+	if not SaveManager.load_game(
+		save_id
+	):
+		return
+
+	get_tree().change_scene_to_file(
+		GAME_SCENE
+	)
+
 
 func _on_load_game_button_pressed() -> void:
 	load_game_requested.emit()
-	get_tree().change_scene_to_file(LOAD_GAME_SCENE)
+	get_tree().change_scene_to_file(
+		LOAD_GAME_SCENE
+	)
 
 
 func _on_new_game_button_pressed() -> void:

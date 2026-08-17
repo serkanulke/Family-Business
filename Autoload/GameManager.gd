@@ -6,6 +6,8 @@ signal same_sex_marriage_setting_changed(value: bool)
 signal distant_relative_marriage_setting_changed(value: bool)
 signal ex_spouse_remarriage_setting_changed(value: bool)
 
+signal new_game_starting
+
 signal new_game_started(
 	starting_character: Dictionary
 )
@@ -145,6 +147,8 @@ func start_new_game(
 			+ gender
 		)
 		return {}
+
+	new_game_starting.emit()
 
 	TimeManager.reset_time()
 
