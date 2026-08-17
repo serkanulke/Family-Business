@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Family Business"
-run/main_scene="uid://b4wgo6ukuj83d"
+run/main_scene="res://Scenes/MainMenu/MainMenu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 

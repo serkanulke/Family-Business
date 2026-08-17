@@ -1,0 +1,22 @@
+extends Control
+
+signal continue_requested
+signal load_game_requested
+signal new_game_requested
+signal settings_requested
+
+
+func _on_continue_button_pressed() -> void:
+	continue_requested.emit()
+
+
+func _on_load_game_button_pressed() -> void:
+	load_game_requested.emit()
+
+
+func _on_new_game_button_pressed() -> void:
+	new_game_requested.emit()
+
+
+func _on_settings_button_pressed() -> void:
+	settings_requested.emit()

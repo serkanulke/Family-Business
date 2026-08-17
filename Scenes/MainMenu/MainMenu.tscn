@@ -1,0 +1,97 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://Scenes/MainMenu/MainMenu.gd" id="1_main_menu_script"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/bg-image.jpg" id="2_background"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/logo.png" id="3_logo"]
+[ext_resource type="PackedScene" path="res://Scenes/MainMenu/MainMenuButton.tscn" id="4_button_scene"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/continue.png" id="5_continue_icon"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/load-game.png" id="6_load_icon"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/new-game.png" id="7_new_game_icon"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/settings.png" id="8_settings_icon"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main_menu_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Content" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LogoCenter" type="CenterContainer" parent="Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Logo" type="TextureRect" parent="Center/Content/LogoCenter"]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_logo")
+stretch_mode = 3
+
+[node name="LogoButtonGap" type="Control" parent="Center/Content"]
+custom_minimum_size = Vector2(0, 215)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ButtonsCenter" type="CenterContainer" parent="Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ButtonGroup" type="VBoxContainer" parent="Center/Content/ButtonsCenter"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="ContinueButton" parent="Center/Content/ButtonsCenter/ButtonGroup" instance=ExtResource("4_button_scene")]
+layout_mode = 2
+title_text = "CONTINUE"
+subtitle_text = "Continue where you left off"
+icon_texture = ExtResource("5_continue_icon")
+
+[node name="LoadGameButton" parent="Center/Content/ButtonsCenter/ButtonGroup" instance=ExtResource("4_button_scene")]
+layout_mode = 2
+title_text = "LOAD GAME"
+subtitle_text = "Load a previous game"
+icon_texture = ExtResource("6_load_icon")
+
+[node name="NewGameButton" parent="Center/Content/ButtonsCenter/ButtonGroup" instance=ExtResource("4_button_scene")]
+layout_mode = 2
+title_text = "NEW GAME"
+subtitle_text = "Start a new family journey"
+icon_texture = ExtResource("7_new_game_icon")
+
+[node name="SettingsButton" parent="Center/Content/ButtonsCenter/ButtonGroup" instance=ExtResource("4_button_scene")]
+layout_mode = 2
+title_text = "SETTINGS"
+subtitle_text = ""
+icon_texture = ExtResource("8_settings_icon")
+
+[connection signal="pressed" from="Center/Content/ButtonsCenter/ButtonGroup/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="Center/Content/ButtonsCenter/ButtonGroup/LoadGameButton" to="." method="_on_load_game_button_pressed"]
+[connection signal="pressed" from="Center/Content/ButtonsCenter/ButtonGroup/NewGameButton" to="." method="_on_new_game_button_pressed"]
+[connection signal="pressed" from="Center/Content/ButtonsCenter/ButtonGroup/SettingsButton" to="." method="_on_settings_button_pressed"]

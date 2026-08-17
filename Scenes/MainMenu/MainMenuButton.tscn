@@ -1,0 +1,69 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Scenes/MainMenu/MainMenuButton.gd" id="1_button_script"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-menu/btn-bg.png" id="2_button_bg"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-ExtraBold.ttf" id="3_title_font"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Regular.ttf" id="4_subtitle_font"]
+
+[node name="MainMenuButton" type="TextureButton"]
+custom_minimum_size = Vector2(450, 160)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("2_button_bg")
+ignore_texture_size = true
+stretch_mode = 0
+script = ExtResource("1_button_script")
+
+[node name="Padding" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="Content" type="HBoxContainer" parent="Padding"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 0
+theme_override_constants/separation = 32
+
+[node name="Icon" type="TextureRect" parent="Padding/Content"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextCenter" type="CenterContainer" parent="Padding/Content"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Text" type="VBoxContainer" parent="Padding/Content/TextCenter"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Padding/Content/TextCenter/Text"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("3_title_font")
+theme_override_font_sizes/font_size = 36
+text = "BUTTON"
+horizontal_alignment = 0
+
+[node name="Subtitle" type="Label" parent="Padding/Content/TextCenter/Text"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+theme_override_fonts/font = ExtResource("4_subtitle_font")
+theme_override_font_sizes/font_size = 20
+text = "Subtitle"
+horizontal_alignment = 0
