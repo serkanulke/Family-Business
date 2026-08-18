@@ -3,7 +3,7 @@
     {
       "company_id": "metro_works_services",
       "company_name": "MetroWorks Services",
-      "logo_path": "res://Resources/Icons/Companies/metro_works_services.svg",
+      "logo_path": "res://Resources/Companies/metro_works_services.png",
       "jobs": [
         1001,
         1002,
@@ -18,7 +18,7 @@
     {
       "company_id": "urban_link_staffing",
       "company_name": "UrbanLink Staffing",
-      "logo_path": "res://Resources/Icons/Companies/urban_link_staffing.svg",
+      "logo_path": "res://Resources/Companies/urban_link_staffing.png",
       "jobs": [
         1001,
         1002,
@@ -33,7 +33,7 @@
     {
       "company_id": "civic_core_services",
       "company_name": "CivicCore Services",
-      "logo_path": "res://Resources/Icons/Companies/civic_core_services.svg",
+      "logo_path": "res://Resources/Companies/civic_core_services.png",
       "jobs": [
         1001,
         1002,
@@ -48,7 +48,7 @@
     {
       "company_id": "everyday_operations",
       "company_name": "Everyday Operations",
-      "logo_path": "res://Resources/Icons/Companies/everyday_operations.svg",
+      "logo_path": "res://Resources/Companies/everyday_operations.png",
       "jobs": [
         1001,
         1002,
@@ -63,7 +63,7 @@
     {
       "company_id": "prime_city_workforce",
       "company_name": "PrimeCity Workforce",
-      "logo_path": "res://Resources/Icons/Companies/prime_city_workforce.svg",
+      "logo_path": "res://Resources/Companies/prime_city_workforce.png",
       "jobs": [
         1001,
         1002,
@@ -78,7 +78,7 @@
     {
       "company_id": "bright_side_retail_media",
       "company_name": "BrightSide Retail & Media",
-      "logo_path": "res://Resources/Icons/Companies/bright_side_retail_media.svg",
+      "logo_path": "res://Resources/Companies/bright_side_retail_media.png",
       "jobs": [
         1001,
         1003,
@@ -95,7 +95,7 @@
     {
       "company_id": "city_life_group",
       "company_name": "CityLife Group",
-      "logo_path": "res://Resources/Icons/Companies/city_life_group.svg",
+      "logo_path": "res://Resources/Companies/city_life_group.png",
       "jobs": [
         1001,
         1003,
@@ -112,7 +112,7 @@
     {
       "company_id": "pulse_consumer_network",
       "company_name": "Pulse Consumer Network",
-      "logo_path": "res://Resources/Icons/Companies/pulse_consumer_network.svg",
+      "logo_path": "res://Resources/Companies/pulse_consumer_network.png",
       "jobs": [
         1001,
         1003,
@@ -129,7 +129,7 @@
     {
       "company_id": "cornerstone_lifestyle",
       "company_name": "Cornerstone Lifestyle",
-      "logo_path": "res://Resources/Icons/Companies/cornerstone_lifestyle.svg",
+      "logo_path": "res://Resources/Companies/cornerstone_lifestyle.png",
       "jobs": [
         1001,
         1003,
@@ -146,7 +146,7 @@
     {
       "company_id": "vista_community_media",
       "company_name": "Vista Community Media",
-      "logo_path": "res://Resources/Icons/Companies/vista_community_media.svg",
+      "logo_path": "res://Resources/Companies/vista_community_media.png",
       "jobs": [
         1001,
         1003,
@@ -163,7 +163,7 @@
     {
       "company_id": "johnson_hospital",
       "company_name": "Johnson Hospital",
-      "logo_path": "res://Resources/Icons/Companies/johnson_hospital.svg",
+      "logo_path": "res://Resources/Companies/johnson_hospital.png",
       "jobs": [
         2008,
         2065,
@@ -179,7 +179,7 @@
     {
       "company_id": "st_helena_medical_center",
       "company_name": "St. Helena Medical Center",
-      "logo_path": "res://Resources/Icons/Companies/st_helena_medical_center.svg",
+      "logo_path": "res://Resources/Companies/st_helena_medical_center.png",
       "jobs": [
         2008,
         2065,
@@ -195,7 +195,7 @@
     {
       "company_id": "northbridge_health_network",
       "company_name": "Northbridge Health Network",
-      "logo_path": "res://Resources/Icons/Companies/northbridge_health_network.svg",
+      "logo_path": "res://Resources/Companies/northbridge_health_network.png",
       "jobs": [
         2008,
         2065,
@@ -211,7 +211,7 @@
     {
       "company_id": "riverside_university_hospital",
       "company_name": "Riverside University Hospital",
-      "logo_path": "res://Resources/Icons/Companies/riverside_university_hospital.svg",
+      "logo_path": "res://Resources/Companies/riverside_university_hospital.png",
       "jobs": [
         2008,
         2065,
@@ -227,7 +227,7 @@
     {
       "company_id": "mercy_point_medical_group",
       "company_name": "Mercy Point Medical Group",
-      "logo_path": "res://Resources/Icons/Companies/mercy_point_medical_group.svg",
+      "logo_path": "res://Resources/Companies/mercy_point_medical_group.png",
       "jobs": [
         2008,
         2065,
@@ -243,7 +243,7 @@
     {
       "company_id": "global_bank",
       "company_name": "Global Bank",
-      "logo_path": "res://Resources/Icons/Companies/global_bank.svg",
+      "logo_path": "res://Resources/Companies/global_bank.png",
       "jobs": [
         2008,
         2009,
@@ -260,7 +260,7 @@
     {
       "company_id": "meridian_financial_group",
       "company_name": "Meridian Financial Group",
-      "logo_path": "res://Resources/Icons/Companies/meridian_financial_group.svg",
+      "logo_path": "res://Resources/Companies/meridian_financial_group.png",
       "jobs": [
         2008,
         2009,
@@ -278,7 +278,7 @@
     {
       "company_id": "summit_capital_partners",
       "company_name": "Summit Capital Partners",
-      "logo_path": "res://Resources/Icons/Companies/summit_capital_partners.svg",
+      "logo_path": "res://Resources/Companies/summit_capital_partners.png",
       "jobs": [
         2008,
         2009,
@@ -296,7 +296,7 @@
     {
       "company_id": "crownline_holdings",
       "company_name": "Crownline Holdings",
-      "logo_path": "res://Resources/Icons/Companies/crownline_holdings.svg",
+      "logo_path": "res://Resources/Companies/crownline_holdings.png",
       "jobs": [
         2008,
         2009,
@@ -314,7 +314,7 @@
     {
       "company_id": "aster_co_consulting",
       "company_name": "Aster & Co. Consulting",
-      "logo_path": "res://Resources/Icons/Companies/aster_co_consulting.svg",
+      "logo_path": "res://Resources/Companies/aster_co_consulting.png",
       "jobs": [
         2008,
         2009,
@@ -332,7 +332,7 @@
     {
       "company_id": "vertex_technologies",
       "company_name": "Vertex Technologies",
-      "logo_path": "res://Resources/Icons/Companies/vertex_technologies.svg",
+      "logo_path": "res://Resources/Companies/vertex_technologies.png",
       "jobs": [
         2008,
         2009,
@@ -349,7 +349,7 @@
     {
       "company_id": "novabyte_systems",
       "company_name": "NovaByte Systems",
-      "logo_path": "res://Resources/Icons/Companies/novabyte_systems.svg",
+      "logo_path": "res://Resources/Companies/novabyte_systems.png",
       "jobs": [
         2008,
         2009,
@@ -366,7 +366,7 @@
     {
       "company_id": "blue_orbit_software",
       "company_name": "BlueOrbit Software",
-      "logo_path": "res://Resources/Icons/Companies/blue_orbit_software.svg",
+      "logo_path": "res://Resources/Companies/blue_orbit_software.png",
       "jobs": [
         2008,
         2009,
@@ -383,7 +383,7 @@
     {
       "company_id": "quantum_forge",
       "company_name": "Quantum Forge",
-      "logo_path": "res://Resources/Icons/Companies/quantum_forge.svg",
+      "logo_path": "res://Resources/Companies/quantum_forge.png",
       "jobs": [
         2008,
         2009,
@@ -400,7 +400,7 @@
     {
       "company_id": "nexora_digital",
       "company_name": "Nexora Digital",
-      "logo_path": "res://Resources/Icons/Companies/nexora_digital.svg",
+      "logo_path": "res://Resources/Companies/nexora_digital.png",
       "jobs": [
         2008,
         2009,
@@ -417,7 +417,7 @@
     {
       "company_id": "aurelia_creative_group",
       "company_name": "Aurelia Creative Group",
-      "logo_path": "res://Resources/Icons/Companies/aurelia_creative_group.svg",
+      "logo_path": "res://Resources/Companies/aurelia_creative_group.png",
       "jobs": [
         1009,
         1010,
@@ -441,7 +441,7 @@
     {
       "company_id": "northlight_arts_entertainment",
       "company_name": "Northlight Arts & Entertainment",
-      "logo_path": "res://Resources/Icons/Companies/northlight_arts_entertainment.svg",
+      "logo_path": "res://Resources/Companies/northlight_arts_entertainment.png",
       "jobs": [
         1009,
         1010,
@@ -465,7 +465,7 @@
     {
       "company_id": "vivid_house_collective",
       "company_name": "Vivid House Collective",
-      "logo_path": "res://Resources/Icons/Companies/vivid_house_collective.svg",
+      "logo_path": "res://Resources/Companies/vivid_house_collective.png",
       "jobs": [
         1009,
         1010,
@@ -489,7 +489,7 @@
     {
       "company_id": "meridian_culture_studios",
       "company_name": "Meridian Culture Studios",
-      "logo_path": "res://Resources/Icons/Companies/meridian_culture_studios.svg",
+      "logo_path": "res://Resources/Companies/meridian_culture_studios.png",
       "jobs": [
         1009,
         1010,
@@ -513,7 +513,7 @@
     {
       "company_id": "bluebird_creative_industries",
       "company_name": "Bluebird Creative Industries",
-      "logo_path": "res://Resources/Icons/Companies/bluebird_creative_industries.svg",
+      "logo_path": "res://Resources/Companies/bluebird_creative_industries.png",
       "jobs": [
         1009,
         1010,
@@ -537,7 +537,7 @@
     {
       "company_id": "civic_justice_bureau",
       "company_name": "Civic Justice Bureau",
-      "logo_path": "res://Resources/Icons/Companies/civic_justice_bureau.svg",
+      "logo_path": "res://Resources/Companies/civic_justice_bureau.png",
       "jobs": [
         2023,
         2024,
@@ -553,7 +553,7 @@
     {
       "company_id": "harper_cole_legal",
       "company_name": "Harper & Cole Legal",
-      "logo_path": "res://Resources/Icons/Companies/harper_cole_legal.svg",
+      "logo_path": "res://Resources/Companies/harper_cole_legal.png",
       "jobs": [
         2023,
         2024,
@@ -569,7 +569,7 @@
     {
       "company_id": "lexford_partners",
       "company_name": "Lexford Partners",
-      "logo_path": "res://Resources/Icons/Companies/lexford_partners.svg",
+      "logo_path": "res://Resources/Companies/lexford_partners.png",
       "jobs": [
         2023,
         2024,
@@ -585,7 +585,7 @@
     {
       "company_id": "metropolitan_legal_service",
       "company_name": "Metropolitan Legal Service",
-      "logo_path": "res://Resources/Icons/Companies/metropolitan_legal_service.svg",
+      "logo_path": "res://Resources/Companies/metropolitan_legal_service.png",
       "jobs": [
         2023,
         2024,
@@ -601,7 +601,7 @@
     {
       "company_id": "sterling_public_affairs_law",
       "company_name": "Sterling Public Affairs & Law",
-      "logo_path": "res://Resources/Icons/Companies/sterling_public_affairs_law.svg",
+      "logo_path": "res://Resources/Companies/sterling_public_affairs_law.png",
       "jobs": [
         2023,
         2024,
@@ -617,7 +617,7 @@
     {
       "company_id": "atlas_urban_works",
       "company_name": "Atlas Urban Works",
-      "logo_path": "res://Resources/Icons/Companies/atlas_urban_works.svg",
+      "logo_path": "res://Resources/Companies/atlas_urban_works.png",
       "jobs": [
         2008,
         2028,
@@ -634,7 +634,7 @@
     {
       "company_id": "forma_architecture_group",
       "company_name": "Forma Architecture Group",
-      "logo_path": "res://Resources/Icons/Companies/forma_architecture_group.svg",
+      "logo_path": "res://Resources/Companies/forma_architecture_group.png",
       "jobs": [
         2008,
         2028,
@@ -651,7 +651,7 @@
     {
       "company_id": "stonebridge_engineering",
       "company_name": "Stonebridge Engineering",
-      "logo_path": "res://Resources/Icons/Companies/stonebridge_engineering.svg",
+      "logo_path": "res://Resources/Companies/stonebridge_engineering.png",
       "jobs": [
         2008,
         2028,
@@ -668,7 +668,7 @@
     {
       "company_id": "civicline_design_construction",
       "company_name": "CivicLine Design & Construction",
-      "logo_path": "res://Resources/Icons/Companies/civicline_design_construction.svg",
+      "logo_path": "res://Resources/Companies/civicline_design_construction.png",
       "jobs": [
         2008,
         2028,
@@ -685,7 +685,7 @@
     {
       "company_id": "terranova_planning",
       "company_name": "TerraNova Planning",
-      "logo_path": "res://Resources/Icons/Companies/terranova_planning.svg",
+      "logo_path": "res://Resources/Companies/terranova_planning.png",
       "jobs": [
         2008,
         2028,
@@ -702,7 +702,7 @@
     {
       "company_id": "apex_sports_performance",
       "company_name": "Apex Sports & Performance",
-      "logo_path": "res://Resources/Icons/Companies/apex_sports_performance.svg",
+      "logo_path": "res://Resources/Companies/apex_sports_performance.png",
       "jobs": [
         2034,
         2035,
@@ -719,7 +719,7 @@
     {
       "company_id": "victory_athletic_institute",
       "company_name": "Victory Athletic Institute",
-      "logo_path": "res://Resources/Icons/Companies/victory_athletic_institute.svg",
+      "logo_path": "res://Resources/Companies/victory_athletic_institute.png",
       "jobs": [
         2034,
         2035,
@@ -736,7 +736,7 @@
     {
       "company_id": "pulse_training_group",
       "company_name": "Pulse Training Group",
-      "logo_path": "res://Resources/Icons/Companies/pulse_training_group.svg",
+      "logo_path": "res://Resources/Companies/pulse_training_group.png",
       "jobs": [
         2034,
         2035,
@@ -753,7 +753,7 @@
     {
       "company_id": "summit_sports_academy",
       "company_name": "Summit Sports Academy",
-      "logo_path": "res://Resources/Icons/Companies/summit_sports_academy.svg",
+      "logo_path": "res://Resources/Companies/summit_sports_academy.png",
       "jobs": [
         2034,
         2035,
@@ -770,7 +770,7 @@
     {
       "company_id": "motionworks_performance_center",
       "company_name": "MotionWorks Performance Center",
-      "logo_path": "res://Resources/Icons/Companies/motionworks_performance_center.svg",
+      "logo_path": "res://Resources/Companies/motionworks_performance_center.png",
       "jobs": [
         2034,
         2035,
@@ -787,7 +787,7 @@
     {
       "company_id": "orion_aerospace",
       "company_name": "Orion Aerospace",
-      "logo_path": "res://Resources/Icons/Companies/orion_aerospace.svg",
+      "logo_path": "res://Resources/Companies/orion_aerospace.png",
       "jobs": [
         2008,
         2009,
@@ -804,7 +804,7 @@
     {
       "company_id": "skyreach_aviation_group",
       "company_name": "Skyreach Aviation Group",
-      "logo_path": "res://Resources/Icons/Companies/skyreach_aviation_group.svg",
+      "logo_path": "res://Resources/Companies/skyreach_aviation_group.png",
       "jobs": [
         2008,
         2009,
@@ -821,7 +821,7 @@
     {
       "company_id": "astranova_space_systems",
       "company_name": "AstraNova Space Systems",
-      "logo_path": "res://Resources/Icons/Companies/astranova_space_systems.svg",
+      "logo_path": "res://Resources/Companies/astranova_space_systems.png",
       "jobs": [
         2008,
         2009,
@@ -838,7 +838,7 @@
     {
       "company_id": "horizon_flight_space",
       "company_name": "Horizon Flight & Space",
-      "logo_path": "res://Resources/Icons/Companies/horizon_flight_space.svg",
+      "logo_path": "res://Resources/Companies/horizon_flight_space.png",
       "jobs": [
         2008,
         2009,
@@ -855,7 +855,7 @@
     {
       "company_id": "pioneer_aerospace_authority",
       "company_name": "Pioneer Aerospace Authority",
-      "logo_path": "res://Resources/Icons/Companies/pioneer_aerospace_authority.svg",
+      "logo_path": "res://Resources/Companies/pioneer_aerospace_authority.png",
       "jobs": [
         2008,
         2009,
@@ -872,7 +872,7 @@
     {
       "company_id": "blue_depth_oceanic_institute",
       "company_name": "BlueDepth Oceanic Institute",
-      "logo_path": "res://Resources/Icons/Companies/blue_depth_oceanic_institute.svg",
+      "logo_path": "res://Resources/Companies/blue_depth_oceanic_institute.png",
       "jobs": [
         2009,
         2048,
@@ -888,7 +888,7 @@
     {
       "company_id": "neptune_marine_research",
       "company_name": "Neptune Marine Research",
-      "logo_path": "res://Resources/Icons/Companies/neptune_marine_research.svg",
+      "logo_path": "res://Resources/Companies/neptune_marine_research.png",
       "jobs": [
         2009,
         2048,
@@ -904,7 +904,7 @@
     {
       "company_id": "seawatch_exploration_group",
       "company_name": "Seawatch Exploration Group",
-      "logo_path": "res://Resources/Icons/Companies/seawatch_exploration_group.svg",
+      "logo_path": "res://Resources/Companies/seawatch_exploration_group.png",
       "jobs": [
         2009,
         2048,
@@ -920,7 +920,7 @@
     {
       "company_id": "aquaterra_ocean_systems",
       "company_name": "AquaTerra Ocean Systems",
-      "logo_path": "res://Resources/Icons/Companies/aquaterra_ocean_systems.svg",
+      "logo_path": "res://Resources/Companies/aquaterra_ocean_systems.png",
       "jobs": [
         2009,
         2048,
@@ -936,7 +936,7 @@
     {
       "company_id": "pelagic_research_conservation",
       "company_name": "Pelagic Research & Conservation",
-      "logo_path": "res://Resources/Icons/Companies/pelagic_research_conservation.svg",
+      "logo_path": "res://Resources/Companies/pelagic_research_conservation.png",
       "jobs": [
         2009,
         2048,
@@ -952,7 +952,7 @@
     {
       "company_id": "greencore_agritech",
       "company_name": "GreenCore AgriTech",
-      "logo_path": "res://Resources/Icons/Companies/greencore_agritech.svg",
+      "logo_path": "res://Resources/Companies/greencore_agritech.png",
       "jobs": [
         2008,
         2009,
@@ -969,7 +969,7 @@
     {
       "company_id": "harvest_dynamics",
       "company_name": "Harvest Dynamics",
-      "logo_path": "res://Resources/Icons/Companies/harvest_dynamics.svg",
+      "logo_path": "res://Resources/Companies/harvest_dynamics.png",
       "jobs": [
         2008,
         2009,
@@ -986,7 +986,7 @@
     {
       "company_id": "terrayield_biotechnology",
       "company_name": "TerraYield Biotechnology",
-      "logo_path": "res://Resources/Icons/Companies/terrayield_biotechnology.svg",
+      "logo_path": "res://Resources/Companies/terrayield_biotechnology.png",
       "jobs": [
         2008,
         2009,
@@ -1003,7 +1003,7 @@
     {
       "company_id": "agrinova_systems",
       "company_name": "AgriNova Systems",
-      "logo_path": "res://Resources/Icons/Companies/agrinova_systems.svg",
+      "logo_path": "res://Resources/Companies/agrinova_systems.png",
       "jobs": [
         2008,
         2009,
@@ -1020,7 +1020,7 @@
     {
       "company_id": "vertical_earth_farms",
       "company_name": "Vertical Earth Farms",
-      "logo_path": "res://Resources/Icons/Companies/vertical_earth_farms.svg",
+      "logo_path": "res://Resources/Companies/vertical_earth_farms.png",
       "jobs": [
         2008,
         2009,
@@ -1037,7 +1037,7 @@
     {
       "company_id": "signal_house_media",
       "company_name": "Signal House Media",
-      "logo_path": "res://Resources/Icons/Companies/signal_house_media.svg",
+      "logo_path": "res://Resources/Companies/signal_house_media.png",
       "jobs": [
         1009,
         1010,
@@ -1057,7 +1057,7 @@
     {
       "company_id": "metronews_network",
       "company_name": "MetroNews Network",
-      "logo_path": "res://Resources/Icons/Companies/metronews_network.svg",
+      "logo_path": "res://Resources/Companies/metronews_network.png",
       "jobs": [
         1009,
         1010,
@@ -1077,7 +1077,7 @@
     {
       "company_id": "echopoint_communications",
       "company_name": "EchoPoint Communications",
-      "logo_path": "res://Resources/Icons/Companies/echopoint_communications.svg",
+      "logo_path": "res://Resources/Companies/echopoint_communications.png",
       "jobs": [
         1009,
         1010,
@@ -1097,7 +1097,7 @@
     {
       "company_id": "openframe_media_group",
       "company_name": "OpenFrame Media Group",
-      "logo_path": "res://Resources/Icons/Companies/openframe_media_group.svg",
+      "logo_path": "res://Resources/Companies/openframe_media_group.png",
       "jobs": [
         1009,
         1010,
@@ -1117,7 +1117,7 @@
     {
       "company_id": "horizon_broadcast_pr",
       "company_name": "Horizon Broadcast & PR",
-      "logo_path": "res://Resources/Icons/Companies/horizon_broadcast_pr.svg",
+      "logo_path": "res://Resources/Companies/horizon_broadcast_pr.png",
       "jobs": [
         1009,
         1010,
@@ -1137,7 +1137,7 @@
     {
       "company_id": "heritage_research_institute",
       "company_name": "Heritage Research Institute",
-      "logo_path": "res://Resources/Icons/Companies/heritage_research_institute.svg",
+      "logo_path": "res://Resources/Companies/heritage_research_institute.png",
       "jobs": [
         2018,
         2039,
@@ -1152,7 +1152,7 @@
     {
       "company_id": "antiqua_museum_network",
       "company_name": "Antiqua Museum Network",
-      "logo_path": "res://Resources/Icons/Companies/antiqua_museum_network.svg",
+      "logo_path": "res://Resources/Companies/antiqua_museum_network.png",
       "jobs": [
         2018,
         2039,
@@ -1167,7 +1167,7 @@
     {
       "company_id": "atlas_cultural_foundation",
       "company_name": "Atlas Cultural Foundation",
-      "logo_path": "res://Resources/Icons/Companies/atlas_cultural_foundation.svg",
+      "logo_path": "res://Resources/Companies/atlas_cultural_foundation.png",
       "jobs": [
         2018,
         2039,
@@ -1182,7 +1182,7 @@
     {
       "company_id": "oldworld_exploration_society",
       "company_name": "OldWorld Exploration Society",
-      "logo_path": "res://Resources/Icons/Companies/oldworld_exploration_society.svg",
+      "logo_path": "res://Resources/Companies/oldworld_exploration_society.png",
       "jobs": [
         2018,
         2039,
@@ -1197,7 +1197,7 @@
     {
       "company_id": "civic_heritage_museum_group",
       "company_name": "Civic Heritage Museum Group",
-      "logo_path": "res://Resources/Icons/Companies/civic_heritage_museum_group.svg",
+      "logo_path": "res://Resources/Companies/civic_heritage_museum_group.png",
       "jobs": [
         2018,
         2039,
@@ -1212,7 +1212,7 @@
     {
       "company_id": "insight_behavioral_consulting",
       "company_name": "Insight Behavioral Consulting",
-      "logo_path": "res://Resources/Icons/Companies/insight_behavioral_consulting.svg",
+      "logo_path": "res://Resources/Companies/insight_behavioral_consulting.png",
       "jobs": [
         2023,
         2065,
@@ -1226,7 +1226,7 @@
     {
       "company_id": "humanedge_advisory",
       "company_name": "HumanEdge Advisory",
-      "logo_path": "res://Resources/Icons/Companies/humanedge_advisory.svg",
+      "logo_path": "res://Resources/Companies/humanedge_advisory.png",
       "jobs": [
         2023,
         2065,
@@ -1239,7 +1239,7 @@
     {
       "company_id": "forensic_mind_institute",
       "company_name": "Forensic Mind Institute",
-      "logo_path": "res://Resources/Icons/Companies/forensic_mind_institute.svg",
+      "logo_path": "res://Resources/Companies/forensic_mind_institute.png",
       "jobs": [
         2023,
         2065,
@@ -1252,7 +1252,7 @@
     {
       "company_id": "resolve_corporate_psychology",
       "company_name": "Resolve Corporate Psychology",
-      "logo_path": "res://Resources/Icons/Companies/resolve_corporate_psychology.svg",
+      "logo_path": "res://Resources/Companies/resolve_corporate_psychology.png",
       "jobs": [
         2023,
         2065,
@@ -1265,7 +1265,7 @@
     {
       "company_id": "verdict_behavioral_analytics",
       "company_name": "Verdict Behavioral Analytics",
-      "logo_path": "res://Resources/Icons/Companies/verdict_behavioral_analytics.svg",
+      "logo_path": "res://Resources/Companies/verdict_behavioral_analytics.png",
       "jobs": [
         2023,
         2065,
@@ -1278,7 +1278,7 @@
     {
       "company_id": "titan_global_holdings",
       "company_name": "Titan Global Holdings",
-      "logo_path": "res://Resources/Icons/Companies/titan_global_holdings.svg",
+      "logo_path": "res://Resources/Companies/titan_global_holdings.png",
       "jobs": [
         2008,
         2009,
@@ -1298,7 +1298,7 @@
     {
       "company_id": "aurora_international_group",
       "company_name": "Aurora International Group",
-      "logo_path": "res://Resources/Icons/Companies/aurora_international_group.svg",
+      "logo_path": "res://Resources/Companies/aurora_international_group.png",
       "jobs": [
         2008,
         2009,
@@ -1318,7 +1318,7 @@
     {
       "company_id": "northstar_industries",
       "company_name": "Northstar Industries",
-      "logo_path": "res://Resources/Icons/Companies/northstar_industries.svg",
+      "logo_path": "res://Resources/Companies/northstar_industries.png",
       "jobs": [
         2008,
         2009,
@@ -1338,7 +1338,7 @@
     {
       "company_id": "meridian_worldwide",
       "company_name": "Meridian Worldwide",
-      "logo_path": "res://Resources/Icons/Companies/meridian_worldwide.svg",
+      "logo_path": "res://Resources/Companies/meridian_worldwide.png",
       "jobs": [
         2008,
         2009,
@@ -1358,7 +1358,7 @@
     {
       "company_id": "crestline_corporation",
       "company_name": "Crestline Corporation",
-      "logo_path": "res://Resources/Icons/Companies/crestline_corporation.svg",
+      "logo_path": "res://Resources/Companies/crestline_corporation.png",
       "jobs": [
         2008,
         2009,
@@ -1378,7 +1378,7 @@
     {
       "company_id": "central_city_administration",
       "company_name": "Central City Administration",
-      "logo_path": "res://Resources/Icons/Companies/central_city_administration.svg",
+      "logo_path": "res://Resources/Companies/central_city_administration.png",
       "jobs": [
         2023,
         2024,
@@ -1395,7 +1395,7 @@
     {
       "company_id": "metropolitan_civic_council",
       "company_name": "Metropolitan Civic Council",
-      "logo_path": "res://Resources/Icons/Companies/metropolitan_civic_council.svg",
+      "logo_path": "res://Resources/Companies/metropolitan_civic_council.png",
       "jobs": [
         2023,
         2024,
@@ -1412,7 +1412,7 @@
     {
       "company_id": "national_public_service",
       "company_name": "National Public Service",
-      "logo_path": "res://Resources/Icons/Companies/national_public_service.svg",
+      "logo_path": "res://Resources/Companies/national_public_service.png",
       "jobs": [
         2023,
         2024,
@@ -1429,7 +1429,7 @@
     {
       "company_id": "capital_region_authority",
       "company_name": "Capital Region Authority",
-      "logo_path": "res://Resources/Icons/Companies/capital_region_authority.svg",
+      "logo_path": "res://Resources/Companies/capital_region_authority.png",
       "jobs": [
         2023,
         2024,
@@ -1446,7 +1446,7 @@
     {
       "company_id": "united_municipal_forum",
       "company_name": "United Municipal Forum",
-      "logo_path": "res://Resources/Icons/Companies/united_municipal_forum.svg",
+      "logo_path": "res://Resources/Companies/united_municipal_forum.png",
       "jobs": [
         2023,
         2024,
@@ -1463,7 +1463,7 @@
     {
       "company_id": "grand_meridian_hotels",
       "company_name": "Grand Meridian Hotels",
-      "logo_path": "res://Resources/Icons/Companies/grand_meridian_hotels.svg",
+      "logo_path": "res://Resources/Companies/grand_meridian_hotels.png",
       "jobs": [
         1001,
         1003,
@@ -1483,7 +1483,7 @@
     {
       "company_id": "royal_hearth_hospitality",
       "company_name": "Royal Hearth Hospitality",
-      "logo_path": "res://Resources/Icons/Companies/royal_hearth_hospitality.svg",
+      "logo_path": "res://Resources/Companies/royal_hearth_hospitality.png",
       "jobs": [
         1001,
         1003,
@@ -1503,7 +1503,7 @@
     {
       "company_id": "luxevista_resorts",
       "company_name": "LuxeVista Resorts",
-      "logo_path": "res://Resources/Icons/Companies/luxevista_resorts.svg",
+      "logo_path": "res://Resources/Companies/luxevista_resorts.png",
       "jobs": [
         1001,
         1003,
@@ -1523,7 +1523,7 @@
     {
       "company_id": "crown_table_group",
       "company_name": "Crown & Table Group",
-      "logo_path": "res://Resources/Icons/Companies/crown_table_group.svg",
+      "logo_path": "res://Resources/Companies/crown_table_group.png",
       "jobs": [
         1001,
         1003,
@@ -1543,7 +1543,7 @@
     {
       "company_id": "maison_aurelia_hospitality",
       "company_name": "Maison Aurelia Hospitality",
-      "logo_path": "res://Resources/Icons/Companies/maison_aurelia_hospitality.svg",
+      "logo_path": "res://Resources/Companies/maison_aurelia_hospitality.png",
       "jobs": [
         1001,
         1003,
