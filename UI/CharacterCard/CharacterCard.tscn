@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://UI/CharacterCard/CharacterCard.gd" id="1_script"]
+[ext_resource type="Theme" path="res://Themes/CharacterCardTheme.tres" id="2_theme"]
+
+[node name="CharacterCard" type="CanvasLayer"]
+layer = 30
+visible = false
+script = ExtResource("1_script")
+character_card_theme = ExtResource("2_theme")
+
+[node name="CharacterCardModal" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0

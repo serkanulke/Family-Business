@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scenes/FamilyTree/FamilyTreeScreen.gd" id="1_9a6qe"]
 [ext_resource type="Script" path="res://Scenes/FamilyTree/FamilyNameBinding.gd" id="2_family_name_binding"]
+[ext_resource type="PackedScene" path="res://UI/CharacterCard/CharacterCard.tscn" id="3_character_card"]
 
 [node name="FamilyTreeScreen" type="Control"]
 layout_mode = 3
@@ -14,3 +15,5 @@ script = ExtResource("1_9a6qe")
 
 [node name="FamilyNameBinding" type="Node" parent="."]
 script = ExtResource("2_family_name_binding")
+
+[node name="CharacterCard" parent="." instance=ExtResource("3_character_card")]

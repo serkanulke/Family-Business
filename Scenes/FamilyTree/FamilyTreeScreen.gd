@@ -350,6 +350,17 @@ func _on_speed_changed(_speed: float) -> void:
 
 
 func _on_family_tree_character_selected(character_id: int) -> void:
+	var character_card := get_node_or_null("CharacterCard")
+
+	if (
+		character_card != null
+		and character_card.has_method("open_for_character")
+	):
+		character_card.call(
+			"open_for_character",
+			character_id
+		)
+
 	character_selected.emit(character_id)
 
 
