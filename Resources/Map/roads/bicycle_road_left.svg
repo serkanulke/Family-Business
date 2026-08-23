@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="10" viewBox="0 0 20 10">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #db584f;
+      }
+
+      .cls-2 {
+        fill: #f8f6e1;
+      }
+    </style>
+  </defs>
+  <title>bicycle_road_left</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="20 5 10 10 0 5 10 0 20 5"/>
+        <polygon class="cls-2" points="11 9.5 10.5 9.75 0.5 4.75 1 4.5 11 9.5"/>
+        <polygon class="cls-2" points="19.5 5.25 19 5.5 9 0.5 9.5 0.25 19.5 5.25"/>
+      </g>
+    </g>
+  </g>
+</svg>

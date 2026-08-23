@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="25" viewBox="0 0 50 25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f2e8df;
+      }
+
+      .cls-2 {
+        fill: #e2dad3;
+      }
+    </style>
+  </defs>
+  <title>paved_tile_small</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="50 12.5 25 25 0 12.5 25 0 50 12.5"/>
+        <path class="cls-2" d="M0,12.5,25,25,50,12.5,25,0Zm49.5,0L25,24.75.5,12.5,25,.25Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

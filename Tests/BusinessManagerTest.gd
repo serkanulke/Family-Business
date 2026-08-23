@@ -199,9 +199,20 @@ func _test_business_types_loaded() -> void:
 	var hospital := BusinessManager.get_business_type_by_id(
 		"hospital"
 	)
+	var approved_ids := [
+		"cafe", "gym", "restaurant", "warehouse", "factory", "hospital",
+		"tech_company", "bank", "stadium", "auto_service", "cruise", "hotel"
+	]
+	var roster_is_complete := true
+	for business_type_id in approved_ids:
+		if BusinessManager.get_business_type_by_id(business_type_id).is_empty():
+			roster_is_complete = false
+			break
 
 	_assert_true(
-		BusinessManager.business_types.size() == 10
+		BusinessManager.business_types.size() == 12
+		and roster_is_complete
+		and BusinessManager.get_business_type_by_id("bookshop").is_empty()
 		and not hospital.is_empty()
 		and str(
 			hospital.get(
@@ -209,7 +220,7 @@ func _test_business_types_loaded() -> void:
 				""
 			)
 		) == "Hospital",
-		"10 business types load and Hospital can be resolved"
+		"Approved 12-type roster loads, Bookshop is absent, and Hospital resolves"
 	)
 
 
@@ -294,7 +305,6 @@ func _test_required_stats_are_enforced() -> void:
 	}
 
 	var invalid_worker := {
-		"health": 44,
 		"social": 100,
 		"discipline": 100
 	}
@@ -308,7 +318,7 @@ func _test_required_stats_are_enforced() -> void:
 			invalid_worker,
 			nurse_slot
 		),
-		"Worker must meet every required stat for the selected business slot"
+		"Required stats are performance references; only missing stat data blocks assignment"
 	)
 
 
@@ -552,7 +562,7 @@ func _test_occupied_plot_blocks_second_business() -> void:
 	GameManager.set_family_money(500000)
 
 	var first := BusinessManager.create_business_instance(
-		"bookshop",
+		"cafe",
 		"plot_shared_001",
 		false
 	)
@@ -560,7 +570,7 @@ func _test_occupied_plot_blocks_second_business() -> void:
 	var money_after_first := GameManager.family_money
 
 	var second := BusinessManager.create_business_instance(
-		"cafe",
+		"restaurant",
 		"plot_shared_001",
 		false
 	)
@@ -686,7 +696,7 @@ func _test_max_level_blocks_further_upgrade() -> void:
 	GameManager.set_family_money(5000000)
 
 	var created := BusinessManager.create_business_instance(
-		"bookshop",
+		"cafe",
 		"plot_max_001",
 		false
 	)

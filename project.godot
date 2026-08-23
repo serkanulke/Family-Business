@@ -26,6 +26,7 @@ EconomyManager="*uid://chaiw5v2d5ped"
 BusinessManager="*uid://dkg1jihhkocp"
 NPCManager="*uid://dmisaidp5g3ui"
 RelationshipNpcManager="*uid://c28e336oj8xjl"
+ItemManager="*uid://c8cx7gfe23f6p"
 SaveManager="*uid://ddi8ooj0vglj6"
 
 [display]

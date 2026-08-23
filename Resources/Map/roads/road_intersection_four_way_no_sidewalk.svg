@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #8e817e;
+      }
+    </style>
+  </defs>
+  <title>road_cross_02</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="200 50 100 100 0 50 100 0 200 50"/>
+        <polygon class="cls-2" points="94 97 97 98.5 100 97 103 98.5 106 97 100 94 94 97"/>
+        <polygon class="cls-2" points="194 53 197 51.5 194 50 197 48.5 194 47 188 50 194 53"/>
+        <polygon class="cls-2" points="106 3 103 1.5 100 3 97 1.5 94 3 100 6 106 3"/>
+        <polygon class="cls-2" points="6 47 3 48.5 6 50 3 51.5 6 53 12 50 6 47"/>
+      </g>
+    </g>
+  </g>
+</svg>

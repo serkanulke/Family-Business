@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #8a9644;
+      }
+    </style>
+  </defs>
+  <title>2x2_land</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <polygon class="cls-1" points="400 99.64 199.27 200 0 100.36 200.73 0 400 99.64"/>
+    </g>
+  </g>
+</svg>

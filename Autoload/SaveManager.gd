@@ -17,7 +17,8 @@ signal current_save_changed(
 	save_id: int
 )
 
-const SAVE_VERSION := 2
+const SAVE_VERSION := 4
+const MIN_SUPPORTED_SAVE_VERSION := 2
 const DEFAULT_SAVE_DIRECTORY := "user://saves"
 const SAVE_FILE_PREFIX := "save_"
 const SAVE_FILE_SUFFIX := ".json"
@@ -318,7 +319,8 @@ func create_save_snapshot() -> Dictionary:
 			"is_education_event_active": EducationManager.is_education_event_active,
 			"is_education_pause_active": EducationManager.is_education_pause_active,
 			"should_resume_time_after_education_events": EducationManager.should_resume_time_after_education_events
-		}
+		},
+		"item_manager": ItemManager.create_save_state()
 	}
 
 
@@ -365,6 +367,10 @@ func apply_save_snapshot(
 	var education_state := _get_dictionary(
 		save_data,
 		"education_manager"
+	)
+	var item_state := _get_dictionary(
+		save_data,
+		"item_manager"
 	)
 
 	# Do not emit ordinary gameplay signals while restoring. Autoloads are
@@ -633,6 +639,10 @@ func apply_save_snapshot(
 		)
 	)
 
+	# Version 2 saves predate the item backend. Version 3 used one global shop
+	# stock array. ItemManager migrates both shapes into the slot-specific model.
+	ItemManager.restore_save_state(item_state)
+
 	return true
 
 
@@ -858,6 +868,18 @@ func _connect_autosave_signals() -> void:
 		EducationManager,
 		"major_selection_requested"
 	)
+	_connect_signal_for_autosave(
+		ItemManager,
+		"monthly_stock_changed"
+	)
+	_connect_signal_for_autosave(
+		ItemManager,
+		"inventory_changed"
+	)
+	_connect_signal_for_autosave(
+		ItemManager,
+		"equipment_changed"
+	)
 
 
 func _connect_signal_for_autosave(
@@ -1024,7 +1046,7 @@ func _validate_save_data(
 		)
 	)
 
-	if version != SAVE_VERSION:
+	if version < MIN_SUPPORTED_SAVE_VERSION or version > SAVE_VERSION:
 		push_error(
 			"Unsupported save version: "
 			+ str(version)
@@ -1042,6 +1064,8 @@ func _validate_save_data(
 		"economy_manager",
 		"education_manager"
 	]
+	if version >= 3:
+		required_sections.append("item_manager")
 
 	for section_name in required_sections:
 		if typeof(

@@ -83,12 +83,23 @@ var stat_bars: Dictionary = {}
 var stat_value_labels: Dictionary = {}
 var lifestyle_stars: Array[TextureRect] = []
 var item_buttons: Dictionary = {}
+var item_slot_empty_icons: Dictionary = {}
+var item_slot_thumbnail_frames: Dictionary = {}
+var item_slot_thumbnails: Dictionary = {}
+var item_slot_border_overlays: Dictionary = {}
 var resolved_career: Dictionary = {}
 var resolved_lifestyle_score: int = 0
 
 
 func _ready() -> void:
 	_build_interface()
+	var item_manager := _get_manager("ItemManager")
+	if (
+		item_manager != null
+		and item_manager.has_signal("equipment_changed")
+		and not item_manager.is_connected("equipment_changed", _on_item_manager_equipment_changed)
+	):
+		item_manager.connect("equipment_changed", _on_item_manager_equipment_changed)
 	if not modal_root.resized.is_connected(_layout_modal):
 		modal_root.resized.connect(_layout_modal)
 	call_deferred("_layout_modal")
@@ -162,6 +173,16 @@ func get_lifestyle_star_count(score: int) -> int:
 
 
 func get_display_snapshot() -> Dictionary:
+	var equipped_slot_images: Dictionary = {}
+	for definition in ITEM_SLOT_DEFINITIONS:
+		var slot_key := str(definition.get("key", ""))
+		var frame := item_slot_thumbnail_frames.get(slot_key) as Control
+		var thumbnail := item_slot_thumbnails.get(slot_key) as TextureRect
+		equipped_slot_images[slot_key] = (
+			str(thumbnail.get_meta("image_path", ""))
+			if frame != null and frame.visible and thumbnail != null
+			else ""
+		)
 	return {
 		"character_id": character_id,
 		"name": character_name_label.text,
@@ -174,7 +195,8 @@ func get_display_snapshot() -> Dictionary:
 		"salary": salary_value_label.text,
 		"lifestyle_stars": get_lifestyle_star_count(resolved_lifestyle_score),
 		"lifestyle_class": lifestyle_class_label.text if lifestyle_class_panel.visible else "",
-		"item_count": "0/3"
+		"item_count": item_count_label.text.trim_prefix("(").trim_suffix(")"),
+		"item_slot_images": equipped_slot_images,
 	}
 
 
@@ -476,19 +498,50 @@ func _add_empty_item_slot(parent: HBoxContainer, definition: Dictionary) -> void
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.clip_contents = true
 	button.add_theme_stylebox_override("normal", _make_style(COLOR_CARD, 18, COLOR_BORDER, 2))
 	button.add_theme_stylebox_override("hover", _make_style(COLOR_SUMMARY, 18, COLOR_BORDER, 2))
 	button.add_theme_stylebox_override("pressed", _make_style(COLOR_SUMMARY, 18, COLOR_BORDER, 2))
 	button.pressed.connect(request_item_slot.bind(slot_key))
 	parent.add_child(button)
 	item_buttons[slot_key] = button
+	var thumbnail_margin := MarginContainer.new()
+	thumbnail_margin.name = "ThumbnailLayer"
+	thumbnail_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	thumbnail_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumbnail_margin.visible = false
+	button.add_child(thumbnail_margin)
+	var thumbnail_frame := PanelContainer.new()
+	thumbnail_frame.name = "EquippedThumbnailFrame"
+	thumbnail_frame.clip_contents = true
+	thumbnail_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumbnail_frame.add_theme_stylebox_override("panel", _make_style(COLOR_SUMMARY, 18, Color.TRANSPARENT, 0))
+	thumbnail_margin.add_child(thumbnail_frame)
+	var thumbnail := TextureRect.new()
+	thumbnail.name = "EquippedThumbnail"
+	thumbnail.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumbnail.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	thumbnail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	thumbnail_frame.add_child(thumbnail)
+	item_slot_thumbnail_frames[slot_key] = thumbnail_margin
+	item_slot_thumbnails[slot_key] = thumbnail
 	var center := CenterContainer.new()
+	center.name = "EmptyIconCenter"
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(center)
 	var icon := _make_texture_rect(ICON_FOLDER + String(definition["icon"]), Vector2(57.0, 57.0))
 	icon.modulate = Color(1.0, 1.0, 1.0, 0.66)
 	center.add_child(icon)
+	item_slot_empty_icons[slot_key] = center
+	var border_overlay := PanelContainer.new()
+	border_overlay.name = "EquippedBorder"
+	border_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	border_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border_overlay.visible = false
+	border_overlay.add_theme_stylebox_override("panel", _make_style(Color.TRANSPARENT, 18, COLOR_BORDER, 2))
+	button.add_child(border_overlay)
+	item_slot_border_overlays[slot_key] = border_overlay
 
 
 func _build_education_career_row(parent: VBoxContainer) -> void:
@@ -615,7 +668,7 @@ func _refresh_character_content() -> void:
 		return
 	character_name_label.text = _get_character_display_name(character_data)
 	var gender := _string_value(character_data.get("gender", "")).strip_edges().to_lower()
-	gender_icon.texture = _load_texture(ICON_FOLDER + "female.svg" if gender == "female" else PORTRAIT_ICON_FOLDER + "male-icon.svg")
+	gender_icon.texture = _load_texture(ICON_FOLDER + "female.svg" if gender == "female" else ICON_FOLDER + "male.svg")
 	age_label.text = "%d years old" % maxi(_get_character_age(character_data), 0)
 	portrait_texture.texture = _resolve_portrait_texture(character_data)
 	spouse_value_label.text = _resolve_spouse_text(character_data)
@@ -629,14 +682,51 @@ func _refresh_character_content() -> void:
 		var value := clampi(int(character_data.get(key, 0)), 0, 100)
 		(stat_bars.get(key) as ProgressBar).value = value
 		(stat_value_labels.get(key) as Label).text = str(value)
+	_refresh_item_content()
+	_apply_education(character_data)
+	_rebuild_event_history(character_data)
+
+
+func _refresh_item_content() -> void:
 	resolved_lifestyle_score = _resolve_lifestyle_score(character_data)
 	_apply_lifestyle_stars(resolved_lifestyle_score)
 	var class_text := _resolve_lifestyle_class_label(character_data)
 	lifestyle_class_panel.visible = not class_text.is_empty()
 	lifestyle_class_label.text = class_text
-	item_count_label.text = "(0/3)"
-	_apply_education(character_data)
-	_rebuild_event_history(character_data)
+	var item_manager := _get_manager("ItemManager")
+	var equipped_count := 0
+	if item_manager != null and item_manager.has_method("get_equipped_item_count"):
+		equipped_count = int(item_manager.call("get_equipped_item_count", character_id))
+	item_count_label.text = "(%d/3)" % clampi(equipped_count, 0, 3)
+	_apply_item_slot_states(item_manager)
+
+
+func _apply_item_slot_states(item_manager: Node) -> void:
+	for definition in ITEM_SLOT_DEFINITIONS:
+		var slot_key := str(definition.get("key", ""))
+		var empty_icon := item_slot_empty_icons.get(slot_key) as Control
+		var thumbnail_frame := item_slot_thumbnail_frames.get(slot_key) as Control
+		var thumbnail := item_slot_thumbnails.get(slot_key) as TextureRect
+		var border_overlay := item_slot_border_overlays.get(slot_key) as Control
+		if empty_icon == null or thumbnail_frame == null or thumbnail == null or border_overlay == null:
+			continue
+		var image_path := ""
+		if item_manager != null and item_manager.has_method("get_equipped_item"):
+			var equipped_value = item_manager.call("get_equipped_item", character_id, slot_key)
+			if typeof(equipped_value) == TYPE_DICTIONARY:
+				image_path = str((equipped_value as Dictionary).get("image_path", ""))
+		var texture := _load_texture(image_path)
+		var has_thumbnail := texture != null
+		thumbnail.texture = texture
+		thumbnail.set_meta("image_path", image_path if has_thumbnail else "")
+		thumbnail_frame.visible = has_thumbnail
+		border_overlay.visible = has_thumbnail
+		empty_icon.visible = not has_thumbnail
+
+
+func _on_item_manager_equipment_changed(changed_character_id: int, _slot: String, _instance_id: String) -> void:
+	if changed_character_id == character_id:
+		_refresh_item_content()
 
 
 func _resolve_portrait_texture(character: Dictionary) -> Texture2D:
@@ -749,7 +839,9 @@ func _apply_education(character: Dictionary) -> void:
 
 
 func _resolve_lifestyle_score(character: Dictionary) -> int:
-	# TODO: GDD thresholds are confirmed, but no canonical Lifestyle value exists in the repository yet.
+	var item_manager := _get_manager("ItemManager")
+	if item_manager != null and item_manager.has_method("get_lifestyle_score"):
+		return clampi(int(item_manager.call("get_lifestyle_score", character)), 0, 100)
 	var manager := _get_manager("CharacterManager")
 	if manager != null and manager.has_method("get_lifestyle_score"):
 		return clampi(int(manager.call("get_lifestyle_score", character)), 0, 100)

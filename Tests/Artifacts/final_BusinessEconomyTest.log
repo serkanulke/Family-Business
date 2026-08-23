@@ -1,0 +1,35 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Business monthly economy tests starting
+========================================
+[PASS] Empty Hospital slots produce zero gross while fixed expense remains 6800
+[PASS] Fully staffed S-tier Hospital Lv1 produces 17000 gross
+[PASS] Partially staffed Hospital calculates gross, expense and net correctly
+FAMILY BUSINESSES SETTLED | Date: 1985-04-01 | Businesses: 1 | Gross: 17000 | Expense: 6800 | Net: 10200 | Family Money: 60200
+[PASS] Positive monthly business net profit is added to family balance on day 1
+FAMILY BUSINESSES SETTLED | Date: 1985-04-01 | Businesses: 1 | Gross: 0 | Expense: 6800 | Net: -6800 | Family Money: 3200
+[PASS] Negative monthly business result deducts the fixed loss from family balance
+[PASS] Family-business settlement only runs on the first day of the month
+FAMILY BUSINESSES SETTLED | Date: 1985-04-01 | Businesses: 1 | Gross: 8000 | Expense: 6800 | Net: 1200 | Family Money: 11200
+[PASS] Same-day duplicate family-business settlement is blocked
+[PASS] EconomyManager monthly totals match per-business breakdown values
+
+========================================
+Business economy tests: 8 passed / 0 failed
+========================================
+ALL BUSINESS ECONOMY TESTS PASSED.

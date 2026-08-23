@@ -1,0 +1,18 @@
+[gd_resource type="Theme" load_steps=4 format=3]
+
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Regular.ttf" id="1_regular"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Bold.ttf" id="2_bold"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-ExtraBold.ttf" id="3_extra_bold"]
+
+[resource]
+default_font = ExtResource("1_regular")
+default_font_size = 24
+Label/colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+Label/fonts/font = ExtResource("1_regular")
+Label/font_sizes/font_size = 24
+Button/colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
+Button/colors/font_hover_color = Color(0.427451, 0.270588, 0.203922, 1)
+Button/colors/font_pressed_color = Color(0.427451, 0.270588, 0.203922, 1)
+Button/fonts/font = ExtResource("2_bold")
+Button/font_sizes/font_size = 24
+

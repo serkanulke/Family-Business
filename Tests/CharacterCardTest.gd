@@ -13,6 +13,8 @@ func _ready() -> void:
 	var original_day: int = TimeManager.current_day
 	var original_month: int = TimeManager.current_month
 	var original_year: int = TimeManager.current_year
+	var original_item_state := ItemManager.create_save_state()
+	ItemManager.reset_runtime_state()
 	TimeManager.current_day = 10
 	TimeManager.current_month = 12
 	TimeManager.current_year = 2020
@@ -75,9 +77,9 @@ func _ready() -> void:
 	_assert_equal(snapshot.get("job"), "General Practitioner (Doctor)", "Career backend binds")
 	_assert_equal(snapshot.get("company"), "Johnson Hospital", "Company backend binds")
 	_assert_equal(snapshot.get("birth_date"), "10 Dec 1993", "Birth date follows the reference format")
-	_assert_equal(snapshot.get("lifestyle_stars"), 0, "Missing canonical Lifestyle data stays at zero")
+	_assert_equal(snapshot.get("lifestyle_stars"), 0, "Character with no equipped items has zero Lifestyle")
 	_assert_equal(snapshot.get("lifestyle_class"), "", "Missing canonical class label stays hidden")
-	_assert_equal(snapshot.get("item_count"), "0/3", "Item slots stay empty")
+	_assert_equal(snapshot.get("item_count"), "0/3", "Character with no equipped items shows 0/3")
 	var thresholds := {0: 0, 1: 1, 34: 1, 35: 2, 59: 2, 60: 3, 79: 3, 80: 4, 94: 4, 95: 5, 100: 5}
 	for score in thresholds:
 		_assert_equal(card.get_lifestyle_star_count(score), thresholds[score], "Lifestyle threshold %d" % score)
@@ -85,6 +87,79 @@ func _ready() -> void:
 	card.request_item_slot("accessory")
 	_assert_equal(requested_slot, "accessory", "Accessory entry point emits")
 	_assert_equal(requested_character_id, 404, "Entry point keeps character ID")
+	var slot_definitions: Dictionary = {}
+	for catalog_value in ItemManager.catalog:
+		var catalog_definition := catalog_value as Dictionary
+		var catalog_slot := str(catalog_definition.get("slot", ""))
+		if catalog_slot in ["accessory", "outfit", "vehicle"] and not slot_definitions.has(catalog_slot):
+			slot_definitions[catalog_slot] = catalog_definition.duplicate(true)
+		if slot_definitions.size() == 3:
+			break
+	var accessory_definition := slot_definitions.get("accessory", {}) as Dictionary
+	var outfit_definition := slot_definitions.get("outfit", {}) as Dictionary
+	var vehicle_definition := slot_definitions.get("vehicle", {}) as Dictionary
+	var accessory_image_path := str(accessory_definition.get("image_path", ""))
+	var outfit_image_path := str(outfit_definition.get("image_path", ""))
+	var vehicle_image_path := str(vehicle_definition.get("image_path", ""))
+	var accessory_instance := {
+		"instance_id": "character_card_accessory_instance",
+		"item_id": str(accessory_definition.get("id", "")),
+		"purchase_date": "2020-01-01",
+		"expiration_date": "2030-01-01",
+	}
+	var outfit_instance := {
+		"instance_id": "character_card_outfit_instance",
+		"item_id": str(outfit_definition.get("id", "")),
+		"purchase_date": "2020-01-01",
+		"expiration_date": "2030-01-01",
+	}
+	var vehicle_instance := {
+		"instance_id": "character_card_vehicle_instance",
+		"item_id": str(vehicle_definition.get("id", "")),
+		"purchase_date": "2020-01-01",
+		"expiration_date": "2030-01-01",
+	}
+	ItemManager.family_inventory.append(accessory_instance)
+	ItemManager.family_inventory.append(outfit_instance)
+	ItemManager.family_inventory.append(vehicle_instance)
+	_assert_true(ItemManager.equip_item(404, "character_card_accessory_instance", "accessory"), "Character Card test Accessory equips through ItemManager")
+	await get_tree().process_frame
+	snapshot = card.get_display_snapshot()
+	var slot_images := snapshot.get("item_slot_images", {}) as Dictionary
+	_assert_equal(snapshot.get("item_count"), "1/3", "Accessory-only state updates the Items header")
+	_assert_equal(str(slot_images.get("accessory", "")), accessory_image_path, "Accessory thumbnail fills only its equipped slot")
+	_assert_equal(str(slot_images.get("outfit", "")), "", "Outfit remains an empty icon before equip")
+	_assert_equal(str(slot_images.get("vehicle", "")), "", "Vehicle remains an empty icon before equip")
+	_assert_true(ItemManager.equip_item(404, "character_card_outfit_instance", "outfit"), "Character Card test Outfit equips through ItemManager")
+	await get_tree().process_frame
+	snapshot = card.get_display_snapshot()
+	slot_images = snapshot.get("item_slot_images", {}) as Dictionary
+	_assert_equal(snapshot.get("item_count"), "2/3", "Items header live-updates from real equipment state")
+	_assert_equal(str(slot_images.get("accessory", "")), accessory_image_path, "Accessory thumbnail remains visible when Outfit equips")
+	_assert_equal(str(slot_images.get("outfit", "")), outfit_image_path, "Outfit slot resolves the equipped definition image_path")
+	_assert_equal(str(slot_images.get("vehicle", "")), "", "Empty Vehicle keeps its placeholder state")
+	var outfit_thumbnail := card.item_slot_thumbnails.get("outfit") as TextureRect
+	_assert_true(outfit_thumbnail != null and outfit_thumbnail.texture != null, "Equipped Outfit renders a real thumbnail")
+	_assert_equal(outfit_thumbnail.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Thumbnail preserves aspect ratio with reference-compatible cover")
+	_assert_equal(outfit_thumbnail.mouse_filter, Control.MOUSE_FILTER_IGNORE, "Thumbnail cannot block slot input")
+	_assert_true(not (card.item_slot_empty_icons.get("outfit") as Control).visible, "Placeholder icon is hidden behind an equipped thumbnail")
+	(card.item_buttons.get("outfit") as Button).pressed.emit()
+	_assert_equal(requested_slot, "outfit", "Thumbnail slot click keeps Outfit context")
+	_assert_equal(requested_character_id, 404, "Thumbnail slot click keeps target character ID")
+	for slot_key in ["accessory", "outfit"]:
+		var slot_button := card.item_buttons.get(slot_key) as Button
+		var thumbnail_layer := card.item_slot_thumbnail_frames.get(slot_key) as Control
+		var slot_thumbnail := card.item_slot_thumbnails.get(slot_key) as TextureRect
+		var thumbnail_clip := thumbnail_layer.get_node("EquippedThumbnailFrame") as PanelContainer
+		var border_overlay := card.item_slot_border_overlays.get(slot_key) as PanelContainer
+		var clip_style := thumbnail_clip.get_theme_stylebox("panel") as StyleBoxFlat
+		_assert_approx(thumbnail_layer.position.x, 0.0, 0.1, "%s thumbnail has no horizontal inset" % slot_key.capitalize())
+		_assert_approx(thumbnail_layer.position.y, 0.0, 0.1, "%s thumbnail has no vertical inset" % slot_key.capitalize())
+		_assert_approx(thumbnail_layer.size.x, slot_button.size.x, 0.1, "%s thumbnail fills slot width" % slot_key.capitalize())
+		_assert_approx(thumbnail_layer.size.y, slot_button.size.y, 0.1, "%s thumbnail fills slot height" % slot_key.capitalize())
+		_assert_true(thumbnail_clip.clip_contents and clip_style.corner_radius_top_left == 18, "%s thumbnail uses shared rounded clipping" % slot_key.capitalize())
+		_assert_equal(slot_thumbnail.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_COVERED, "%s thumbnail uses cover without distortion" % slot_key.capitalize())
+		_assert_true(border_overlay.visible and border_overlay.mouse_filter == Control.MOUSE_FILTER_IGNORE, "%s keeps a non-blocking border above the edge-to-edge image" % slot_key.capitalize())
 	card._block_background_input(InputEventMouseButton.new())
 	_assert_true(card.visible, "Dim-background input does not close the modal")
 	var close_button := card.get_node(
@@ -108,11 +183,37 @@ func _ready() -> void:
 		capture_card.visible = true
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
-		var capture_path := "user://character_card_reference_recreation.png"
+		var capture_path := "res://Tests/Artifacts/character_card_item_thumbnail.png"
 		var image := capture_viewport.get_texture().get_image()
 		var save_error := image.save_png(capture_path)
 		_assert_equal(save_error, OK, "Visual capture saves")
 		print("Character Card capture: ", ProjectSettings.globalize_path(capture_path))
+	_assert_true(ItemManager.equip_item(404, "character_card_vehicle_instance", "vehicle"), "Character Card test Vehicle equips through ItemManager")
+	await get_tree().process_frame
+	snapshot = card.get_display_snapshot()
+	slot_images = snapshot.get("item_slot_images", {}) as Dictionary
+	_assert_equal(snapshot.get("item_count"), "3/3", "Vehicle uses the same shared thumbnail state")
+	_assert_equal(str(slot_images.get("vehicle", "")), vehicle_image_path, "Vehicle slot resolves the equipped definition image_path")
+	var vehicle_layer := card.item_slot_thumbnail_frames.get("vehicle") as Control
+	var vehicle_button := card.item_buttons.get("vehicle") as Button
+	var vehicle_thumbnail := card.item_slot_thumbnails.get("vehicle") as TextureRect
+	_assert_approx(vehicle_layer.size.x, vehicle_button.size.x, 0.1, "Vehicle thumbnail fills slot width")
+	_assert_approx(vehicle_layer.size.y, vehicle_button.size.y, 0.1, "Vehicle thumbnail fills slot height")
+	_assert_equal(vehicle_thumbnail.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Vehicle thumbnail shares the cover behavior")
+	(card.item_buttons.get("vehicle") as Button).pressed.emit()
+	_assert_equal(requested_slot, "vehicle", "Vehicle thumbnail click keeps Vehicle context")
+	var outfit_instance_before_unequip := ItemManager._get_inventory_instance("character_card_outfit_instance").duplicate(true)
+	_assert_true(ItemManager.unequip_item(404, "accessory", "character_card_accessory_instance"), "Character Card test Accessory unequips through ItemManager")
+	_assert_true(ItemManager.unequip_item(404, "outfit", "character_card_outfit_instance"), "Character Card test Outfit unequips through ItemManager")
+	_assert_true(ItemManager.unequip_item(404, "vehicle", "character_card_vehicle_instance"), "Character Card test Vehicle unequips through ItemManager")
+	await get_tree().process_frame
+	snapshot = card.get_display_snapshot()
+	slot_images = snapshot.get("item_slot_images", {}) as Dictionary
+	_assert_equal(snapshot.get("item_count"), "0/3", "Items header live-updates after Unequip")
+	_assert_equal(str(slot_images.get("outfit", "")), "", "Unequip restores the Outfit empty icon state without reopening")
+	for slot_key in ["accessory", "outfit", "vehicle"]:
+		_assert_true((card.item_slot_empty_icons.get(slot_key) as Control).visible, "%s empty icon returns after Unequip" % slot_key.capitalize())
+	_assert_equal(ItemManager._get_inventory_instance("character_card_outfit_instance"), outfit_instance_before_unequip, "Character Card refresh does not mutate ItemInstance dates")
 	var family_tree_screen: Node = FAMILY_TREE_SCENE.instantiate()
 	add_child(family_tree_screen)
 	await get_tree().process_frame
@@ -137,6 +238,10 @@ func _ready() -> void:
 	TimeManager.current_day = original_day
 	TimeManager.current_month = original_month
 	TimeManager.current_year = original_year
+	ItemManager.reset_runtime_state()
+	if int(original_item_state.get("monthly_stock_month_key", -1)) >= 0:
+		ItemManager.restore_save_state(original_item_state)
+	get_tree().quit(failed)
 
 
 func _on_item_slot_requested(slot_type: String, selected_character_id: int) -> void:

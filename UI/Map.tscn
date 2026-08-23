@@ -1,0 +1,86 @@
+[gd_scene load_steps=3 format=3 uid="uid://cow4t0qs3unbl"]
+
+[ext_resource type="Script" path="res://Scripts/Map/MapScreen.gd" id="1_screen"]
+[ext_resource type="Script" path="res://Scripts/Map/MapCamera.gd" id="2_camera"]
+
+[node name="MapScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_screen")
+
+[node name="BackdropLayer" type="CanvasLayer" parent="."]
+layer = -100
+
+[node name="MapBackdrop" type="ColorRect" parent="BackdropLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.72, 0.8, 0.72, 1)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="MainGrid" type="Node2D" parent="World"]
+
+[node name="MainGround" type="TileMapLayer" parent="World/MainGrid"]
+z_index = -50
+
+[node name="Roads" type="TileMapLayer" parent="World/MainGrid"]
+z_index = -40
+
+[node name="PlotBuildingGround" type="TileMapLayer" parent="World/MainGrid"]
+z_index = -30
+
+[node name="CoastGround" type="TileMapLayer" parent="World/MainGrid"]
+z_index = -20
+
+[node name="DetailGrid" type="Node2D" parent="World"]
+
+[node name="DetailGroundPaths" type="TileMapLayer" parent="World/DetailGrid"]
+z_index = -10
+
+[node name="TallObjects" type="Node2D" parent="World"]
+y_sort_enabled = true
+
+[node name="EnvironmentDecorations" type="Node2D" parent="World/TallObjects"]
+y_sort_enabled = true
+
+[node name="Buildings" type="Node2D" parent="World/TallObjects"]
+y_sort_enabled = true
+
+[node name="MapCamera" type="Camera2D" parent="World"]
+position = Vector2(0, 1800)
+zoom = Vector2(0.72, 0.72)
+script = ExtResource("2_camera")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="HUDRoot" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ModalLayer" type="CanvasLayer" parent="."]
+layer = 30
+
+[node name="ModalRoot" type="Control" parent="ModalLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

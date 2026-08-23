@@ -49,6 +49,28 @@ func _ready() -> void:
 		"Production screen exposes runtime manager refresh"
 	)
 
+	main_instance.call("show_screen", "map")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var map_screen := main_instance.get_node_or_null("World/MapScreen")
+	_assert_true(
+		map_screen != null
+		and map_screen.visible
+		and not screen.visible
+		and screen.process_mode == Node.PROCESS_MODE_DISABLED,
+		"Map navigation shows one production content screen and disables Family Tree input"
+	)
+
+	main_instance.call("show_screen", "family_tree")
+	await get_tree().process_frame
+	_assert_true(
+		screen.visible
+		and screen.process_mode != Node.PROCESS_MODE_DISABLED
+		and not map_screen.visible
+		and map_screen.process_mode == Node.PROCESS_MODE_DISABLED,
+		"Family Tree navigation restores the existing screen and disables Map input"
+	)
+
 	print("")
 	print(
 		"Main / Family Tree integration tests: ",

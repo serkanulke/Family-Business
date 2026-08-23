@@ -1,0 +1,23 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Authored Map.json passes footprint, count, projection and bike-route validation
+[PASS] Map scene exposes separated editable layers and exact 4x4 grid alignment
+[PASS] Production city has the approved business, house and land counts
+[PASS] 2x2 and 4x4 land capacity rules accept fitting buildings and exclude Cruise
+[PASS] Owned map property shows occupied active slots and opens the exact BusinessModal instance
+[PASS] Map camera exposes bounded portrait-friendly pan and zoom limits
+Map screen tests: 6 passed / 0 failed
+ALL MAP SCREEN TESTS PASSED.

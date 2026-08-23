@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #f2e8df;
+      }
+
+      .cls-3 {
+        fill: #8e817e;
+      }
+    </style>
+  </defs>
+  <title>road_connect_top_left</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="0 50 100 0 200 50 100 100 0 50"/>
+        <g>
+          <polygon class="cls-2" points="0 50 10 45 50 75 0 50"/>
+          <polygon class="cls-3" points="13 43.5 16 42 59 73.5 56 75 13 43.5"/>
+          <polygon class="cls-3" points="56 75 59 73.5 106 97 103 98.5 56 75"/>
+        </g>
+        <g>
+          <polygon class="cls-2" points="100 0 90 5 150 25 100 0"/>
+          <polygon class="cls-3" points="87 6.5 84 8 147 29.5 150 28 87 6.5"/>
+          <polygon class="cls-3" points="150 28 147 29.5 194 53 197 51.5 150 28"/>
+        </g>
+        <polygon class="cls-3" points="123.49 63.24 126.49 61.74 143.15 70.08 140.15 71.58 123.49 63.24"/>
+        <polygon class="cls-3" points="90.17 46.59 93.17 45.09 109.83 53.41 106.83 54.91 90.17 46.59"/>
+        <polygon class="cls-3" points="56.85 29.93 59.85 28.43 76.51 36.76 73.51 38.26 56.85 29.93"/>
+      </g>
+    </g>
+  </g>
+</svg>

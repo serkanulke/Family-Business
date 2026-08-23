@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="10" viewBox="0 0 20 10">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #db584f;
+      }
+
+      .cls-2 {
+        fill: #f8f6e1;
+      }
+
+      .cls-3 {
+        fill: #8a9644;
+      }
+    </style>
+  </defs>
+  <title>bicycle_curve_top_left</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="0 5 10 10 20 5 10 0 0 5"/>
+        <path class="cls-2" d="M9,9.5l.5.25c5.24-2.62,5.24-6.88,0-9.5L9,.5C14,3,14,7,9,9.5Z"/>
+        <path class="cls-2" d="M.5,5.25,1,5.5c.55-.27.55-.72,0-1l-.5.25C.78,4.89.78,5.11.5,5.25Z"/>
+        <path class="cls-3" d="M10,0,20,5,10,10C15.51,7.24,15.51,2.76,10,0Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

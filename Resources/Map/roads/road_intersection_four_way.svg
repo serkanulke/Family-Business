@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #f2e8df;
+      }
+
+      .cls-3 {
+        fill: #e2dad3;
+      }
+
+      .cls-4 {
+        fill: #8e817e;
+      }
+    </style>
+  </defs>
+  <title>road_cross_01</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="200 50 100 100 0 50 100 0 200 50"/>
+        <polygon class="cls-2" points="200 50 190 55 180 50 190 45 200 50"/>
+        <polygon class="cls-2" points="110 5 100 10 90 5 100 0 110 5"/>
+        <path class="cls-3" d="M180,50l10,5,10-5-10-5Zm19.49,0L190,54.75,180.5,50l9.5-4.75Z"/>
+        <path class="cls-3" d="M90,5l10,5,10-5L100,0ZM109.5,5,100,9.75,90.52,5,100,.26Z"/>
+        <polygon class="cls-2" points="20 50 10 55 0 50 10 45 20 50"/>
+        <path class="cls-3" d="M0,50l10,5,10-5L10,45ZM19.5,50,10,54.75.52,50,10,45.26Z"/>
+        <polygon class="cls-2" points="110 95 100 100 90 95 100 90 110 95"/>
+        <path class="cls-3" d="M90,95l10,5,10-5-10-5Zm19.48,0L100,99.75,90.52,95l9.5-4.75Z"/>
+        <polygon class="cls-4" points="116 92 113 93.5 100 87 87 93.5 84 92 100 84 116 92"/>
+        <polygon class="cls-4" points="184 42 187 43.5 174 50 187 56.5 184 58 168 50 184 42"/>
+        <polygon class="cls-4" points="84 8 87 6.5 100 13 113 6.5 116 8 100 16 84 8"/>
+        <polygon class="cls-4" points="16 58 13 56.5 26 50 13 43.5 16 42 32 50 16 58"/>
+      </g>
+    </g>
+  </g>
+</svg>

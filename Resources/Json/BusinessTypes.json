@@ -37,159 +37,12 @@
   },
   "business_types": [
     {
-      "business_type_id": "bookshop",
-      "display_name": "Bookshop",
-      "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Bookshop",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
-      "slot_definitions": [
-        {
-          "slot_id": "store_manager_01",
-          "role_name": "Store Manager",
-          "unlock_level": 1,
-          "base_gross_contribution": 4000,
-          "required_stats": {
-            "logic": 50,
-            "social": 55,
-            "confidence": 50,
-            "discipline": 50
-          }
-        },
-        {
-          "slot_id": "bookseller_01",
-          "role_name": "Bookseller",
-          "unlock_level": 1,
-          "base_gross_contribution": 1500,
-          "required_stats": {
-            "logic": 35,
-            "social": 40
-          }
-        },
-        {
-          "slot_id": "cashier_01",
-          "role_name": "Cashier",
-          "unlock_level": 1,
-          "base_gross_contribution": 1000,
-          "required_stats": {
-            "social": 35,
-            "discipline": 35
-          }
-        },
-        {
-          "slot_id": "inventory_clerk_01",
-          "role_name": "Inventory Clerk",
-          "unlock_level": 2,
-          "base_gross_contribution": 2500,
-          "required_stats": {
-            "logic": 40,
-            "discipline": 45
-          }
-        },
-        {
-          "slot_id": "bookseller_02",
-          "role_name": "Bookseller",
-          "unlock_level": 3,
-          "base_gross_contribution": 2500,
-          "required_stats": {
-            "logic": 40,
-            "social": 45
-          }
-        },
-        {
-          "slot_id": "events_coordinator_01",
-          "role_name": "Events Coordinator",
-          "unlock_level": 4,
-          "base_gross_contribution": 3000,
-          "required_stats": {
-            "social": 50,
-            "confidence": 45,
-            "creativity": 50
-          }
-        },
-        {
-          "slot_id": "assistant_manager_01",
-          "role_name": "Assistant Manager",
-          "unlock_level": 5,
-          "base_gross_contribution": 3500,
-          "required_stats": {
-            "logic": 45,
-            "social": 50,
-            "confidence": 45,
-            "discipline": 45
-          }
-        }
-      ],
-      "levels": [
-        {
-          "level": 1,
-          "cost": 20000,
-          "fixed_monthly_expense": 2600,
-          "slot_ids": [
-            "store_manager_01",
-            "bookseller_01",
-            "cashier_01"
-          ]
-        },
-        {
-          "level": 2,
-          "cost": 25000,
-          "fixed_monthly_expense": 3600,
-          "slot_ids": [
-            "store_manager_01",
-            "bookseller_01",
-            "cashier_01",
-            "inventory_clerk_01"
-          ]
-        },
-        {
-          "level": 3,
-          "cost": 35000,
-          "fixed_monthly_expense": 4600,
-          "slot_ids": [
-            "store_manager_01",
-            "bookseller_01",
-            "cashier_01",
-            "inventory_clerk_01",
-            "bookseller_02"
-          ]
-        },
-        {
-          "level": 4,
-          "cost": 50000,
-          "fixed_monthly_expense": 5800,
-          "slot_ids": [
-            "store_manager_01",
-            "bookseller_01",
-            "cashier_01",
-            "inventory_clerk_01",
-            "bookseller_02",
-            "events_coordinator_01"
-          ]
-        },
-        {
-          "level": 5,
-          "cost": 70000,
-          "fixed_monthly_expense": 7200,
-          "slot_ids": [
-            "store_manager_01",
-            "bookseller_01",
-            "cashier_01",
-            "inventory_clerk_01",
-            "bookseller_02",
-            "events_coordinator_01",
-            "assistant_manager_01"
-          ]
-        }
-      ]
-    },
-    {
       "business_type_id": "cafe",
       "display_name": "Cafe",
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Cafe",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Cafe/cafe.png",
       "slot_definitions": [
         {
           "slot_id": "cafe_manager_01",
@@ -340,7 +193,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Gym",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Gym/gym.png",
       "slot_definitions": [
         {
           "slot_id": "gym_manager_01",
@@ -501,7 +354,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Restaurant",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Restaurant/restaurant.png",
       "slot_definitions": [
         {
           "slot_id": "restaurant_manager_01",
@@ -683,7 +536,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Warehouse",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Warehouse/warehouse.png",
       "slot_definitions": [
         {
           "slot_id": "warehouse_manager_01",
@@ -875,7 +728,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Factory",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Factory/factory.png",
       "slot_definitions": [
         {
           "slot_id": "plant_manager_01",
@@ -1098,7 +951,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Hospital",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Hospital/hospital.png",
       "slot_definitions": [
         {
           "slot_id": "doctor_01",
@@ -1261,7 +1114,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/TechCompany",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/TechCompany/tech_company.png",
       "slot_definitions": [
         {
           "slot_id": "team_lead_01",
@@ -1502,7 +1355,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Bank",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Bank/bank.png",
       "slot_definitions": [
         {
           "slot_id": "branch_manager_01",
@@ -1764,7 +1617,7 @@
       "max_level": 5,
       "building_folder": "res://Resources/Buildings/Stadium",
       "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Placeholder/business.png",
+      "placeholder_visual_path": "res://Resources/Buildings/Stadium/stadium.png",
       "slot_definitions": [
         {
           "slot_id": "general_manager_01",
@@ -2078,6 +1931,39 @@
           ]
         }
       ]
+    },
+    {
+      "business_type_id": "auto_service",
+      "display_name": "Auto Service",
+      "max_level": 5,
+      "building_folder": "res://Resources/Buildings/AutoService",
+      "visual_variants": [],
+      "placeholder_visual_path": "res://Resources/Buildings/AutoService/auto_service.png",
+      "configuration_status": "balancing_required",
+      "slot_definitions": [],
+      "levels": []
+    },
+    {
+      "business_type_id": "cruise",
+      "display_name": "Cruise",
+      "max_level": 5,
+      "building_folder": "res://Resources/Buildings/Cruise",
+      "visual_variants": [],
+      "placeholder_visual_path": "res://Resources/Buildings/Cruise/cruise.png",
+      "configuration_status": "balancing_required",
+      "slot_definitions": [],
+      "levels": []
+    },
+    {
+      "business_type_id": "hotel",
+      "display_name": "Hotel",
+      "max_level": 5,
+      "building_folder": "res://Resources/Buildings/Hotel",
+      "visual_variants": [],
+      "placeholder_visual_path": "res://Resources/Buildings/Hotel/hotel.png",
+      "configuration_status": "balancing_required",
+      "slot_definitions": [],
+      "levels": []
     }
   ]
 }

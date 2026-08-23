@@ -1,0 +1,30 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Main / Family Tree integration test
+========================================
+[PASS] Main uses the production FamilyTreeScreen
+[PASS] Legacy standalone FamilyTree is no longer instantiated by Main
+[PASS] Legacy standalone TopBar is no longer instantiated by Main
+[PASS] Legacy standalone BottomBar is no longer instantiated by Main
+[PASS] Production screen exposes runtime manager refresh
+[PASS] Map navigation shows one production content screen and disables Family Tree input
+[PASS] Family Tree navigation restores the existing screen and disables Map input
+
+Main / Family Tree integration tests: 7 passed / 0 failed
+========================================
+ALL MAIN / FAMILY TREE INTEGRATION TESTS PASSED.

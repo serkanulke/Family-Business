@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #8e817e;
+      }
+
+      .cls-3 {
+        fill: #f2e8df;
+      }
+
+      .cls-4 {
+        fill: #e2dad3;
+      }
+    </style>
+  </defs>
+  <title>road_crosswalk_bottom_left</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="200 50 100 0 0 50 100 100 200 50"/>
+        <polygon class="cls-2" points="116 8 113 6.5 13 56.5 16 58 116 8"/>
+        <polygon class="cls-3" points="110 5 100 0 0 50 10 55 110 5"/>
+        <polygon class="cls-3" points="200 50 190 45 90 95 100 100 200 50"/>
+        <polygon class="cls-2" points="187 43.5 184 42 84 92 87 93.5 187 43.5"/>
+        <g>
+          <polygon class="cls-3" points="107.68 77.16 101.68 74.16 81.68 84.16 87.68 87.16 107.68 77.16"/>
+          <polygon class="cls-3" points="96.48 71.56 90.48 68.56 70.48 78.56 76.48 81.56 96.48 71.56"/>
+          <polygon class="cls-3" points="85.28 65.96 79.28 62.96 59.28 72.96 65.28 75.96 85.28 65.96"/>
+          <polygon class="cls-3" points="74.08 60.36 68.08 57.36 48.08 67.36 54.08 70.36 74.08 60.36"/>
+          <polygon class="cls-3" points="62.88 54.76 56.88 51.76 36.88 61.76 42.88 64.76 62.88 54.76"/>
+          <polygon class="cls-3" points="51.68 49.16 45.68 46.16 25.68 56.16 31.68 59.16 51.68 49.16"/>
+        </g>
+        <polygon class="cls-2" points="109.83 46.59 106.83 45.09 90.17 53.41 93.17 54.91 109.83 46.59"/>
+        <polygon class="cls-2" points="143.15 29.93 140.15 28.43 123.49 36.76 126.49 38.26 143.15 29.93"/>
+        <path class="cls-4" d="M175,62.51,200,50l-10-5-25,12.5Zm0-.25-9.5-4.75L190,45.26l9.5,4.75Z"/>
+        <path class="cls-4" d="M150,75l25-12.5-10-5L140,70Zm0-.25L140.5,70,165,57.75l9.5,4.75Z"/>
+        <path class="cls-4" d="M125,87.5,150,75l-10-5L115,82.5Zm0-.25-9.5-4.75L140,70.25l9.5,4.75Z"/>
+        <path class="cls-4" d="M100,100l25-12.5-10-5L90,95Zm0-.25L90.52,95,115,82.74l9.5,4.75Z"/>
+        <path class="cls-4" d="M85,17.51,110,5,100,0,75,12.51Zm0-.25-9.5-4.75L100,.26,109.49,5Z"/>
+        <path class="cls-4" d="M60,30,85,17.5l-10-5L50,25Zm0-.25L50.5,25,75,12.75l9.5,4.75Z"/>
+        <path class="cls-4" d="M35,42.5,60,30,50,25,25,37.5Zm0-.25-9.5-4.75L50,25.25,59.51,30Z"/>
+        <path class="cls-4" d="M10,55l25-12.5-10-5L0,50Zm0-.25L.52,50,25,37.74l9.5,4.75Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

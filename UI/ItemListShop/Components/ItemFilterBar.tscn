@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://UI/ItemListShop/Components/ItemFilterBar.gd" id="1_script"]
+
+[node name="ItemFilterBar" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 76)
+script = ExtResource("1_script")
+

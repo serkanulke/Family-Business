@@ -1,0 +1,38 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Worker assignment flow tests starting
+========================================
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: business_test_001 | Slot: doctor_01
+[PASS] Family Member can be assigned through the shared flow to an empty slot
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] Worker NPC can be assigned through the shared flow to an empty slot
+FAMILY BUSINESS REMOVED | Character: 1 | Business: business_test_001 | Slot: doctor_01 | External offers enabled again
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] Replace safely changes Family Member to Worker NPC
+FAMILY BUSINESS NPC REMOVED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01 | NPC available again
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: business_test_001 | Slot: doctor_01
+[PASS] Replace safely changes Worker NPC to Family Member
+[PASS] Invalid NPC candidate does not remove the current Family Member
+[PASS] Invalid Family Member candidate does not remove the current Worker NPC
+FAMILY BUSINESS ASSIGNED | Character: 3 | Business: business_test_001 | Slot: doctor_01
+[PASS] Opening/listing Family candidates keeps external job until actual assignment
+
+========================================
+Worker assignment flow tests: 7 passed / 0 failed
+========================================
+ALL WORKER ASSIGNMENT FLOW TESTS PASSED.

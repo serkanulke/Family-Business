@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2 {
+        fill: #5b5250;
+      }
+
+      .cls-3 {
+        fill: #8e817e;
+      }
+
+      .cls-4 {
+        clip-path: url(#clip-path);
+      }
+
+      .cls-5 {
+        fill: #f2e8df;
+      }
+
+      .cls-6 {
+        fill: #e2dad3;
+      }
+
+      .cls-7 {
+        fill: #f2e8de;
+      }
+    </style>
+    <clipPath id="clip-path" transform="translate(0 -0.01)">
+      <path class="cls-1" d="M100,100l-.8-.41L0,50,100,0h0l10,5C60.37,29.82,60.36,70.2,110,95h0Z"/>
+    </clipPath>
+  </defs>
+  <title>road_curve_top_right_01</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-2" points="100 100 200 50 100 0 0 50 100 100"/>
+        <path class="cls-3" d="M148.5,75.76l3-1.5c-26.74-13.38-26.74-35.13,0-48.5l-3-1.5C120.1,38.45,120.1,61.56,148.5,75.76Z" transform="translate(0 -0.01)"/>
+        <path class="cls-3" d="M113,93.51l3-1.5C69.68,68.85,69.68,31.16,116,8l-3-1.5C65,30.49,65,69.52,113,93.51Z" transform="translate(0 -0.01)"/>
+        <g class="cls-4">
+          <g>
+            <g>
+              <polygon class="cls-5" points="175 62.5 200 50 175 37.5 150 50 175 62.5"/>
+              <path class="cls-6" d="M150,50l25,12.5L200,50l-25-12.5Zm.5,0L175,37.76,199.5,50,175,62.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="150 75 175 62.5 150 50 125 62.5 150 75"/>
+              <path class="cls-6" d="M125,62.51,150,75l25-12.5L150,50Zm.5,0L150,50.26l24.5,12.25L150,74.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="125 87.5 150 75 125 62.5 100 75 125 87.5"/>
+              <path class="cls-6" d="M100,75l25,12.5L150,75l-25-12.5Zm.5,0L125,62.76,149.5,75,125,87.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="100 100 125 87.5 100 75 75 87.5 100 100"/>
+              <path class="cls-6" d="M75,87.51,100,100l25-12.5L100,75Zm.5,0L100,75.26l24.5,12.25L100,99.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="150 50 175 37.5 150 25 125 37.5 150 50"/>
+              <path class="cls-6" d="M125,37.51,150,50l25-12.5L150,25Zm.5,0L150,25.26l24.5,12.25L150,49.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="125 62.5 150 50 125 37.5 100 50 125 62.5"/>
+              <path class="cls-6" d="M100,50l25,12.5L150,50l-25-12.5Zm.5,0L125,37.76,149.5,50,125,62.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="100 75 125 62.5 100 50 75 62.5 100 75"/>
+              <path class="cls-6" d="M75,62.51,100,75l25-12.5L100,50Zm.5,0L100,50.26l24.5,12.25L100,74.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="75 87.5 100 75 75 62.5 50 75 75 87.5"/>
+              <path class="cls-6" d="M50,75l25,12.5L100,75,75,62.51Zm.5,0L75,62.76,99.5,75,75,87.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="125 37.5 150 25 125 12.5 100 25 125 37.5"/>
+              <path class="cls-6" d="M100,25l25,12.5L150,25l-25-12.5Zm.5,0L125,12.76,149.5,25,125,37.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="100 50 125 37.5 100 25 75 37.5 100 50"/>
+              <path class="cls-6" d="M75,37.51,100,50l25-12.5L100,25Zm.5,0L100,25.26l24.5,12.25L100,49.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="75 62.5 100 50 75 37.5 50 50 75 62.5"/>
+              <path class="cls-6" d="M50,50l25,12.5L100,50,75,37.51Zm.5,0L75,37.76,99.5,50,75,62.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="50 75 75 62.5 50 50 25 62.5 50 75"/>
+              <path class="cls-6" d="M25,62.51,50,75l25-12.5L50,50Zm.5,0L50,50.26,74.5,62.51,50,74.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="100 25 125 12.5 100 0 75 12.5 100 25"/>
+              <path class="cls-6" d="M75,12.51,100,25l25-12.5L100,0Zm.5,0L100,.26l24.5,12.25L100,24.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="75 37.5 100 25 75 12.5 50 25 75 37.5"/>
+              <path class="cls-6" d="M50,25l25,12.5L100,25,75,12.51Zm.5,0L75,12.76,99.5,25,75,37.26Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="50 50 75 37.5 50 25 25 37.5 50 50"/>
+              <path class="cls-6" d="M25,37.51,50,50l25-12.5L50,25Zm.5,0L50,25.26,74.5,37.51,50,49.76Z" transform="translate(0 -0.01)"/>
+            </g>
+            <g>
+              <polygon class="cls-5" points="25 62.5 50 50 25 37.5 0 50 25 62.5"/>
+              <path class="cls-6" d="M0,50l25,12.5L50,50,25,37.51Zm.5,0L25,37.76,49.5,50,25,62.26Z" transform="translate(0 -0.01)"/>
+            </g>
+          </g>
+        </g>
+        <path class="cls-7" d="M190,55l10-5-10-5h0c-5.52,2.76-5.52,7.23,0,10Z" transform="translate(0 -0.01)"/>
+        <path class="cls-3" d="M184,58l3-1.5c-7.17-3.59-7.17-9.42,0-13L184,42C175.18,46.42,175.18,53.59,184,58Z" transform="translate(0 -0.01)"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #8e817e;
+      }
+
+      .cls-3 {
+        fill: #8a9644;
+      }
+    </style>
+  </defs>
+  <title>road_curve_bottom_left_02</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <g>
+          <polygon class="cls-1" points="0 50 100 0 200 50 100 100 0 50"/>
+          <path class="cls-2" d="M3,48.5,6,47c24.74,12.37,59,19.47,94,19.47s69.26-7.1,94-19.47l3,1.5c-25.53,12.77-60.89,20.09-97,20.09S28.53,61.27,3,48.5Z"/>
+          <path class="cls-2" d="M94,3l3-1.5a7,7,0,0,0,3,.62,7,7,0,0,0,3-.62L106,3a14,14,0,0,1-6,1.24A14,14,0,0,1,94,3Z"/>
+        </g>
+        <path class="cls-3" d="M0,50l100,50L200,50C144.84,77.57,55.14,77.57,0,50Z"/>
+        <path class="cls-2" d="M73.42,67.27l1.12.1Z"/>
+        <path class="cls-2" d="M125.47,67.37l1.1-.1Z"/>
+        <path class="cls-2" d="M197,48.5l3,1.5h0l-3-1.5c-19,9.52-43.55,16-69.76,18.7C152.82,64.63,177.21,58.4,197,48.5Z"/>
+        <path class="cls-2" d="M0,50l3-1.5c19.79,9.9,44.18,16.13,69.77,18.7C46.56,64.51,22.05,58,3,48.5L0,50Z"/>
+        <polygon class="cls-2" points="6 47 3 48.5 3 48.5 6 47 6 47"/>
+        <polygon class="cls-2" points="197 48.5 194 47 194 47 197 48.5 197 48.5"/>
+        <polygon class="cls-2" points="106 3 103 1.5 103 1.5 106 3 106 3"/>
+        <polygon class="cls-2" points="97 1.5 94 3 94 3 97 1.5 97 1.5"/>
+        <path class="cls-2" d="M200,50Z"/>
+        <polygon class="cls-2" points="0 50 0.01 50 0 50 0 50"/>
+        <path class="cls-2" d="M126.57,67.27l.67-.07Z"/>
+        <path class="cls-2" d="M125.47,67.37a274.21,274.21,0,0,1-50.93,0c8.37.8,16.89,1.22,25.46,1.22S117.1,68.17,125.47,67.37Z"/>
+        <path class="cls-2" d="M72.77,67.2l.65.07Z"/>
+        <path class="cls-2" d="M48.5,25.75l3-1.5c26.74,13.37,70.26,13.37,97,0l3,1.5C123.1,40,76.9,40,48.5,25.75Z"/>
+      </g>
+    </g>
+  </g>
+</svg>

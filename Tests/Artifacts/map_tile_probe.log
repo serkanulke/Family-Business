@@ -1,0 +1,23 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+LAYOUT=4
+(0, 0) MAIN=(100.0, 50.0) DETAIL=(25.0, 12.5)
+(1, 1) MAIN=(300.0, 50.0) DETAIL=(225.0, 12.5)
+(7, 13) MAIN=(2100.0, 350.0) DETAIL=(2025.0, 312.5)
+LAYOUT=5
+(0, 0) MAIN=(100.0, 50.0) DETAIL=(25.0, 12.5)
+(1, 1) MAIN=(100.0, 150.0) DETAIL=(25.0, 112.5)
+(7, 13) MAIN=(-500.0, 1050.0) DETAIL=(-575.0, 1012.5)
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261

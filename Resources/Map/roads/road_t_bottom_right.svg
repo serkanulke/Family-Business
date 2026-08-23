@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #5b5250;
+      }
+
+      .cls-2 {
+        fill: #f2e8df;
+      }
+
+      .cls-3 {
+        fill: #e2dad3;
+      }
+
+      .cls-4 {
+        fill: #8e817e;
+      }
+    </style>
+  </defs>
+  <title>road_t_bottom_right</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <g>
+        <polygon class="cls-1" points="0 50 100 0 200 50 100 100 0 50"/>
+        <polygon class="cls-2" points="0 50 10 45 20 50 10 55 0 50"/>
+        <path class="cls-3" d="M20,50,10,45,0,50l10,5ZM.51,50,10,45.26,19.5,50,10,54.75Z"/>
+        <polygon class="cls-2" points="90 5 100 0 110 5 100 10 90 5"/>
+        <path class="cls-3" d="M110,5,100,0,90,5l10,5ZM90.5,5,100,.25,109.48,5,100,9.74Z"/>
+        <g>
+          <polygon class="cls-2" points="100 100 90 95 190 45 200 50 100 100"/>
+          <polygon class="cls-4" points="87 93.5 84 92 184 42 187 43.5 87 93.5"/>
+          <path class="cls-3" d="M115,82.5,90,95l10,5,25-12.5ZM100,99.75,90.51,95,115,82.75l9.5,4.75Z"/>
+          <path class="cls-3" d="M140,70,115,82.5l10,5L150,75ZM125,87.25l-9.5-4.75L140,70.25,149.5,75Z"/>
+          <path class="cls-3" d="M165,57.51,140,70l10,5,25-12.5ZM150,74.76,140.49,70,165,57.76l9.5,4.75Z"/>
+          <path class="cls-3" d="M190,45l-25,12.5,10,5L200,50ZM175,62.26l-9.5-4.75L190,45.26l9.5,4.75Z"/>
+        </g>
+        <polygon class="cls-4" points="84 8 87 6.5 100 13 113 6.5 116 8 100 16 84 8"/>
+        <polygon class="cls-4" points="16 58 13 56.5 26 50 13 43.5 16 42 32 50 16 58"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -17,7 +17,7 @@ const COLOR_STAFF := Color("#FEF9F5")
 const COLOR_ASSIGN := Color("#63A479")
 const COLOR_SELECTED := Color("#E2CBB5")
 
-const PATH_BUILDING_IMAGE := "res://Resources/Buildings/Hospital/Hospital.png"
+const PATH_BUILDING_IMAGE := "res://Resources/Buildings/Hospital/hospital.png"
 const PATH_BUSINESS_ICON := "res://Resources/Icons/hospital-sign.png"
 const PATH_INCOME_TREND := "res://Resources/Icons/upper-chart.svg"
 const PATH_EXPENSE_TREND := "res://Resources/Icons/down-chart.svg"

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f7e9c6;
+      }
+    </style>
+  </defs>
+  <title>sand</title>
+  <g id="Layer_2" data-name="Layer 2">
+    <g id="Layer_1-2" data-name="Layer 1">
+      <polygon class="cls-1" points="200 49.82 99.64 100 0 50.18 100.36 0 200 49.82"/>
+    </g>
+  </g>
+</svg>

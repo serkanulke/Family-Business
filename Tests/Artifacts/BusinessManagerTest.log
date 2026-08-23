@@ -1,0 +1,64 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+BusinessManager static + backend tests starting
+========================================
+[PASS] Approved 12-type roster loads, Bookshop is absent, and Hospital resolves
+[PASS] Hospital Lv1 cost, expense, slots and max gross match BusinessTypes.json
+[PASS] Hospital Lv5 cost, expense, slots and max gross match BusinessTypes.json
+[PASS] Required stats are performance references; only missing stat data blocks assignment
+[PASS] S/A/B/C/D tiers apply the correct gross contribution multipliers
+[PASS] Missing business visual variant uses the configured placeholder path
+[PASS] Existing Hospital uses the Lv1 base purchase cost
+[PASS] New construction applies the shared 1.4 multiplier to Lv1 cost
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: hospital | Plot: plot_existing_001 | New Construction: false | Cost: 120000
+[PASS] Existing Hospital purchase creates Lv1 instance and deducts 120000
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: hospital | Plot: plot_empty_001 | New Construction: true | Cost: 168000
+[PASS] New Hospital construction creates Lv1 instance and deducts 168000
+[PASS] Business purchase is blocked when family money is insufficient
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: cafe | Plot: plot_shared_001 | New Construction: false | Cost: 25000
+[PASS] Occupied plot rejects a second family business without charging money
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: hospital | Plot: plot_upgrade_001 | New Construction: false | Cost: 120000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 150000
+[PASS] Hospital Lv1 to Lv2 upgrade deducts 150000 and opens the Lv2 slot
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: hospital | Plot: plot_upgrade_002 | New Construction: false | Cost: 120000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 150000
+[PASS] Upgrade preserves existing workers and adds newly unlocked slots empty
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: cafe | Plot: plot_max_001 | New Construction: false | Cost: 25000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 35000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 3 | Cost: 45000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 4 | Cost: 65000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 5 | Cost: 90000
+[PASS] Max-level business rejects further upgrades without charging money
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+[PASS] External employee moves to family business and external employment is cleared
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+[PASS] Pending external offer is removed when character joins family business
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+[PASS] Family-business employee is excluded from external offer checks and external salary
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+FAMILY BUSINESS REMOVED | Character: 1 | Business: test_business_001 | Slot: doctor_01 | External offers enabled again
+[PASS] Removed family-business employee becomes unemployed and returns to external job-offer pool
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+[PASS] One character cannot occupy two family-business slots
+FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: doctor_01
+[PASS] Occupied family-business slot rejects another character
+
+========================================
+Business tests: 21 passed / 0 failed
+========================================
+ALL BUSINESS TESTS PASSED.

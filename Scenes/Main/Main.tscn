@@ -1,8 +1,10 @@
-[gd_scene format=3 uid="uid://bvcopx3ku8gti"]
+[gd_scene load_steps=3 format=3 uid="uid://bvcopx3ku8gti"]
 
 [ext_resource type="PackedScene" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
+[ext_resource type="Script" path="res://Scenes/Main/Main.gd" id="2_main"]
 
 [node name="Main" type="Node" unique_id=1660465117]
+script = ExtResource("2_main")
 
 [node name="Managers" type="Node" parent="." unique_id=961854645]
 

@@ -2,6 +2,10 @@ extends Control
 class_name FamilyTreeScreen
 
 signal character_selected(character_id: int)
+signal item_buy_requested(character_id: int, catalog_item_id: Variant, slot_context: String)
+signal item_wear_requested(character_id: int, item_instance_id: Variant, slot_context: String)
+signal item_unequip_requested(character_id: int, item_instance_id: Variant, slot_context: String)
+signal screen_requested(screen_id: String)
 
 const FAMILY_TREE_SCENE := preload("res://Scenes/Characters/FamilyTree.tscn")
 
@@ -149,6 +153,7 @@ func _ready() -> void:
 	_build_real_family_tree()
 	_build_fixed_ui()
 	_connect_runtime_signals()
+	_connect_item_list_shop()
 	_refresh_runtime_values()
 
 	await get_tree().process_frame
@@ -287,6 +292,33 @@ func _connect_runtime_signals() -> void:
 		GameManager.new_game_started.connect(_on_new_game_started)
 
 
+func _connect_item_list_shop() -> void:
+	var character_card := get_node_or_null("CharacterCard")
+	var item_list_sheet := get_node_or_null("ItemListBottomSheet")
+	if character_card == null or item_list_sheet == null:
+		return
+	if item_list_sheet.has_method("set_data_provider"):
+		item_list_sheet.call("set_data_provider", ItemManager)
+	if character_card.has_signal("item_slot_requested"):
+		if not character_card.is_connected("item_slot_requested", _on_character_card_item_slot_requested):
+			character_card.connect("item_slot_requested", _on_character_card_item_slot_requested)
+	if item_list_sheet.has_signal("sheet_closed"):
+		if not item_list_sheet.is_connected("sheet_closed", _on_item_list_sheet_closed):
+			item_list_sheet.connect("sheet_closed", _on_item_list_sheet_closed)
+	if item_list_sheet.has_signal("item_buy_requested"):
+		if not item_list_sheet.is_connected("item_buy_requested", _on_item_buy_requested):
+			item_list_sheet.connect("item_buy_requested", _on_item_buy_requested)
+	if item_list_sheet.has_signal("item_wear_requested"):
+		if not item_list_sheet.is_connected("item_wear_requested", _on_item_wear_requested):
+			item_list_sheet.connect("item_wear_requested", _on_item_wear_requested)
+	if item_list_sheet.has_signal("item_unequip_requested"):
+		if not item_list_sheet.is_connected("item_unequip_requested", _on_item_unequip_requested):
+			item_list_sheet.connect("item_unequip_requested", _on_item_unequip_requested)
+	for signal_name in ["monthly_stock_changed", "inventory_changed", "equipment_changed"]:
+		if ItemManager.has_signal(signal_name) and not ItemManager.is_connected(signal_name, _on_item_manager_state_changed):
+			ItemManager.connect(signal_name, _on_item_manager_state_changed)
+
+
 func refresh_from_managers() -> void:
 	_refresh_runtime_values()
 
@@ -362,6 +394,50 @@ func _on_family_tree_character_selected(character_id: int) -> void:
 		)
 
 	character_selected.emit(character_id)
+
+
+func _on_character_card_item_slot_requested(slot_type: String, character_id: int) -> void:
+	var character_card := get_node_or_null("CharacterCard")
+	var item_list_sheet := get_node_or_null("ItemListBottomSheet")
+	if item_list_sheet == null or not item_list_sheet.has_method("open_for_character"):
+		return
+	if character_card != null and character_card.has_method("close_card"):
+		character_card.call("close_card")
+	item_list_sheet.call("open_for_character", character_id, slot_type)
+
+
+func _on_item_list_sheet_closed(character_id: int, _slot_context: String) -> void:
+	var character_card := get_node_or_null("CharacterCard")
+	if character_id > 0 and character_card != null and character_card.has_method("open_for_character"):
+		character_card.call("open_for_character", character_id)
+
+
+func _on_item_buy_requested(character_id: int, catalog_item_id: Variant, slot_type: String) -> void:
+	ItemManager.purchase_item(str(catalog_item_id))
+	_refresh_open_item_sheet()
+	item_buy_requested.emit(character_id, catalog_item_id, slot_type)
+
+
+func _on_item_wear_requested(character_id: int, item_instance_id: Variant, slot_type: String) -> void:
+	ItemManager.equip_item(character_id, str(item_instance_id), slot_type)
+	_refresh_open_item_sheet()
+	item_wear_requested.emit(character_id, item_instance_id, slot_type)
+
+
+func _on_item_unequip_requested(character_id: int, item_instance_id: Variant, slot_type: String) -> void:
+	ItemManager.unequip_item(character_id, slot_type, str(item_instance_id))
+	_refresh_open_item_sheet()
+	item_unequip_requested.emit(character_id, item_instance_id, slot_type)
+
+
+func _on_item_manager_state_changed(_arg1 = null, _arg2 = null, _arg3 = null) -> void:
+	_refresh_open_item_sheet()
+
+
+func _refresh_open_item_sheet() -> void:
+	var item_list_sheet := get_node_or_null("ItemListBottomSheet")
+	if item_list_sheet != null and item_list_sheet.visible and item_list_sheet.has_method("refresh_data"):
+		item_list_sheet.call("refresh_data")
 
 
 func _create_family_logo() -> Control:
@@ -667,7 +743,24 @@ func _create_nav_bar() -> Control:
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(label)
 
+		var navigation_button := Button.new()
+		navigation_button.name = "%sNavigationButton" % String(entry["label"]).capitalize().replace(" ", "")
+		navigation_button.position = Vector2.ZERO
+		navigation_button.size = item.size
+		navigation_button.flat = true
+		navigation_button.focus_mode = Control.FOCUS_NONE
+		navigation_button.mouse_filter = Control.MOUSE_FILTER_STOP
+		navigation_button.pressed.connect(
+			_on_navigation_button_pressed.bind(String(entry["label"]))
+		)
+		item.add_child(navigation_button)
+
 	return root
+
+
+func _on_navigation_button_pressed(label_text: String) -> void:
+	var screen_id := label_text.to_lower().replace(" ", "_")
+	screen_requested.emit(screen_id)
 
 
 func _on_time_button_pressed(button: TextureButton) -> void:

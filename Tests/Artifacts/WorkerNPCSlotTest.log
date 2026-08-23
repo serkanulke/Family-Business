@@ -1,0 +1,38 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Worker NPC slot assignment tests starting
+========================================
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] Worker NPC can be assigned to an empty business slot
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] The same Worker NPC cannot occupy two slots at once
+[PASS] Worker NPC cannot be assigned to a family-character occupied slot
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] NPC occupation remains separate from family-character occupation
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+FAMILY BUSINESS NPC REMOVED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01 | NPC available again
+[PASS] Removed Worker NPC is not deleted and becomes available again
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_001 | Business: business_test_001 | Slot: doctor_01
+[PASS] S-tier Worker NPC contributes full slot gross income
+FAMILY BUSINESS NPC ASSIGNED | NPC: npc_test_low | Business: business_test_001 | Slot: doctor_01
+[PASS] Low-stat Worker NPC can be assigned and contributes D-tier gross
+
+========================================
+Worker NPC slot tests: 7 passed / 0 failed
+========================================
+ALL WORKER NPC SLOT TESTS PASSED.
