@@ -26,10 +26,8 @@ static func build(business_instance_id: String) -> Dictionary:
 		"monthly_income": int(breakdown.get("gross_income", 0)),
 		"monthly_expense": int(breakdown.get("fixed_expense", 0)),
 		"net_profit": int(breakdown.get("net_profit", 0)),
-		"image_path": BusinessManager.get_business_visual_path(
-			business_type_id,
-			str(business.get("visual_variant_id", "")),
-			level
+		"image_path": BusinessManager.get_business_modal_visual_path(
+			business_type_id
 		),
 		"icon_path": _get_business_icon_path(business_type_id),
 		"slots": _build_slots(business_instance_id, business_type_id, business)

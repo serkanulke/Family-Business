@@ -59,7 +59,7 @@ func refresh_from_business_manager() -> void:
 
 
 func _build_visual() -> void:
-	var visual_path := str(property_data.get("visual_path", ""))
+	var visual_path := _resolve_visual_path()
 	if visual_path.is_empty() or not ResourceLoader.exists(visual_path):
 		push_warning("Map property visual is unavailable: " + visual_path)
 		return
@@ -75,6 +75,22 @@ func _build_visual() -> void:
 	visual.position = Vector2(sprite_offset.x, -texture.get_height() * 0.5 + sprite_offset.y)
 	visual.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(visual)
+
+
+func _resolve_visual_path() -> String:
+	if str(property_data.get("category", "")) != "family_business":
+		return str(property_data.get("visual_path", ""))
+
+	var business_type_id := str(property_data.get("business_type_id", ""))
+	if business_type_id.is_empty():
+		var property_id := str(property_data.get("id", ""))
+		var business: Dictionary = BusinessManager.get_business_on_plot(property_id)
+		business_type_id = str(business.get("business_type_id", ""))
+
+	if business_type_id.is_empty():
+		return str(property_data.get("visual_path", ""))
+
+	return BusinessManager.get_business_map_visual_path(business_type_id)
 
 
 func _build_interaction() -> void:

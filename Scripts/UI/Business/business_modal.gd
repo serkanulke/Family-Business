@@ -110,7 +110,12 @@ func configure_from_data(data: Dictionary) -> void:
 	net_value.text = _money(net_profit, net_profit >= 0.0)
 	net_value.add_theme_color_override("font_color", COLOR_GREEN if net_profit >= 0.0 else COLOR_RED)
 
-	_set_texture_from_data(building_image, data, ["image_path", "building_image", "texture_path"])
+	_set_texture_from_data(
+		building_image,
+		data,
+		["image_path", "building_image", "texture_path"],
+		true
+	)
 	_set_texture_from_data(business_icon, data, ["icon_path", "business_icon"])
 
 	_build_staff_rows(_as_array(_first(data, ["slots", "staff_slots"], [])))
@@ -365,7 +370,6 @@ func _on_upgrade_pressed() -> void:
 
 
 func _load_default_assets() -> void:
-	_try_set_texture(building_image, PATH_BUILDING_IMAGE)
 	_try_set_texture(business_icon, PATH_BUSINESS_ICON)
 	_try_set_texture(income_trend, PATH_INCOME_TREND)
 	_try_set_texture(expense_trend, PATH_EXPENSE_TREND)
@@ -483,7 +487,15 @@ func _try_set_texture(target: TextureRect, path: String) -> void:
 			target.texture = resource
 
 
-func _set_texture_from_data(target: TextureRect, data: Dictionary, keys: Array) -> void:
+func _set_texture_from_data(
+	target: TextureRect,
+	data: Dictionary,
+	keys: Array,
+	clear_if_unavailable: bool = false
+) -> void:
+	if clear_if_unavailable:
+		target.texture = null
+
 	for key in keys:
 		if data.has(key) and not str(data[key]).is_empty():
 			_try_set_texture(target, str(data[key]))

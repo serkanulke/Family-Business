@@ -12,6 +12,8 @@ const BUSINESS_MODAL_DATA_ADAPTER := preload(
 
 var saved_businesses: Array = []
 var saved_family_money: int = 0
+var passed := 0
+var failed := 0
 
 var test_business_id: String = ""
 var business_modal: Control = null
@@ -71,6 +73,24 @@ func _ready() -> void:
 		_restore_state()
 		return
 
+	var hospital_type := BusinessManager.get_business_type_by_id("hospital")
+	var modal_path := str(hospital_type.get("modal_visual_path", ""))
+	var map_path := str(hospital_type.get("map_visual_path", ""))
+	var level_one_image_path := str(presentation_data.get("image_path", ""))
+	business["level"] = 5
+	var level_five_data: Dictionary = BUSINESS_MODAL_DATA_ADAPTER.build(
+		test_business_id
+	)
+	business["level"] = 1
+
+	_assert_true(
+		level_one_image_path == modal_path
+		and level_one_image_path != map_path
+		and str(level_five_data.get("image_path", "")) == modal_path
+		and not level_one_image_path.contains("level_0"),
+		"Business Modal adapter uses the level-independent modal_visual_path"
+	)
+
 	business_modal = (
 		BUSINESS_MODAL_SCENE.instantiate()
 	)
@@ -83,6 +103,19 @@ func _ready() -> void:
 		presentation_data
 	)
 
+	var modal_asset_exists := ResourceLoader.exists(modal_path)
+	_assert_true(
+		(
+			modal_asset_exists
+			and business_modal.building_image.texture != null
+		)
+		or (
+			not modal_asset_exists
+			and business_modal.building_image.texture == null
+		),
+		"Missing modal asset is handled safely without a map-image fallback"
+	)
+
 	print(
 		"[PASS] Real Hospital created: ",
 		test_business_id
@@ -91,6 +124,18 @@ func _ready() -> void:
 	print(
 		"[PASS] BusinessModal loaded with real BusinessManager data."
 	)
+
+	print(
+		"Business Modal integration tests: %d passed / %d failed"
+		% [passed, failed]
+	)
+	if failed == 0:
+		print("ALL BUSINESS MODAL INTEGRATION TESTS PASSED.")
+	else:
+		push_error(
+			"Business Modal integration has %d failing test(s)."
+			% failed
+		)
 
 	print(
 		"NEXT MANUAL CHECK:"
@@ -132,6 +177,15 @@ func _save_state() -> void:
 	saved_family_money = (
 		GameManager.family_money
 	)
+
+
+func _assert_true(condition: bool, test_name: String) -> void:
+	if condition:
+		passed += 1
+		print("[PASS] ", test_name)
+	else:
+		failed += 1
+		push_error("[FAIL] " + test_name)
 
 
 func _restore_state() -> void:

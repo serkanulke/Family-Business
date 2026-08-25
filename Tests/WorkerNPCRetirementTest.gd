@@ -140,7 +140,6 @@ func _make_hospital(
 	return {
 		"business_instance_id": "business_test_001",
 		"business_type_id": "hospital",
-		"visual_variant_id": "",
 		"plot_id": "plot_test_001",
 		"level": 1,
 		"slots": [

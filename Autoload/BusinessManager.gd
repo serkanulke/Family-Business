@@ -535,10 +535,8 @@ func calculate_worker_slot_gross(
 	)
 
 
-func get_business_visual_path(
-	business_type_id: String,
-	visual_variant_id: String,
-	level: int
+func get_business_map_visual_path(
+	business_type_id: String
 ) -> String:
 	var business_type := get_business_type_by_id(
 		business_type_id
@@ -547,38 +545,30 @@ func get_business_visual_path(
 	if business_type.is_empty():
 		return ""
 
-	var placeholder_path := str(
+	return str(
 		business_type.get(
-			"placeholder_visual_path",
+			"map_visual_path",
 			""
 		)
 	)
 
-	if visual_variant_id.is_empty():
-		return placeholder_path
 
-	var building_folder := str(
+func get_business_modal_visual_path(
+	business_type_id: String
+) -> String:
+	var business_type := get_business_type_by_id(
+		business_type_id
+	)
+
+	if business_type.is_empty():
+		return ""
+
+	return str(
 		business_type.get(
-			"building_folder",
+			"modal_visual_path",
 			""
 		)
 	)
-
-	if building_folder.is_empty():
-		return placeholder_path
-
-	var candidate_path := (
-		building_folder
-		+ "/"
-		+ visual_variant_id
-		+ "/level_%02d.png"
-		% level
-	)
-
-	if ResourceLoader.exists(candidate_path):
-		return candidate_path
-
-	return placeholder_path
 
 
 func _initialize_next_business_instance_number() -> void:
@@ -683,39 +673,6 @@ func get_business_acquisition_cost(
 	return base_cost
 
 
-func _select_visual_variant(
-	business_type: Dictionary,
-	requested_variant_id: String
-) -> String:
-	var variants_value = business_type.get(
-		"visual_variants",
-		[]
-	)
-
-	if typeof(variants_value) != TYPE_ARRAY:
-		return ""
-
-	var variants: Array = variants_value
-
-	if not requested_variant_id.is_empty():
-		if variants.has(requested_variant_id):
-			return requested_variant_id
-
-		return ""
-
-	if variants.is_empty():
-		return ""
-
-	return str(
-		variants[
-			randi_range(
-				0,
-				variants.size() - 1
-			)
-		]
-	)
-
-
 func _create_runtime_slots_for_level(
 	business_type_id: String,
 	level: int
@@ -748,8 +705,7 @@ func _create_runtime_slots_for_level(
 func create_business_instance(
 	business_type_id: String,
 	plot_id: String,
-	is_new_construction: bool,
-	requested_visual_variant_id: String = ""
+	is_new_construction: bool
 ) -> Dictionary:
 	if plot_id.is_empty():
 		return {}
@@ -787,25 +743,6 @@ func create_business_instance(
 	):
 		return {}
 
-	var visual_variant_id := _select_visual_variant(
-		business_type,
-		requested_visual_variant_id
-	)
-
-	var variants_value = business_type.get(
-		"visual_variants",
-		[]
-	)
-
-	if (
-		not requested_visual_variant_id.is_empty()
-		and typeof(variants_value) == TYPE_ARRAY
-		and not variants_value.has(
-			requested_visual_variant_id
-		)
-	):
-		return {}
-
 	var runtime_slots := _create_runtime_slots_for_level(
 		business_type_id,
 		1
@@ -826,7 +763,6 @@ func create_business_instance(
 	var business_instance := {
 		"business_instance_id": business_instance_id,
 		"business_type_id": business_type_id,
-		"visual_variant_id": visual_variant_id,
 		"plot_id": plot_id,
 		"level": 1,
 		"slots": runtime_slots

@@ -1,6 +1,22 @@
 extends Node
 
 
+const APPROVED_BUSINESS_TYPE_IDS := [
+	"cafe",
+	"gym",
+	"restaurant",
+	"warehouse",
+	"factory",
+	"hospital",
+	"tech_company",
+	"bank",
+	"stadium",
+	"auto_service",
+	"cruise",
+	"hotel"
+]
+
+
 var passed := 0
 var failed := 0
 
@@ -45,11 +61,15 @@ func _ready() -> void:
 
 func _run_all_tests() -> void:
 	_test_business_types_loaded()
+	_test_business_type_schema_integrity()
 	_test_hospital_level_1_definition()
 	_test_hospital_level_5_definition()
 	_test_required_stats_are_enforced()
 	_test_performance_tiers_and_gross()
-	_test_missing_visual_uses_placeholder()
+	_test_static_visual_resolvers()
+	_test_map_property_uses_map_visual_resolver()
+	_test_new_business_type_lifecycles()
+	_test_cruise_costs_and_expenses_exceed_stadium()
 
 	_test_existing_building_uses_lv1_cost()
 	_test_new_construction_uses_1_4_multiplier()
@@ -113,7 +133,6 @@ func _reset_world() -> void:
 			"business_instance_id": "test_business_001",
 			"business_type_id": "hospital",
 			"level": 1,
-			"visual_variant_id": "",
 			"plot_id": "test_plot_001",
 			"slots": [
 				{
@@ -199,19 +218,34 @@ func _test_business_types_loaded() -> void:
 	var hospital := BusinessManager.get_business_type_by_id(
 		"hospital"
 	)
-	var approved_ids := [
-		"cafe", "gym", "restaurant", "warehouse", "factory", "hospital",
-		"tech_company", "bank", "stadium", "auto_service", "cruise", "hotel"
-	]
 	var roster_is_complete := true
-	for business_type_id in approved_ids:
+	var actual_ids: Array[String] = []
+	var seen_ids: Dictionary = {}
+	var has_duplicate := false
+
+	for business_type_value in BusinessManager.business_types:
+		if not business_type_value is Dictionary:
+			roster_is_complete = false
+			continue
+		var business_type: Dictionary = business_type_value
+		var business_type_id := str(business_type.get("business_type_id", ""))
+		actual_ids.append(business_type_id)
+		if seen_ids.has(business_type_id):
+			has_duplicate = true
+		seen_ids[business_type_id] = true
+
+	for business_type_id in APPROVED_BUSINESS_TYPE_IDS:
 		if BusinessManager.get_business_type_by_id(business_type_id).is_empty():
+			roster_is_complete = false
+			break
+		if not actual_ids.has(business_type_id):
 			roster_is_complete = false
 			break
 
 	_assert_true(
 		BusinessManager.business_types.size() == 12
 		and roster_is_complete
+		and not has_duplicate
 		and BusinessManager.get_business_type_by_id("bookshop").is_empty()
 		and not hospital.is_empty()
 		and str(
@@ -221,6 +255,76 @@ func _test_business_types_loaded() -> void:
 			)
 		) == "Hospital",
 		"Approved 12-type roster loads, Bookshop is absent, and Hospital resolves"
+	)
+
+
+func _test_business_type_schema_integrity() -> void:
+	var schema_is_valid := true
+
+	for business_type_value in BusinessManager.business_types:
+		if not business_type_value is Dictionary:
+			schema_is_valid = false
+			continue
+
+		var business_type: Dictionary = business_type_value
+		var slot_definitions_value = business_type.get("slot_definitions", [])
+		var levels_value = business_type.get("levels", [])
+		if (
+			int(business_type.get("max_level", 0)) != 5
+			or not slot_definitions_value is Array
+			or not levels_value is Array
+			or levels_value.size() != 5
+			or str(business_type.get("map_visual_path", "")).is_empty()
+			or str(business_type.get("modal_visual_path", "")).is_empty()
+			or business_type.has("building_folder")
+			or business_type.has("visual_variants")
+			or business_type.has("placeholder_visual_path")
+		):
+			schema_is_valid = false
+			continue
+
+		var slot_ids: Dictionary = {}
+		for slot_definition_value in slot_definitions_value:
+			if not slot_definition_value is Dictionary:
+				schema_is_valid = false
+				continue
+			var slot_definition: Dictionary = slot_definition_value
+			var slot_id := str(slot_definition.get("slot_id", ""))
+			if slot_id.is_empty() or slot_ids.has(slot_id):
+				schema_is_valid = false
+			slot_ids[slot_id] = true
+
+		var level_numbers: Dictionary = {}
+		for level_value in levels_value:
+			if not level_value is Dictionary:
+				schema_is_valid = false
+				continue
+			var level_definition: Dictionary = level_value
+			var level := int(level_definition.get("level", 0))
+			var level_slot_ids_value = level_definition.get("slot_ids", [])
+			if (
+				level < 1
+				or level > 5
+				or level_numbers.has(level)
+				or int(level_definition.get("cost", 0)) <= 0
+				or int(level_definition.get("fixed_monthly_expense", 0)) <= 0
+				or not level_slot_ids_value is Array
+				or (level == 1 and level_slot_ids_value.is_empty())
+			):
+				schema_is_valid = false
+			level_numbers[level] = true
+
+			for slot_id_value in level_slot_ids_value:
+				if not slot_ids.has(str(slot_id_value)):
+					schema_is_valid = false
+
+		for expected_level in range(1, 6):
+			if not level_numbers.has(expected_level):
+				schema_is_valid = false
+
+	_assert_true(
+		schema_is_valid,
+		"All 12 business types have valid five-level slot/economy data and only the new visual schema"
 	)
 
 
@@ -407,28 +511,134 @@ func _test_performance_tiers_and_gross() -> void:
 	)
 
 
-func _test_missing_visual_uses_placeholder() -> void:
+func _test_static_visual_resolvers() -> void:
 	var hospital := BusinessManager.get_business_type_by_id(
 		"hospital"
 	)
-
-	var expected_placeholder := str(
-		hospital.get(
-			"placeholder_visual_path",
-			""
-		)
-	)
-
-	var actual_path := BusinessManager.get_business_visual_path(
-		"hospital",
-		"",
-		3
-	)
+	var expected_map_path := str(hospital.get("map_visual_path", ""))
+	var expected_modal_path := str(hospital.get("modal_visual_path", ""))
+	var map_path := BusinessManager.get_business_map_visual_path("hospital")
+	var modal_path := BusinessManager.get_business_modal_visual_path("hospital")
 
 	_assert_true(
-		not expected_placeholder.is_empty()
-		and actual_path == expected_placeholder,
-		"Missing business visual variant uses the configured placeholder path"
+		not expected_map_path.is_empty()
+		and not expected_modal_path.is_empty()
+		and map_path == expected_map_path
+		and modal_path == expected_modal_path
+		and map_path != modal_path
+		and BusinessManager.get_business_map_visual_path("missing").is_empty()
+		and BusinessManager.get_business_modal_visual_path("missing").is_empty(),
+		"Map and modal visual resolvers return their independent static JSON paths"
+	)
+
+
+func _test_map_property_uses_map_visual_resolver() -> void:
+	var map_property := MapProperty.new()
+	map_property.property_data = {
+		"category": "family_business",
+		"business_type_id": "hotel",
+		"visual_path": "res://incorrect_map_fallback.png"
+	}
+	var actual_path := str(map_property.call("_resolve_visual_path"))
+	map_property.free()
+
+	_assert_true(
+		actual_path == BusinessManager.get_business_map_visual_path("hotel"),
+		"Family-business map properties resolve the map-specific BusinessTypes path"
+	)
+
+
+func _test_new_business_type_lifecycles() -> void:
+	var lifecycle_is_valid := true
+	var type_index := 0
+
+	for business_type_id in ["auto_service", "hotel", "cruise"]:
+		BusinessManager.businesses = []
+		BusinessManager.next_business_instance_number = 1
+		GameManager.set_family_money(100000000)
+
+		var business_type := BusinessManager.get_business_type_by_id(business_type_id)
+		if business_type.is_empty() or business_type.has("configuration_status"):
+			lifecycle_is_valid = false
+			continue
+
+		var existing := BusinessManager.create_business_instance(
+			business_type_id,
+			"plot_existing_%d" % type_index,
+			false
+		)
+		if (
+			existing.is_empty()
+			or existing.has("visual_variant_id")
+			or int(existing.get("level", 0)) != 1
+			or str(existing.get("plot_id", "")) != "plot_existing_%d" % type_index
+			or existing.get("slots", []).size()
+				!= BusinessManager.get_level_definition(business_type_id, 1).get("slot_ids", []).size()
+		):
+			lifecycle_is_valid = false
+			continue
+
+		var existing_id := str(existing.get("business_instance_id", ""))
+		var map_path_at_level_one := (
+			BusinessManager.get_business_map_visual_path(business_type_id)
+		)
+		for next_level in range(2, 6):
+			if not BusinessManager.upgrade_business(existing_id):
+				lifecycle_is_valid = false
+				break
+			if (
+				int(existing.get("level", 0)) != next_level
+				or existing.get("slots", []).size()
+					!= BusinessManager.get_level_definition(
+						business_type_id,
+						next_level
+					).get("slot_ids", []).size()
+			):
+				lifecycle_is_valid = false
+
+		if (
+			BusinessManager.get_business_map_visual_path(business_type_id)
+			!= map_path_at_level_one
+		):
+			lifecycle_is_valid = false
+
+		var constructed := BusinessManager.create_business_instance(
+			business_type_id,
+			"plot_constructed_%d" % type_index,
+			true
+		)
+		if (
+			constructed.is_empty()
+			or int(constructed.get("level", 0)) != 1
+			or constructed.has("visual_variant_id")
+		):
+			lifecycle_is_valid = false
+
+		type_index += 1
+
+	_assert_true(
+		lifecycle_is_valid,
+		"Auto Service, Hotel, and Cruise support generic purchase, construction, Lv1 creation, Lv2-Lv5 upgrades, and slot progression"
+	)
+
+
+func _test_cruise_costs_and_expenses_exceed_stadium() -> void:
+	var cruise_exceeds_stadium := true
+
+	for level in range(1, 6):
+		var cruise_level := BusinessManager.get_level_definition("cruise", level)
+		var stadium_level := BusinessManager.get_level_definition("stadium", level)
+		if (
+			int(cruise_level.get("cost", 0))
+				<= int(stadium_level.get("cost", 0))
+			or int(cruise_level.get("fixed_monthly_expense", 0))
+				<= int(stadium_level.get("fixed_monthly_expense", 0))
+		):
+			cruise_exceeds_stadium = false
+
+	_assert_true(
+		cruise_exceeds_stadium,
+		"Cruise cost and fixed monthly expense exceed Stadium at every level"
 	)
 
 
@@ -504,6 +714,7 @@ func _test_create_existing_business_instance() -> void:
 			"slots",
 			[]
 		).size() == 3
+		and not created.has("visual_variant_id")
 		and GameManager.family_money == 80000,
 		"Existing Hospital purchase creates Lv1 instance and deducts 120000"
 	)

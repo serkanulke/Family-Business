@@ -14,7 +14,7 @@ This document records schemas observed in the current JSON files, manager-create
 | `School.json` | `schools[]` (12 records) | Loaded by `EducationManager`. |
 | `Companies.json` | `companies[]` (90 records) | Loaded by `CareerManager`. |
 | `Business.json` | `{ "businesses": [] }` | Loaded by `BusinessManager`; currently an empty seed collection. Runtime changes remain in memory/save data. |
-| `BusinessTypes.json` | `performance_model` plus `business_types[]` (12 approved types) | Loaded by `BusinessManager`; 9 types have complete balancing, while Auto Service, Cruise, and Hotel are marked `balancing_required`. |
+| `BusinessTypes.json` | `performance_model` plus `business_types[]` (12 approved types) | Loaded by `BusinessManager`; all 12 types contain complete five-level economy and slot definitions. |
 | `npc.json` | `generation`, `names`, and `portraits` | Loaded by `NPCManager` for Worker NPCs. |
 | `relationship_npc.json` | `generation` and `names` | Loaded by `RelationshipNpcManager`. |
 | `ItemCatalog.json` | `catalog_version`, `pricing_status`, and `items[]` (261 generated definitions) | Generated explicitly from existing PNG paths and loaded by `ItemManager`; it is stable source data and is not regenerated when the shop opens. |
@@ -89,10 +89,8 @@ business_types[]: {
   business_type_id: String,
   display_name: String,
   max_level: int,
-  building_folder: String,
-  visual_variants: String[],
-  placeholder_visual_path: String,
-  configuration_status?: "configured" | "balancing_required",
+  map_visual_path: String,
+  modal_visual_path: String,
   slot_definitions: [{
     slot_id: String,
     role_name: String,
@@ -111,7 +109,9 @@ business_types[]: {
 
 The current performance model averages the named required stats and maps the result to S/A/B/C/D multiplier tiers. `required_stats` are used as performance references; the manager checks for the presence of those stats rather than enforcing their listed numbers as hiring thresholds.
 
-The approved roster contains Auto Service, Bank, Cafe, Cruise, Factory, Gym, Hospital, Hotel, Restaurant, Stadium, Tech Company, and Warehouse. Bookshop is not a type. Auto Service, Cruise, and Hotel have existing visual references but no approved cost, expense, slot, or level balancing in the inspected GDD/repository, so their records intentionally use `configuration_status = "balancing_required"` with empty `slot_definitions` and `levels`. This prevents the map from inventing backend behavior.
+The approved roster contains Auto Service, Bank, Cafe, Cruise, Factory, Gym, Hospital, Hotel, Restaurant, Stadium, Tech Company, and Warehouse. Bookshop is not a type. Auto Service, Cruise, and Hotel use the same complete, generic five-level lifecycle as every other type; there is no `configuration_status` gate.
+
+`map_visual_path` and `modal_visual_path` are independent static type-definition fields. Neither path falls back to the other, and neither depends on business level. A missing modal asset remains a valid configured path and is handled safely by the UI.
 
 ### Runtime family-business instance
 
@@ -119,7 +119,6 @@ The approved roster contains Auto Service, Bank, Cafe, Cruise, Factory, Gym, Hos
 {
   business_instance_id: String,  # generated as business_0001, ...
   business_type_id: String,
-  visual_variant_id: String,
   plot_id: String,
   level: int,
   slots: [{
@@ -131,6 +130,8 @@ The approved roster contains Auto Service, Bank, Cafe, Cruise, Factory, Gym, Hos
 ```
 
 A slot may reference either a family character or a Worker NPC. Manager logic prevents both occupant fields from representing simultaneous occupants.
+
+Runtime instances do not duplicate visual state. Map and modal paths are always resolved from the static type definition through `business_type_id`.
 
 ### Map authoring state
 

@@ -33,9 +33,9 @@ This status is derived only from files present in the inspected working tree. Th
 | Education backend | School loading, birthday event queue, enrollment/cost/stat changes, stage graduation, university decline, major choice, and graduation checks exist. |
 | External career backend | Company/job loading, requirement matching, unemployment and advancement offer pools, cooldowns, offer acceptance/rejection, and company assignment exist. |
 | Economy backend | Monthly external salary payments, family-business settlement, fixed expenses, and family-money updates exist. |
-| Family-business backend | Type loading, acquisition cost, instance creation, plot occupancy, upgrades, slots, family/Worker NPC assignment and replacement, performance tiers, income, expense, and net profit exist. |
+| Family-business backend | The approved 12-type roster is fully configured. Type loading, acquisition cost, instance creation, plot occupancy, upgrades, slots, family/Worker NPC assignment and replacement, performance tiers, income, expense, net profit, and independent static map/modal visual resolution exist. Runtime instances contain no visual variant state. |
 | Worker NPC backend | Config-driven generation, age filters, candidate ranking, availability, slot assignment, retirement, and business-income contribution exist as a system separate from Relationship NPCs. |
-| Business staffing modal flow | Business data adapter, financial/staff display, upgrade action, worker-type choice, candidate sheets, assignment, replacement, and integration tests exist. |
+| Business staffing modal flow | Business data adapter, financial/staff display, upgrade action, worker-type choice, candidate sheets, assignment, replacement, and integration tests exist. The adapter uses only `modal_visual_path`; missing modal assets are handled without crashing or falling back to map art. |
 | Save/load/autosave | Version 4 manager snapshot includes item inventory, equipment, and all three slot stocks. Version 2 loading and Version 3 global-stock migration remain compatible. Unique save IDs, dynamic save listing, Continue/Load Game flows, delete API, and deferred autosaves tied to manager signals exist. |
 | Main menu and load-game UI | Main menu, new-game modal, runtime save-slot list, continue/load navigation, and gameplay scene transitions exist. |
 | Empty Map infrastructure | `UI/Map.tscn` provides an empty, manually editable `6200 x 4200` rectangular canvas with organized Node2D containers, an editor-only boundary guide, and fixed-zoom mouse/touch drag camera limits. It contains no TileMapLayer, TileSet, roads, buildings, grounds, coast, properties, or tags. |
@@ -46,7 +46,7 @@ This status is derived only from files present in the inspected working tree. Th
 | System | Missing or limited integration observed |
 | --- | --- |
 | Overall gameplay shell | Family Tree and Map are integrated. Lifestyle remains a visual navigation entry because no Lifestyle screen exists. |
-| Family-business player flow | `BusinessManager`, `BusinessModal`, and reusable Map property/tag components remain, but the empty Map intentionally instantiates no properties. Map property/business wiring is deferred until the project owner manually authors the city. Auto Service, Cruise, and Hotel remain `balancing_required`; no values were invented. |
+| Family-business player flow | `BusinessManager`, `BusinessModal`, and reusable Map property/tag components support all 12 configured business types, but the empty Map intentionally instantiates no properties. Map property/business wiring is deferred until the project owner manually authors the city. |
 | Education player flow | Backend emits education and major-selection events, but no player-facing education choice scene or signal consumer was found outside tests/autosave hooks. |
 | Career player flow | Backend emits job offers, but no player-facing offer scene or signal consumer was found outside tests/autosave hooks. |
 | Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
@@ -102,6 +102,15 @@ Fresh Map infrastructure validation on 2026-08-25:
 - `Tests/MapScreenTest.tscn`: 8 passed / 0 failed. Coverage confirms the empty hierarchy, absence of TileMapLayer/TileSet/static Map data/local HUD, fixed rectangular `6200 x 4200` limits, unlocked startup, all-edge clamping, fixed zoom, desktop left-mouse drag, one-finger touch drag, and sensitivity `2.0`.
 - `Tests/MainFamilyTreeIntegrationTest.tscn`: 9 passed / 0 failed. Coverage confirms one shared top/navigation HUD, Map/Family Tree active states, Family Tree-only time controls, real Main input dispatch to Map camera, repeated screen reuse, and no duplicate UI accumulation.
 - Real-renderer 1080 x 1920 capture `Tests/Artifacts/map_empty_navigation.png` confirms the existing 800 x 144 Family Tree navigation presentation with Map active against the empty authoring canvas.
+
+Fresh Business Type migration validation on 2026-08-25:
+
+- Godot 4.7 editor/project scan completed with exit code 0 and registered `MapProperty`, `BusinessModal`, and `BusinessModalDataAdapter` without parser errors.
+- `Tests/BusinessManagerTest.tscn`: 25 passed / 0 failed. Coverage includes the exact unique 12-type roster, Bookshop removal, full five-level schema integrity, absent legacy visual fields, independent map/modal resolvers, level-independent map paths, simplified runtime instances, generic Auto Service/Hotel/Cruise purchase-construction-upgrade-slot lifecycles, and Cruise-versus-Stadium cost/expense comparisons.
+- `Tests/BusinessEconomyTest.tscn`: 8 passed / 0 failed; existing performance tiers, gross, fixed expense, net, and monthly settlement behavior remains unchanged.
+- `Tests/BusinessModalIntegrationTest.tscn`: 2 passed / 0 failed; the adapter uses `modal_visual_path` at Levels 1 and 5, and an absent modal PNG leaves the image empty without a map-art fallback or crash.
+- `Tests/FamilyCandidateTest.tscn`, `Tests/WorkerAssignmentFlowTest.tscn`, `Tests/WorkerNPCRetirementTest.tscn`, and `Tests/WorkerNPCSlotTest.tscn`: 28 passed / 0 failed after removing obsolete visual state from their runtime fixtures.
+- Supplemental `Tests/MapScreenTest.tscn`: 7 passed / 1 failed because its empty-map assertion conflicts with the already-authored `TileMapLayer` content currently present in `UI/Map.tscn`. The Business Type migration did not modify Map layout or that test.
 
 ## Documentation Follow-up Rule
 
