@@ -40,9 +40,6 @@
       "business_type_id": "cafe",
       "display_name": "Cafe",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Cafe",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Cafe/cafe.png",
       "slot_definitions": [
         {
           "slot_id": "cafe_manager_01",
@@ -185,15 +182,14 @@
             "assistant_manager_01"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Cafe/cafe.png",
+      "modal_visual_path": "res://Resources/Buildings/Cafe/cafe_modal.png"
     },
     {
       "business_type_id": "gym",
       "display_name": "Gym",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Gym",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Gym/gym.png",
       "slot_definitions": [
         {
           "slot_id": "gym_manager_01",
@@ -346,15 +342,14 @@
             "assistant_manager_01"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Gym/gym.png",
+      "modal_visual_path": "res://Resources/Buildings/Gym/gym_modal.png"
     },
     {
       "business_type_id": "restaurant",
       "display_name": "Restaurant",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Restaurant",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Restaurant/restaurant.png",
       "slot_definitions": [
         {
           "slot_id": "restaurant_manager_01",
@@ -528,15 +523,14 @@
             "server_03"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Restaurant/restaurant.png",
+      "modal_visual_path": "res://Resources/Buildings/Restaurant/restaurant_modal.png"
     },
     {
       "business_type_id": "warehouse",
       "display_name": "Warehouse",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Warehouse",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Warehouse/warehouse.png",
       "slot_definitions": [
         {
           "slot_id": "warehouse_manager_01",
@@ -720,15 +714,14 @@
             "inventory_clerk_02"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Warehouse/warehouse.png",
+      "modal_visual_path": "res://Resources/Buildings/Warehouse/warehouse_modal.png"
     },
     {
       "business_type_id": "factory",
       "display_name": "Factory",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Factory",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Factory/factory.png",
       "slot_definitions": [
         {
           "slot_id": "plant_manager_01",
@@ -943,15 +936,14 @@
             "machine_operator_04"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Factory/factory.png",
+      "modal_visual_path": "res://Resources/Buildings/Factory/factory_modal.png"
     },
     {
       "business_type_id": "hospital",
       "display_name": "Hospital",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Hospital",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Hospital/hospital.png",
       "slot_definitions": [
         {
           "slot_id": "doctor_01",
@@ -1106,15 +1098,14 @@
             "nurse_02"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Hospital/hospital.png",
+      "modal_visual_path": "res://Resources/Buildings/Hospital/hospital_modal.png"
     },
     {
       "business_type_id": "tech_company",
       "display_name": "Tech Company",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/TechCompany",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/TechCompany/tech_company.png",
       "slot_definitions": [
         {
           "slot_id": "team_lead_01",
@@ -1347,15 +1338,14 @@
             "ai_engineer_01"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/TechCompany/tech_company.png",
+      "modal_visual_path": "res://Resources/Buildings/TechCompany/tech_company_modal.png"
     },
     {
       "business_type_id": "bank",
       "display_name": "Bank",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Bank",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Bank/bank.png",
       "slot_definitions": [
         {
           "slot_id": "branch_manager_01",
@@ -1609,15 +1599,14 @@
             "corporate_banker_01"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Bank/bank.png",
+      "modal_visual_path": "res://Resources/Buildings/Bank/bank_modal.png"
     },
     {
       "business_type_id": "stadium",
       "display_name": "Stadium",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Stadium",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Stadium/stadium.png",
       "slot_definitions": [
         {
           "slot_id": "general_manager_01",
@@ -1930,40 +1919,787 @@
             "operations_02"
           ]
         }
-      ]
+      ],
+      "map_visual_path": "res://Resources/Buildings/Stadium/stadium.png",
+      "modal_visual_path": "res://Resources/Buildings/Stadium/stadium_modal.png"
     },
     {
       "business_type_id": "auto_service",
       "display_name": "Auto Service",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/AutoService",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/AutoService/auto_service.png",
-      "configuration_status": "balancing_required",
-      "slot_definitions": [],
-      "levels": []
+      "slot_definitions": [
+        {
+          "slot_id": "service_manager_01",
+          "role_name": "Service Manager",
+          "unlock_level": 1,
+          "base_gross_contribution": 6000,
+          "required_stats": {
+            "logic": 55,
+            "social": 55,
+            "confidence": 55,
+            "discipline": 60
+          }
+        },
+        {
+          "slot_id": "mechanic_01",
+          "role_name": "Mechanic",
+          "unlock_level": 1,
+          "base_gross_contribution": 4500,
+          "required_stats": {
+            "logic": 50,
+            "health": 50,
+            "discipline": 55
+          }
+        },
+        {
+          "slot_id": "receptionist_01",
+          "role_name": "Receptionist",
+          "unlock_level": 1,
+          "base_gross_contribution": 2000,
+          "required_stats": {
+            "social": 45,
+            "confidence": 40,
+            "discipline": 40
+          }
+        },
+        {
+          "slot_id": "mechanic_02",
+          "role_name": "Mechanic",
+          "unlock_level": 2,
+          "base_gross_contribution": 4500,
+          "required_stats": {
+            "logic": 55,
+            "health": 50,
+            "discipline": 55
+          }
+        },
+        {
+          "slot_id": "diagnostic_technician_01",
+          "role_name": "Diagnostic Technician",
+          "unlock_level": 3,
+          "base_gross_contribution": 6000,
+          "required_stats": {
+            "logic": 65,
+            "discipline": 60,
+            "creativity": 45
+          }
+        },
+        {
+          "slot_id": "parts_specialist_01",
+          "role_name": "Parts Specialist",
+          "unlock_level": 3,
+          "base_gross_contribution": 3000,
+          "required_stats": {
+            "logic": 50,
+            "social": 45,
+            "discipline": 50
+          }
+        },
+        {
+          "slot_id": "senior_mechanic_01",
+          "role_name": "Senior Mechanic",
+          "unlock_level": 4,
+          "base_gross_contribution": 7000,
+          "required_stats": {
+            "logic": 65,
+            "health": 55,
+            "confidence": 50,
+            "discipline": 65,
+            "creativity": 45
+          }
+        },
+        {
+          "slot_id": "bodywork_technician_01",
+          "role_name": "Bodywork Technician",
+          "unlock_level": 5,
+          "base_gross_contribution": 5500,
+          "required_stats": {
+            "health": 55,
+            "discipline": 60,
+            "creativity": 55
+          }
+        },
+        {
+          "slot_id": "service_advisor_01",
+          "role_name": "Service Advisor",
+          "unlock_level": 5,
+          "base_gross_contribution": 4500,
+          "required_stats": {
+            "logic": 50,
+            "social": 60,
+            "confidence": 55,
+            "discipline": 50
+          }
+        }
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": 60000,
+          "fixed_monthly_expense": 5000,
+          "slot_ids": [
+            "service_manager_01",
+            "mechanic_01",
+            "receptionist_01"
+          ]
+        },
+        {
+          "level": 2,
+          "cost": 80000,
+          "fixed_monthly_expense": 6800,
+          "slot_ids": [
+            "service_manager_01",
+            "mechanic_01",
+            "receptionist_01",
+            "mechanic_02"
+          ]
+        },
+        {
+          "level": 3,
+          "cost": 110000,
+          "fixed_monthly_expense": 10400,
+          "slot_ids": [
+            "service_manager_01",
+            "mechanic_01",
+            "receptionist_01",
+            "mechanic_02",
+            "diagnostic_technician_01",
+            "parts_specialist_01"
+          ]
+        },
+        {
+          "level": 4,
+          "cost": 150000,
+          "fixed_monthly_expense": 13200,
+          "slot_ids": [
+            "service_manager_01",
+            "mechanic_01",
+            "receptionist_01",
+            "mechanic_02",
+            "diagnostic_technician_01",
+            "parts_specialist_01",
+            "senior_mechanic_01"
+          ]
+        },
+        {
+          "level": 5,
+          "cost": 200000,
+          "fixed_monthly_expense": 17200,
+          "slot_ids": [
+            "service_manager_01",
+            "mechanic_01",
+            "receptionist_01",
+            "mechanic_02",
+            "diagnostic_technician_01",
+            "parts_specialist_01",
+            "senior_mechanic_01",
+            "bodywork_technician_01",
+            "service_advisor_01"
+          ]
+        }
+      ],
+      "map_visual_path": "res://Resources/Buildings/AutoService/auto_service.png",
+      "modal_visual_path": "res://Resources/Buildings/AutoService/auto_service_modal.png"
     },
     {
       "business_type_id": "cruise",
       "display_name": "Cruise",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Cruise",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Cruise/cruise.png",
-      "configuration_status": "balancing_required",
-      "slot_definitions": [],
-      "levels": []
+      "slot_definitions": [
+        {
+          "slot_id": "captain_01",
+          "role_name": "Captain",
+          "unlock_level": 1,
+          "base_gross_contribution": 14000,
+          "required_stats": {
+            "logic": 70,
+            "health": 55,
+            "confidence": 70,
+            "discipline": 70
+          }
+        },
+        {
+          "slot_id": "cruise_director_01",
+          "role_name": "Cruise Director",
+          "unlock_level": 1,
+          "base_gross_contribution": 12000,
+          "required_stats": {
+            "logic": 50,
+            "social": 70,
+            "confidence": 70,
+            "discipline": 55,
+            "creativity": 60
+          }
+        },
+        {
+          "slot_id": "chief_engineer_01",
+          "role_name": "Chief Engineer",
+          "unlock_level": 1,
+          "base_gross_contribution": 10000,
+          "required_stats": {
+            "logic": 65,
+            "health": 55,
+            "discipline": 65
+          }
+        },
+        {
+          "slot_id": "chef_01",
+          "role_name": "Chef",
+          "unlock_level": 1,
+          "base_gross_contribution": 8000,
+          "required_stats": {
+            "health": 45,
+            "discipline": 55,
+            "creativity": 60
+          }
+        },
+        {
+          "slot_id": "steward_01",
+          "role_name": "Steward",
+          "unlock_level": 1,
+          "base_gross_contribution": 6000,
+          "required_stats": {
+            "attractiveness": 40,
+            "social": 55,
+            "discipline": 45
+          }
+        },
+        {
+          "slot_id": "entertainment_manager_01",
+          "role_name": "Entertainment Manager",
+          "unlock_level": 2,
+          "base_gross_contribution": 15000,
+          "required_stats": {
+            "social": 65,
+            "confidence": 60,
+            "discipline": 50,
+            "creativity": 65
+          }
+        },
+        {
+          "slot_id": "security_01",
+          "role_name": "Security Officer",
+          "unlock_level": 2,
+          "base_gross_contribution": 10000,
+          "required_stats": {
+            "health": 60,
+            "confidence": 50,
+            "discipline": 55
+          }
+        },
+        {
+          "slot_id": "steward_02",
+          "role_name": "Steward",
+          "unlock_level": 2,
+          "base_gross_contribution": 10000,
+          "required_stats": {
+            "attractiveness": 40,
+            "social": 55,
+            "discipline": 45
+          }
+        },
+        {
+          "slot_id": "hospitality_manager_01",
+          "role_name": "Hospitality Manager",
+          "unlock_level": 3,
+          "base_gross_contribution": 18000,
+          "required_stats": {
+            "logic": 50,
+            "attractiveness": 45,
+            "social": 70,
+            "confidence": 65,
+            "discipline": 60
+          }
+        },
+        {
+          "slot_id": "engineer_02",
+          "role_name": "Marine Engineer",
+          "unlock_level": 3,
+          "base_gross_contribution": 15000,
+          "required_stats": {
+            "logic": 70,
+            "health": 60,
+            "discipline": 65
+          }
+        },
+        {
+          "slot_id": "bartender_01",
+          "role_name": "Bartender",
+          "unlock_level": 3,
+          "base_gross_contribution": 12000,
+          "required_stats": {
+            "social": 60,
+            "confidence": 50,
+            "discipline": 45,
+            "creativity": 50
+          }
+        },
+        {
+          "slot_id": "executive_chef_01",
+          "role_name": "Executive Chef",
+          "unlock_level": 4,
+          "base_gross_contribution": 20000,
+          "required_stats": {
+            "logic": 45,
+            "health": 50,
+            "confidence": 55,
+            "discipline": 65,
+            "creativity": 70
+          }
+        },
+        {
+          "slot_id": "event_director_01",
+          "role_name": "Event Director",
+          "unlock_level": 4,
+          "base_gross_contribution": 22000,
+          "required_stats": {
+            "logic": 50,
+            "social": 70,
+            "confidence": 70,
+            "discipline": 60,
+            "creativity": 65
+          }
+        },
+        {
+          "slot_id": "medical_officer_01",
+          "role_name": "Medical Officer",
+          "unlock_level": 4,
+          "base_gross_contribution": 18000,
+          "required_stats": {
+            "logic": 65,
+            "health": 65,
+            "discipline": 60
+          }
+        },
+        {
+          "slot_id": "commercial_director_01",
+          "role_name": "Commercial Director",
+          "unlock_level": 5,
+          "base_gross_contribution": 25000,
+          "required_stats": {
+            "logic": 65,
+            "social": 70,
+            "confidence": 75,
+            "discipline": 65
+          }
+        },
+        {
+          "slot_id": "first_officer_01",
+          "role_name": "First Officer",
+          "unlock_level": 5,
+          "base_gross_contribution": 22000,
+          "required_stats": {
+            "logic": 70,
+            "health": 60,
+            "confidence": 65,
+            "discipline": 75
+          }
+        },
+        {
+          "slot_id": "luxury_services_manager_01",
+          "role_name": "Luxury Services Manager",
+          "unlock_level": 5,
+          "base_gross_contribution": 23000,
+          "required_stats": {
+            "attractiveness": 55,
+            "social": 75,
+            "confidence": 70,
+            "discipline": 60
+          }
+        },
+        {
+          "slot_id": "steward_03",
+          "role_name": "Senior Steward",
+          "unlock_level": 5,
+          "base_gross_contribution": 15000,
+          "required_stats": {
+            "attractiveness": 45,
+            "social": 60,
+            "confidence": 45,
+            "discipline": 50
+          }
+        }
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": 300000,
+          "fixed_monthly_expense": 20000,
+          "slot_ids": [
+            "captain_01",
+            "cruise_director_01",
+            "chief_engineer_01",
+            "chef_01",
+            "steward_01"
+          ]
+        },
+        {
+          "level": 2,
+          "cost": 420000,
+          "fixed_monthly_expense": 34000,
+          "slot_ids": [
+            "captain_01",
+            "cruise_director_01",
+            "chief_engineer_01",
+            "chef_01",
+            "steward_01",
+            "entertainment_manager_01",
+            "security_01",
+            "steward_02"
+          ]
+        },
+        {
+          "level": 3,
+          "cost": 600000,
+          "fixed_monthly_expense": 52000,
+          "slot_ids": [
+            "captain_01",
+            "cruise_director_01",
+            "chief_engineer_01",
+            "chef_01",
+            "steward_01",
+            "entertainment_manager_01",
+            "security_01",
+            "steward_02",
+            "hospitality_manager_01",
+            "engineer_02",
+            "bartender_01"
+          ]
+        },
+        {
+          "level": 4,
+          "cost": 850000,
+          "fixed_monthly_expense": 76000,
+          "slot_ids": [
+            "captain_01",
+            "cruise_director_01",
+            "chief_engineer_01",
+            "chef_01",
+            "steward_01",
+            "entertainment_manager_01",
+            "security_01",
+            "steward_02",
+            "hospitality_manager_01",
+            "engineer_02",
+            "bartender_01",
+            "executive_chef_01",
+            "event_director_01",
+            "medical_officer_01"
+          ]
+        },
+        {
+          "level": 5,
+          "cost": 1200000,
+          "fixed_monthly_expense": 110000,
+          "slot_ids": [
+            "captain_01",
+            "cruise_director_01",
+            "chief_engineer_01",
+            "chef_01",
+            "steward_01",
+            "entertainment_manager_01",
+            "security_01",
+            "steward_02",
+            "hospitality_manager_01",
+            "engineer_02",
+            "bartender_01",
+            "executive_chef_01",
+            "event_director_01",
+            "medical_officer_01",
+            "commercial_director_01",
+            "first_officer_01",
+            "luxury_services_manager_01",
+            "steward_03"
+          ]
+        }
+      ],
+      "map_visual_path": "res://Resources/Buildings/Cruise/cruise.png",
+      "modal_visual_path": "res://Resources/Buildings/Cruise/cruise_modal.png"
     },
     {
       "business_type_id": "hotel",
       "display_name": "Hotel",
       "max_level": 5,
-      "building_folder": "res://Resources/Buildings/Hotel",
-      "visual_variants": [],
-      "placeholder_visual_path": "res://Resources/Buildings/Hotel/hotel.png",
-      "configuration_status": "balancing_required",
-      "slot_definitions": [],
-      "levels": []
+      "slot_definitions": [
+        {
+          "slot_id": "hotel_manager_01",
+          "role_name": "Hotel Manager",
+          "unlock_level": 1,
+          "base_gross_contribution": 8000,
+          "required_stats": {
+            "logic": 60,
+            "social": 60,
+            "confidence": 60,
+            "discipline": 60
+          }
+        },
+        {
+          "slot_id": "receptionist_01",
+          "role_name": "Receptionist",
+          "unlock_level": 1,
+          "base_gross_contribution": 3500,
+          "required_stats": {
+            "attractiveness": 40,
+            "social": 55,
+            "confidence": 45,
+            "discipline": 45
+          }
+        },
+        {
+          "slot_id": "concierge_01",
+          "role_name": "Concierge",
+          "unlock_level": 1,
+          "base_gross_contribution": 4000,
+          "required_stats": {
+            "attractiveness": 45,
+            "social": 60,
+            "confidence": 50,
+            "discipline": 45
+          }
+        },
+        {
+          "slot_id": "housekeeper_01",
+          "role_name": "Housekeeper",
+          "unlock_level": 1,
+          "base_gross_contribution": 3000,
+          "required_stats": {
+            "health": 45,
+            "discipline": 50
+          }
+        },
+        {
+          "slot_id": "maintenance_01",
+          "role_name": "Maintenance Worker",
+          "unlock_level": 1,
+          "base_gross_contribution": 3500,
+          "required_stats": {
+            "logic": 40,
+            "health": 50,
+            "discipline": 50
+          }
+        },
+        {
+          "slot_id": "chef_01",
+          "role_name": "Chef",
+          "unlock_level": 2,
+          "base_gross_contribution": 7000,
+          "required_stats": {
+            "health": 45,
+            "discipline": 55,
+            "creativity": 60
+          }
+        },
+        {
+          "slot_id": "housekeeper_02",
+          "role_name": "Housekeeper",
+          "unlock_level": 2,
+          "base_gross_contribution": 3000,
+          "required_stats": {
+            "health": 50,
+            "discipline": 50
+          }
+        },
+        {
+          "slot_id": "hospitality_manager_01",
+          "role_name": "Hospitality Manager",
+          "unlock_level": 3,
+          "base_gross_contribution": 9000,
+          "required_stats": {
+            "logic": 50,
+            "attractiveness": 45,
+            "social": 65,
+            "confidence": 60,
+            "discipline": 55
+          }
+        },
+        {
+          "slot_id": "server_01",
+          "role_name": "Server",
+          "unlock_level": 3,
+          "base_gross_contribution": 4000,
+          "required_stats": {
+            "attractiveness": 40,
+            "social": 55,
+            "confidence": 45,
+            "discipline": 40
+          }
+        },
+        {
+          "slot_id": "security_01",
+          "role_name": "Security Officer",
+          "unlock_level": 3,
+          "base_gross_contribution": 5000,
+          "required_stats": {
+            "health": 55,
+            "confidence": 50,
+            "discipline": 55
+          }
+        },
+        {
+          "slot_id": "event_manager_01",
+          "role_name": "Event Manager",
+          "unlock_level": 4,
+          "base_gross_contribution": 10000,
+          "required_stats": {
+            "logic": 50,
+            "social": 65,
+            "confidence": 60,
+            "discipline": 55,
+            "creativity": 60
+          }
+        },
+        {
+          "slot_id": "concierge_02",
+          "role_name": "Concierge",
+          "unlock_level": 4,
+          "base_gross_contribution": 5000,
+          "required_stats": {
+            "attractiveness": 50,
+            "social": 65,
+            "confidence": 55,
+            "discipline": 50
+          }
+        },
+        {
+          "slot_id": "bartender_01",
+          "role_name": "Bartender",
+          "unlock_level": 4,
+          "base_gross_contribution": 5000,
+          "required_stats": {
+            "social": 60,
+            "confidence": 50,
+            "discipline": 50,
+            "creativity": 50
+          }
+        },
+        {
+          "slot_id": "revenue_manager_01",
+          "role_name": "Revenue Manager",
+          "unlock_level": 5,
+          "base_gross_contribution": 11000,
+          "required_stats": {
+            "logic": 70,
+            "social": 50,
+            "confidence": 60,
+            "discipline": 65
+          }
+        },
+        {
+          "slot_id": "executive_chef_01",
+          "role_name": "Executive Chef",
+          "unlock_level": 5,
+          "base_gross_contribution": 10000,
+          "required_stats": {
+            "logic": 45,
+            "health": 50,
+            "confidence": 55,
+            "discipline": 65,
+            "creativity": 70
+          }
+        },
+        {
+          "slot_id": "guest_relations_01",
+          "role_name": "Guest Relations Manager",
+          "unlock_level": 5,
+          "base_gross_contribution": 7000,
+          "required_stats": {
+            "attractiveness": 50,
+            "social": 70,
+            "confidence": 65,
+            "discipline": 55
+          }
+        }
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "cost": 160000,
+          "fixed_monthly_expense": 8800,
+          "slot_ids": [
+            "hotel_manager_01",
+            "receptionist_01",
+            "concierge_01",
+            "housekeeper_01",
+            "maintenance_01"
+          ]
+        },
+        {
+          "level": 2,
+          "cost": 205000,
+          "fixed_monthly_expense": 12800,
+          "slot_ids": [
+            "hotel_manager_01",
+            "receptionist_01",
+            "concierge_01",
+            "housekeeper_01",
+            "maintenance_01",
+            "chef_01",
+            "housekeeper_02"
+          ]
+        },
+        {
+          "level": 3,
+          "cost": 285000,
+          "fixed_monthly_expense": 20000,
+          "slot_ids": [
+            "hotel_manager_01",
+            "receptionist_01",
+            "concierge_01",
+            "housekeeper_01",
+            "maintenance_01",
+            "chef_01",
+            "housekeeper_02",
+            "hospitality_manager_01",
+            "server_01",
+            "security_01"
+          ]
+        },
+        {
+          "level": 4,
+          "cost": 385000,
+          "fixed_monthly_expense": 28000,
+          "slot_ids": [
+            "hotel_manager_01",
+            "receptionist_01",
+            "concierge_01",
+            "housekeeper_01",
+            "maintenance_01",
+            "chef_01",
+            "housekeeper_02",
+            "hospitality_manager_01",
+            "server_01",
+            "security_01",
+            "event_manager_01",
+            "concierge_02",
+            "bartender_01"
+          ]
+        },
+        {
+          "level": 5,
+          "cost": 520000,
+          "fixed_monthly_expense": 39200,
+          "slot_ids": [
+            "hotel_manager_01",
+            "receptionist_01",
+            "concierge_01",
+            "housekeeper_01",
+            "maintenance_01",
+            "chef_01",
+            "housekeeper_02",
+            "hospitality_manager_01",
+            "server_01",
+            "security_01",
+            "event_manager_01",
+            "concierge_02",
+            "bartender_01",
+            "revenue_manager_01",
+            "executive_chef_01",
+            "guest_relations_01"
+          ]
+        }
+      ],
+      "map_visual_path": "res://Resources/Buildings/Hotel/hotel.png",
+      "modal_visual_path": "res://Resources/Buildings/Hotel/hotel_modal.png"
     }
   ]
 }
