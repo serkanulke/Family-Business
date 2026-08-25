@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+<svg xmlns="http://www.w3.org/2000/svg" width="202" height="101" viewBox="0 0 202 101">
   <defs>
     <style>
       .cls-1 {
-        fill: #8a9644;
+        fill: #bcbd4c;
       }
     </style>
   </defs>
   <title>grass</title>
   <g id="Layer_2" data-name="Layer 2">
     <g id="Layer_1-2" data-name="Layer 1">
-      <polygon class="cls-1" points="200 49.82 99.64 100 0 50.18 100.36 0 200 49.82"/>
+      <polygon class="cls-1" points="202 50.32 100.63 101 0 50.68 101.37 0 202 50.32"/>
     </g>
   </g>
 </svg>

@@ -2,7 +2,7 @@
 
 ## Snapshot
 
-- Inspected: 2026-08-23
+- Inspected: 2026-08-25
 - Branch: `main`
 - HEAD: `86a220c` (`Ui elements`, 2026-08-18)
 - Engine configuration: Godot 4.7
@@ -38,20 +38,20 @@ This status is derived only from files present in the inspected working tree. Th
 | Business staffing modal flow | Business data adapter, financial/staff display, upgrade action, worker-type choice, candidate sheets, assignment, replacement, and integration tests exist. |
 | Save/load/autosave | Version 4 manager snapshot includes item inventory, equipment, and all three slot stocks. Version 2 loading and Version 3 global-stock migration remain compatible. Unique save IDs, dynamic save listing, Continue/Load Game flows, delete API, and deferred autosaves tied to manager signals exist. |
 | Main menu and load-game UI | Main menu, new-game modal, runtime save-slot list, continue/load navigation, and gameplay scene transitions exist. |
-| Interactive isometric map | `UI/Map.tscn` loads a fully authored, non-procedural 2:1 map from `Map.json`. Separate main/detail TileMapLayer groups, roads, grounds, coast, property visuals/tags, environment decoration, bounded pan/zoom, HUD, and the existing BusinessModal are integrated into the main gameplay scene. The authored content contains 45 businesses in the approved 12-type roster, 24 houses with exactly 10 purchasable, three 2x2 and three 4x4 land plots, schools/skyscrapers as untagged city decor, and a 1x3 Cruise in open sea without a pier. |
-| Family Tree / Map navigation | Main owns the persistent Family Tree and lazily created Map instances. Navigation toggles visibility and processing without rebuilding either screen or leaking input to the hidden screen. |
+| Empty Map infrastructure | `UI/Map.tscn` provides an empty, manually editable `6200 x 4200` rectangular canvas with organized Node2D containers, an editor-only boundary guide, and fixed-zoom mouse/touch drag camera limits. It contains no TileMapLayer, TileSet, roads, buildings, grounds, coast, properties, or tags. |
+| Family Tree / Map navigation | Main owns the persistent Family Tree, lazily created Map, and one shared Main HUD extracted from the existing Family Tree presentation. The shared bottom navigation changes only active state; Date/Money/Diamond and navigation do not duplicate, while Family Tree time controls remain Family Tree-only. |
 
 ## Partial
 
 | System | Missing or limited integration observed |
 | --- | --- |
 | Overall gameplay shell | Family Tree and Map are integrated. Lifestyle remains a visual navigation entry because no Lifestyle screen exists. |
-| Family-business player flow | Owned map properties open the existing BusinessModal through the exact `business_instance_id`/`plot_id` resolved from `BusinessManager`. Unowned plots emit a typed purchase request, but no approved purchase-confirmation UI exists. Auto Service, Cruise, and Hotel cannot be created yet because the GDD/repository has no approved costs, level expenses, or staffing definitions for them; their type records are intentionally marked `balancing_required` instead of fabricating values. |
+| Family-business player flow | `BusinessManager`, `BusinessModal`, and reusable Map property/tag components remain, but the empty Map intentionally instantiates no properties. Map property/business wiring is deferred until the project owner manually authors the city. Auto Service, Cruise, and Hotel remain `balancing_required`; no values were invented. |
 | Education player flow | Backend emits education and major-selection events, but no player-facing education choice scene or signal consumer was found outside tests/autosave hooks. |
 | Career player flow | Backend emits job offers, but no player-facing offer scene or signal consumer was found outside tests/autosave hooks. |
 | Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
 | Settings | Settings values and setter methods exist in `GameManager`, and menu/HUD settings visuals exist, but no settings screen or connected editing flow was found. |
-| Building visuals | All approved business types, houses, schools, skyscrapers, and land plots use existing repository assets and corrected type paths. Some supplied Factory, Warehouse, and Cafe PNGs contain baked ground/parking/landscaping pixels, so strict visual independence between building art and the map ground layer cannot be completed without replacement source art. No asset pixels were altered by the Map implementation. |
+| Building visuals | Existing building and road artwork remains available for later manual authoring, but none is placed by the empty Map infrastructure. No artwork was created or modified by this repair. |
 | House and land ownership flow | Authored properties, tags, selection, sizes, fit validation, and scattered For Sale state exist. No House/Land manager, save schema, approved prices, purchase confirmation, or construction-selection UI was found, so these selections emit requests but do not mutate ownership. |
 | Legacy Bookshop save migration | Bookshop is removed from current `BusinessTypes.json` and authored map data. No GDD decision identifies how an already purchased Bookshop in an older save should be converted or compensated, so existing save records are preserved as unsupported legacy instances rather than silently deleted or mapped to an unrelated type. |
 | Lifestyle class label | Equipped-item Lifestyle score and star presentation are implemented. The optional cosmetic class label remains hidden because no canonical label resolver/text set was found; this does not block Lifestyle gameplay. |
@@ -96,13 +96,12 @@ Fresh Item List / Shop validation on 2026-08-20:
 - `Tests/DynamicSaveManagerTest.tscn`: 17 passed / 0 failed with real `user://` writes after the Save version 4 slot-stock integration.
 - The renderer reported no Item List / Shop runtime error. The headless run still prints the existing Windows root-certificate-store warning, which is unrelated to this UI.
 
-Fresh Map and related business validation on 2026-08-23:
+Fresh Map infrastructure validation on 2026-08-25:
 
-- `Tests/MapScreenTest.tscn`: 8 passed / 0 failed. Coverage includes canonical 200 x 100 / 50 x 25 projection alignment, authored counts and approved roster, no Bookshop/City Hall content, property overlap checks, bike-path/road separation, land-size fit rules, BusinessModal/property-tag routing, explicit null price/unavailable backend reporting for unbalanced types, bounded camera behavior, HUD values, and absence of Family Tree time controls on the Map.
-- `Tests/BusinessManagerTest.tscn`: 21 passed / 0 failed; `Tests/BusinessEconomyTest.tscn`: 8 passed / 0 failed; `Tests/WorkerAssignmentFlowTest.tscn`: 7 passed / 0 failed; `Tests/WorkerNPCSlotTest.tscn`: 7 passed / 0 failed. The approved 12-type roster is recognized and Bookshop is absent.
-- `Tests/BusinessModalIntegrationTest.tscn` passed its manager-backed Hospital/modal integration checks.
-- `Tests/FamilyTreeCameraTest.tscn`: 5 passed / 0 failed; `Tests/FamilyTreePanBoundsTest.tscn`: 5 passed / 0 failed, confirming navigation changes did not regress the existing Family Tree camera checks.
-- Real-renderer capture completed without runtime errors at 1080 x 1920 and wrote five district/overview PNGs under `Tests/Artifacts/`: `map_production_overview.png`, `map_production_waterfront.png`, `map_production_downtown.png`, `map_production_residential.png`, and `map_production_industrial.png`.
+- Godot 4.7 editor/project scan completed without Map-related parser or missing-resource errors.
+- `Tests/MapScreenTest.tscn`: 8 passed / 0 failed. Coverage confirms the empty hierarchy, absence of TileMapLayer/TileSet/static Map data/local HUD, fixed rectangular `6200 x 4200` limits, unlocked startup, all-edge clamping, fixed zoom, desktop left-mouse drag, one-finger touch drag, and sensitivity `2.0`.
+- `Tests/MainFamilyTreeIntegrationTest.tscn`: 9 passed / 0 failed. Coverage confirms one shared top/navigation HUD, Map/Family Tree active states, Family Tree-only time controls, real Main input dispatch to Map camera, repeated screen reuse, and no duplicate UI accumulation.
+- Real-renderer 1080 x 1920 capture `Tests/Artifacts/map_empty_navigation.png` confirms the existing 800 x 144 Family Tree navigation presentation with Map active against the empty authoring canvas.
 
 ## Documentation Follow-up Rule
 

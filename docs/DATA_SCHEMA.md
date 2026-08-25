@@ -15,7 +15,6 @@ This document records schemas observed in the current JSON files, manager-create
 | `Companies.json` | `companies[]` (90 records) | Loaded by `CareerManager`. |
 | `Business.json` | `{ "businesses": [] }` | Loaded by `BusinessManager`; currently an empty seed collection. Runtime changes remain in memory/save data. |
 | `BusinessTypes.json` | `performance_model` plus `business_types[]` (12 approved types) | Loaded by `BusinessManager`; 9 types have complete balancing, while Auto Service, Cruise, and Hotel are marked `balancing_required`. |
-| `Map.json` | projection metadata, authored layers, `properties[]`, and `decorations[]` | Loaded by `MapScreen`; defines static map layout and property references, not mutable ownership state. |
 | `npc.json` | `generation`, `names`, and `portraits` | Loaded by `NPCManager` for Worker NPCs. |
 | `relationship_npc.json` | `generation` and `names` | Loaded by `RelationshipNpcManager`. |
 | `ItemCatalog.json` | `catalog_version`, `pricing_status`, and `items[]` (261 generated definitions) | Generated explicitly from existing PNG paths and loaded by `ItemManager`; it is stable source data and is not regenerated when the shop opens. |
@@ -133,49 +132,9 @@ The approved roster contains Auto Service, Bank, Cafe, Cruise, Factory, Gym, Hos
 
 A slot may reference either a family character or a Worker NPC. Manager logic prevents both occupant fields from representing simultaneous occupants.
 
-### Authored map (`Map.json`)
+### Map authoring state
 
-```text
-projection: {
-  type: "isometric_2_1",
-  main_tile_size: [200, 100],
-  detail_tile_size: [50, 25],
-  detail_subdivision: 4
-}
-
-ground_regions[]: { layer, from: [x, y], to: [x, y], asset }
-coast_regions[]: { layer, from: [x, y], to: [x, y], asset }
-road_segments[]: { axis: "x" | "y", fixed, from, to, family, asset }
-road_overrides[]: { cell: [x, y], asset }
-detail_segments[]: { kind, axis: "x" | "y", fixed, from, to, asset }
-
-properties[]: {
-  id: String,
-  category: "family_business" | "house" | "land" | "city_decor",
-  visual_type: String,
-  display_name: String,
-  grid_position: [int, int],
-  footprint: [int, int],  # width, height
-  ground_type: "asphalt" | "grass" | "sea",
-  purchasable: bool,
-  business_type_id?: String,
-  business_instance_id?: String | null,
-  house_id?: String,
-  land_plot_type?: "2x2" | "4x4",
-  tag_visibility: bool,
-  district: String,
-  visual_path: String,
-  sprite_offset?: [number, number],
-  tag_offset?: [number, number],
-  tag_scale?: number
-}
-
-decorations[]: { id, detail_grid_position: [int, int], visual_path, visual_scale? }
-```
-
-Coordinates and footprints are authored integers on the 200 x 100 main grid. Detail coordinates use the exactly aligned 50 x 25 grid; four detail cells span one main cell on each grid axis. Property `id` is the static plot identity and maps to `BusinessManager.plot_id` for mutable family-business instances. `business_instance_id` is nullable static linkage only; the runtime resolver also queries the manager by `plot_id`, so save-owned instances remain authoritative. City decor is non-purchasable and has `tag_visibility = false`.
-
-`Map.json` does not define house/land prices. When selected, those properties emit a purchase request with `purchase_cost = null` and `backend_available = false`; unbalanced business types do the same. Configured business prices are resolved from `BusinessManager`, never copied into the map schema.
+The production Map is currently an empty scene prepared for manual authoring. No `Map.json` static layout schema is loaded or present, and no map placement data is generated at runtime. The fixed `6200 x 4200` world boundary and camera settings are scene/script infrastructure rather than gameplay save data. Reusable property/tag helpers do not define active runtime records until manually authored content is connected in a later task.
 
 The approved roster removes Bookshop from static type data. A pre-existing save that already contains a Bookshop instance has no confirmed conversion target in GDD v3.5; the loader therefore does not silently convert it to another business or delete purchased state. Such a legacy instance remains unsupported/orphaned until a migration policy is confirmed.
 

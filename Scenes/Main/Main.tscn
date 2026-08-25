@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bvcopx3ku8gti"]
+[gd_scene load_steps=4 format=3 uid="uid://bvcopx3ku8gti"]
 
 [ext_resource type="PackedScene" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
 [ext_resource type="Script" path="res://Scenes/Main/Main.gd" id="2_main"]
+[ext_resource type="PackedScene" path="res://UI/MainHUD.tscn" id="3_hud"]
 
 [node name="Main" type="Node" unique_id=1660465117]
 script = ExtResource("2_main")
@@ -11,3 +12,8 @@ script = ExtResource("2_main")
 [node name="World" type="Node" parent="." unique_id=273692419]
 
 [node name="FamilyTreeScreen" parent="World" unique_id=61167402 instance=ExtResource("1_family_tree_screen")]
+
+[node name="SharedUI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MainHUD" parent="SharedUI" instance=ExtResource("3_hud")]

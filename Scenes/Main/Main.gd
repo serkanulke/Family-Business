@@ -5,13 +5,14 @@ const MAP_SCENE := preload("res://UI/Map.tscn")
 
 @onready var world: Node = $World
 @onready var family_tree_screen: FamilyTreeScreen = $World/FamilyTreeScreen
+@onready var main_hud: MainHUD = $SharedUI/MainHUD
 
 var map_screen: MapScreen
 
 
 func _ready() -> void:
-	if not family_tree_screen.screen_requested.is_connected(_on_screen_requested):
-		family_tree_screen.screen_requested.connect(_on_screen_requested)
+	if not main_hud.screen_requested.is_connected(_on_screen_requested):
+		main_hud.screen_requested.connect(_on_screen_requested)
 	_show_family_tree()
 
 
@@ -32,12 +33,15 @@ func _show_map() -> void:
 		map_screen = MAP_SCENE.instantiate() as MapScreen
 		map_screen.name = "MapScreen"
 		world.add_child(map_screen)
-		map_screen.family_tree_requested.connect(_show_family_tree)
 	family_tree_screen.visible = false
 	family_tree_screen.process_mode = Node.PROCESS_MODE_DISABLED
+	if family_tree_screen.has_method("set_screen_active"):
+		family_tree_screen.call("set_screen_active", false)
 	map_screen.visible = true
 	map_screen.process_mode = Node.PROCESS_MODE_INHERIT
 	map_screen.refresh_from_managers()
+	main_hud.set_active_screen("map")
+	main_hud.refresh_from_managers()
 
 
 func _show_family_tree() -> void:
@@ -46,4 +50,8 @@ func _show_family_tree() -> void:
 		map_screen.process_mode = Node.PROCESS_MODE_DISABLED
 	family_tree_screen.visible = true
 	family_tree_screen.process_mode = Node.PROCESS_MODE_INHERIT
+	if family_tree_screen.has_method("set_screen_active"):
+		family_tree_screen.call("set_screen_active", true)
 	family_tree_screen.refresh_from_managers()
+	main_hud.set_active_screen("family_tree")
+	main_hud.refresh_from_managers()

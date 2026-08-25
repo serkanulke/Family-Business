@@ -11,7 +11,7 @@ The working tree already contained modified and untracked project assets before 
 - Engine configuration: Godot 4.7, mobile renderer, Jolt Physics.
 - Display baseline: 1080 x 1920 with `canvas_items` stretch and `expand` aspect.
 - Startup scene: `res://Scenes/MainMenu/MainMenu.tscn`.
-- Gameplay scene: `res://Scenes/Main/Main.tscn`; it owns the persistent Family Tree instance and lazily instantiates the Map screen when requested.
+- Gameplay scene: `res://Scenes/Main/Main.tscn`; it owns the persistent Family Tree instance, lazily instantiates the Map screen, and owns the single shared top/navigation HUD.
 - Persistent runtime state is held by autoload managers and serialized by `SaveManager` to `user://saves`.
 - Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries.
 
@@ -25,7 +25,7 @@ The working tree already contained modified and untracked project assets before 
 | `UI/CharacterCard/` | Runtime-built, scrollable Character Card overlay and its manager-backed presentation script. |
 | `UI/ItemListShop/` | Reusable Accessory/Outfit/Vehicle Item List bottom sheet, display-only item cards, information panel, filter bar, and filename/path-based Accessory category classifier. |
 | `Scripts/FamilyTree/` | Family-tree layout, rendering, character nodes, link nodes, and camera behavior. |
-| `Scripts/Map/` | Isometric coordinate conversion, authored map loading/validation, property/tag presentation, camera input, and map-screen integration. |
+| `Scripts/Map/` | Empty Map screen integration, fixed rectangular camera input, an editor-only boundary guide, and preserved property/tag helpers for later manual authoring. |
 | `UI/Map/` | Reusable floating property-tag scene used by map properties. |
 | `Scripts/UI/Business/` | Business modal, manager-to-UI adapter, and worker-flow connector. |
 | `UI/Business/WorkerSelection/` | Worker source selection and candidate assignment flow. |
@@ -67,8 +67,8 @@ Autoload order in `project.godot` is significant because later managers use earl
 
 - `Scenes/MainMenu/MainMenu.tscn` provides Continue, Load Game, New Game, and Settings controls. Continue and Load Game are connected to `SaveManager`; New Game opens `NewGameModal`. Settings currently emits a signal only.
 - `Scenes/LoadGame/LoadGameScreen.tscn` replaces its three legacy example slots at runtime with save summaries from `SaveManager`.
-- `Scenes/Main/Main.tscn` owns a persistent `FamilyTreeScreen` and uses `MainScreenController` to lazily instantiate `UI/Map.tscn`. Screen changes toggle visibility and processing instead of rebuilding the Family Tree, so its state is preserved.
-- `FamilyTreeScreen` builds its visual tree and HUD at runtime, listens to manager signals, and controls time speed. Its Family Tree and Map navigation controls request screen changes through the main controller. Lifestyle remains visual-only because no Lifestyle screen exists.
+- `Scenes/Main/Main.tscn` owns a persistent `FamilyTreeScreen`, lazily instantiates `UI/Map.tscn`, and instances one `MainHUD`. Screen changes toggle content visibility/processing and update the shared navigation active state without rebuilding the Family Tree.
+- `MainHUD` is the extracted existing Family Tree global UI implementation. It owns the one Date, Money, Diamond, Shop, Settings, and three-tab bottom navigation presentation. `FamilyTreeScreen` retains only its screen-specific time controls. Lifestyle remains visual-only because no Lifestyle screen exists.
 - `FamilyTreeScreen` instances `CharacterCard` once and opens that same instance when a canonical or reference portrait emits `character_selected`; no scene change or Family Tree replacement occurs. The Character Card scene uses CanvasLayer 30 above the Family Tree HUD layer, with a Full Rect `CharacterCardModal` input-blocking Control, a 76% black dim layer, and a separate centered/inset panel containing the existing scrollable content.
 - `CharacterCard` reads existing character, portrait, career, education, relationship, event-log, family-business, and ItemManager data without introducing a second character model. Its Lifestyle stars, equipped count, and three item-slot thumbnails are derived from the selected character's equipped ItemInstances; each thumbnail resolves the catalog definition's existing `image_path`. It listens to `ItemManager.equipment_changed` for the selected character, so Wear/Replace/Unequip updates the slot presentation without per-frame polling or reopening the card. Accessory/Outfit/Vehicle controls emit `item_slot_requested(character_id, slot)` whether they show an empty icon or thumbnail; `FamilyTreeScreen` routes that context into its single `ItemListBottomSheet` instance, hides the Character Card while the sheet is open, and restores the same card context after close. Cosmetic class labels remain hidden because no class-label resolver is defined.
 - `ItemListBottomSheet` is a CanvasLayer 40 overlay above the Character Card. It owns a Full Rect input blocker, 76% dim layer, cream rounded sheet beginning at y=320 in the 1080 x 1920 reference viewport, and a vertical ScrollContainer with two-column item grids. One reusable instance is reopened with a fresh `target_character_id` and `slot_context`; Accessory, Outfit, and Vehicle arrays are filtered before rendering, and only Accessory exposes the Ring/Glasses/Watch/Necklace filter bar.
@@ -79,11 +79,10 @@ Autoload order in `project.godot` is significant because later managers use earl
 - Purchase validation checks stock membership and both canonical GameManager balances before any deduction, creates an ItemInstance reference, and prevents a repeated signal from purchasing an already removed stock item. Equip validation enforces character, slot, inventory, expiration, and single-owner constraints. Lifestyle is the equipped Accessory + Outfit + Vehicle definition values capped at 100; expiration clears both inventory and any character assignment.
 - `Scripts/FamilyTree/FamilyTreeLayout.gd` derives positions and visible relationship links from `parent_ids`, `partner_id`, and family membership without mutating character data.
 - `Scenes/UI/Business/BusinessModal.tscn` uses a data adapter and connector to display manager state, upgrade a business, and open family/Worker NPC assignment sheets.
-- `UI/Map.tscn` is a production 2:1 isometric screen driven by the authored `Resources/Json/Map.json`. It separates main ground, roads, plot/building ground, coast, 50 x 25 detail paths, environment decoration, properties, HUD, and modal layers. The main 200 x 100 grid and detail grid share the exact 4 x 4 subdivision relationship defined by GDD v3.5 D-131.
-- `MapScreen` creates TileMapLayer atlas sources from existing map assets, validates authored property placement and counts before rendering, and positions every building/property visual at the south footprint vertex. Tall objects and buildings use Y sorting; static map content is not procedurally generated.
-- `MapProperty` owns one diamond-shaped input area and one reusable `MapPropertyTag`. Owned family-business plots resolve `business_instance_id`/`plot_id` through `BusinessManager` and open the existing `BusinessModal`; tag occupancy refreshes from manager signals rather than per-frame polling.
-- Unowned property selection emits `property_purchase_requested`. Business creation is delegated to `BusinessManager` only when an approved Level 1 definition exists. House and land purchases, purchase confirmation UI, and balancing for Auto Service, Cruise, and Hotel remain explicitly outside this screen rather than being invented locally.
-- `MapCamera` supports mouse/touch pan, wheel zoom, and pinch zoom. Its limits are derived from authored map content bounds and include viewport margins, so navigation remains bounded at every zoom level.
+- `UI/Map.tscn` is an empty production authoring canvas. `MapWorld` contains empty `Ground`, `Roads`, `Plots`, `Buildings`, `Environment`, and `Interactions` containers plus `Camera2D`; no TileMapLayer, TileSet, road, building, property tag, coast, or generated ground is instantiated.
+- The Map authoring boundary is the fixed rectangular world `Rect2(0, 0, 6200, 4200)`. `MapBoundaryGuide` draws that rectangle only in the editor and is hidden at runtime.
+- `MapCamera` keeps a fixed zoom, ignores wheel and multi-touch zoom gestures, pans from desktop left-mouse drag or one-finger touch drag at exported sensitivity `2.0`, and clamps the camera center using the current viewport size so the view cannot move beyond the fixed rectangle.
+- `MapProperty`, `MapPropertyTag`, and `MapCoordinateHelper` remain reusable but are not instantiated by the empty Map. Business placement and Map property/business wiring are deferred until the project owner manually authors the city.
 
 ## Important System Boundaries
 

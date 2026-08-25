@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b654dtb1uda1j"
-path="res://.godot/imported/map_production_waterfront.png-23f265b3c1fa30f59b50f0a9376aede5.ctex"
+uid="uid://dxqpwqi2bb1ha"
+path="res://.godot/imported/tree_03.svg-7744085003bdf6b25fdd4a3fe49a0107.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Tests/Artifacts/map_production_waterfront.png"
-dest_files=["res://.godot/imported/map_production_waterfront.png-23f265b3c1fa30f59b50f0a9376aede5.ctex"]
+source_file="res://Resources/Map/tree_03.svg"
+dest_files=["res://.godot/imported/tree_03.svg-7744085003bdf6b25fdd4a3fe49a0107.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

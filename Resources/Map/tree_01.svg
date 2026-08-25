@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="39.72" viewBox="0 0 30 39.72">
+  <defs>
+    <style>
+      .cls-1 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        fill: #2f2a35;
+        opacity: 0.3;
+        mix-blend-mode: multiply;
+      }
+
+      .cls-3 {
+        fill: #784333;
+      }
+
+      .cls-4 {
+        fill: #5c3327;
+      }
+
+      .cls-5 {
+        fill: #93973b;
+      }
+
+      .cls-6 {
+        fill: #858434;
+      }
+
+      .cls-7 {
+        fill: #a7aa5c;
+      }
+    </style>
+  </defs>
+  <title>tree01</title>
+  <g class="cls-1">
+    <g id="Layer_2" data-name="Layer 2">
+      <g id="Layer_1-2" data-name="Layer 1">
+        <g>
+          <polygon class="cls-2" points="21.09 30.81 8.91 30.81 0 35.26 8.91 39.72 21.09 39.72 30 35.26 21.09 30.81"/>
+          <polygon class="cls-3" points="21.09 37.95 24.73 36.13 24.73 24.84 21.09 26.66 21.09 37.95"/>
+          <polygon class="cls-4" points="21.09 37.95 17.45 36.13 17.45 24.84 21.09 26.66 21.09 37.95"/>
+          <polygon class="cls-5" points="21.09 34.4 30 29.94 28.92 3.91 21.09 7.83 21.09 34.4"/>
+          <polygon class="cls-6" points="21.09 34.4 12.18 29.94 13.26 3.91 21.09 7.83 21.09 34.4"/>
+          <polygon class="cls-7" points="21.09 7.83 13.26 3.91 21.09 0 28.92 3.91 21.09 7.83"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

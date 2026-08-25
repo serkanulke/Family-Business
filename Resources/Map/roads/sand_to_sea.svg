@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100" viewBox="0 0 200 100">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="202" height="102" viewBox="0 0 202 102">
   <defs>
     <style>
       .cls-1 {
         fill: url(#linear-gradient);
       }
     </style>
-    <linearGradient id="linear-gradient" x1="78.24" y1="12.31" x2="122.05" y2="88.18" gradientUnits="userSpaceOnUse">
+    <linearGradient id="linear-gradient" x1="83.25" y1="15.51" x2="118.98" y2="86.96" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#5f9fad"/>
       <stop offset="0.12" stop-color="#68a4af"/>
       <stop offset="0.33" stop-color="#82b0b3"/>
@@ -17,7 +17,7 @@
   <title>sand_to_sea</title>
   <g id="Layer_2" data-name="Layer 2">
     <g id="Layer_1-2" data-name="Layer 1">
-      <polygon class="cls-1" points="200 49.82 99.64 100 0 50.18 100.36 0 200 49.82"/>
+      <polygon class="cls-1" points="202 50.81 100.63 102 0 51.19 101.37 0 202 50.81"/>
     </g>
   </g>
 </svg>
