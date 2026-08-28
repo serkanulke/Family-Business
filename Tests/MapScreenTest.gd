@@ -11,7 +11,7 @@ func _ready() -> void:
 	add_child(map_screen)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	_test_empty_authoring_scene(map_screen)
+	_test_authoring_scene_structure(map_screen)
 	_test_fixed_rectangular_bounds(map_screen)
 	_test_mouse_drag(map_screen)
 	_test_touch_drag(map_screen)
@@ -22,18 +22,21 @@ func _ready() -> void:
 	map_screen.queue_free()
 
 
-func _test_empty_authoring_scene(map_screen: MapScreen) -> void:
+func _test_authoring_scene_structure(map_screen: MapScreen) -> void:
 	var world := map_screen.get_node("MapWorld")
-	var empty_layers := true
+	var required_layers_exist := true
 	for layer_name in ["Ground", "Roads", "Plots", "Buildings", "Environment", "Interactions"]:
 		var layer := world.get_node_or_null(layer_name)
-		empty_layers = empty_layers and layer != null and layer.get_child_count() == 0
+		required_layers_exist = required_layers_exist and layer != null
 	_assert_true(
-		empty_layers
-		and map_screen.find_children("*", "TileMapLayer", true, false).is_empty()
-		and not FileAccess.file_exists("res://Resources/Json/Map.json")
+		required_layers_exist
 		and not map_screen.has_node("HUD"),
-		"Map is an empty organized canvas without TileSets, authored content, or a local HUD"
+		"Map keeps its organized authoring layers without a duplicate local HUD"
+	)
+	_assert_true(
+		world.get_node("Buildings/Interactive") is Node2D
+		and world.get_node("Buildings/Decorative") is Node2D,
+		"Building group containers preserve the CanvasItem visibility chain"
 	)
 	var boundary := world.get_node("BoundaryGuide") as MapBoundaryGuide
 	_assert_true(not boundary.visible, "World boundary guide is editor-only and hidden in production")

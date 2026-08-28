@@ -33,7 +33,7 @@ Filename case matters in the current repository: both `relationship_npc.json` an
 | Group | Fields |
 | --- | --- |
 | Identity | `character_id: int`, `first_name: String`, `gender: "female" \| "male"` |
-| Appearance | `avatar_theme: String`, `genetics: { hair_color, skin_tone, eye_color }`, optional `portrait_path: String` |
+| Appearance | `avatar_theme: String`, `genetics: { skin_tone }`, `portrait_variant_id: String`, derived/current `portrait_path: String` |
 | Lifecycle | `is_alive: bool`, `birth_date: YYYY-MM-DD`, `death_date: String \| null`, `life_stage: String`, `is_retired: bool` |
 | Family links | `is_player_family: bool`, `parent_ids: int[]`, `is_adopted: bool`, `partner_id: int \| null`, `children_ids: int[]` |
 | Education | `school_id: int \| null`, `major_id: int \| null`, `education_status: String`, `education_start_date`, `major_selection_date`, `expected_graduation_date`, `graduation_date` (date string or null) |
@@ -51,6 +51,10 @@ Relationship candidates add:
 The code derives age from `birth_date`; no stored `age` field is created for characters. Life stages returned by the current implementation are baby 0-5, child 6-11, teen 12-17, young adult 18-34, adult 35-59, and elder 60+.
 
 Legacy `mother_id` and `father_id` values are migrated into `parent_ids` and then erased during normalization.
+
+`skin_tone` is the only active inherited visual genetic field and uses `light`, `mixed`, or `dark`. Legacy records may still contain `hair_color` and `eye_color`; loading preserves/ignores those deferred fields, while new Character creation, validation, inheritance, and portrait selection do not require or generate them.
+
+`portrait_variant_id` stores the persistent filename stem (for example `character_001`) rather than a resource path. `portrait_path` is a current derived compatibility field resolved from gender, `skin_tone`, `life_stage`, and `portrait_variant_id`. Playable portraits use `Resources/Characters/Male|Female/Light|Mixed|Dark/Baby|Child|Teen|YoungAdult|Adult|Elder/<variant>.png`. Save loading normalizes legacy `Man`/`Woman` paths and derives a missing variant from the legacy filename when possible.
 
 ## Worker NPC Records
 
@@ -135,7 +139,7 @@ Runtime instances do not duplicate visual state. Map and modal paths are always 
 
 ### Map authoring state
 
-The production Map is currently an empty scene prepared for manual authoring. No `Map.json` static layout schema is loaded or present, and no map placement data is generated at runtime. The fixed `6200 x 4200` world boundary and camera settings are scene/script infrastructure rather than gameplay save data. Reusable property/tag helpers do not define active runtime records until manually authored content is connected in a later task.
+The production Map currently stores manually authored TileMapLayer cells, TileSet subresources, and building sprite placement directly in `UI/Map.tscn`. No `Map.json` static layout schema is loaded or present, and no map placement data is generated at runtime. The fixed `6200 x 4200` world boundary, camera settings, and screen-activation state are scene/script infrastructure rather than gameplay save data. Reusable property/tag helpers do not define active runtime records until authored content is connected to them in a later task.
 
 The approved roster removes Bookshop from static type data. A pre-existing save that already contains a Bookshop instance has no confirmed conversion target in GDD v3.5; the loader therefore does not silently convert it to another business or delete purchased state. Such a legacy instance remains unsupported/orphaned until a migration policy is confirmed.
 

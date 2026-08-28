@@ -35,8 +35,11 @@ func _ready() -> void:
 	var family_icon := shared_hud.find_child("FamilyTreeIcon", true, false) as TextureRect
 	_assert_true(
 		map_screen.visible and map_screen.process_mode != Node.PROCESS_MODE_DISABLED
-		and not family_tree.visible and family_tree.process_mode == Node.PROCESS_MODE_DISABLED,
-		"Map navigation activates only the empty Map content screen"
+		and map_screen.map_camera.enabled
+		and get_viewport().get_camera_2d() == map_screen.map_camera
+		and not family_tree.visible and family_tree.process_mode == Node.PROCESS_MODE_DISABLED
+		and not family_tree.family_tree_camera.enabled,
+		"Map navigation activates only the Map screen and its independent camera"
 	)
 	_assert_true(
 		map_icon != null and map_icon.size.is_equal_approx(Vector2(132, 132))
@@ -84,11 +87,20 @@ func _ready() -> void:
 	main_instance.call("show_screen", "family_tree")
 	await get_tree().process_frame
 	var active_family_icon := shared_hud.find_child("FamilyTreeIcon", true, false) as TextureRect
+	var hidden_map_canvas_items := true
+	for node in map_screen.get_node("MapWorld/Buildings").find_children("*", "CanvasItem", true, false):
+		hidden_map_canvas_items = hidden_map_canvas_items and not (node as CanvasItem).is_visible_in_tree()
 	_assert_true(
 		family_tree.visible
 		and (family_tree.get_node("HUDLayer") as CanvasLayer).visible
+		and family_tree.family_tree_camera.enabled
+		and get_viewport().get_camera_2d() == family_tree.family_tree_camera
+		and not map_screen.map_camera.enabled
+		and not map_screen.backdrop_layer.visible
+		and not map_screen.map_world.is_visible_in_tree()
+		and hidden_map_canvas_items
 		and active_family_icon != null and active_family_icon.size.is_equal_approx(Vector2(132, 132)),
-		"Family Tree returns with its original camera/content and correct active navigation state"
+		"Family Tree returns with its original camera and no Map canvas content remains visible"
 	)
 	print("Main / shared navigation tests: %d passed / %d failed" % [passed, failed])
 	if failed == 0: print("ALL MAIN / SHARED NAVIGATION TESTS PASSED.")

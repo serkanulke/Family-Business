@@ -129,9 +129,7 @@ func _make_character(
 		"salary": 0,
 		"avatar_theme": "",
 		"genetics": {
-			"hair_color": "brown",
-			"skin_tone": "light",
-			"eye_color": "blue"
+			"skin_tone": "light"
 		},
 		"health": health,
 		"happiness": 50,

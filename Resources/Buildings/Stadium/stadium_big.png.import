@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b7uk7owtpax8r"
-path="res://.godot/imported/01.png-bd10bcf7bbf3082503a94643caf4cf85.ctex"
+uid="uid://bh75lckvup7ul"
+path="res://.godot/imported/stadium_big.png-33536d21dd784335e714559c4e126a4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Resources/Characters/woman/light/01.png"
-dest_files=["res://.godot/imported/01.png-bd10bcf7bbf3082503a94643caf4cf85.ctex"]
+source_file="res://Resources/Buildings/Stadium/stadium_big.png"
+dest_files=["res://.godot/imported/stadium_big.png-33536d21dd784335e714559c4e126a4c.ctex"]
 
 [params]
 

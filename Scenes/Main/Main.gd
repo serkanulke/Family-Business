@@ -33,12 +33,8 @@ func _show_map() -> void:
 		map_screen = MAP_SCENE.instantiate() as MapScreen
 		map_screen.name = "MapScreen"
 		world.add_child(map_screen)
-	family_tree_screen.visible = false
-	family_tree_screen.process_mode = Node.PROCESS_MODE_DISABLED
-	if family_tree_screen.has_method("set_screen_active"):
-		family_tree_screen.call("set_screen_active", false)
-	map_screen.visible = true
-	map_screen.process_mode = Node.PROCESS_MODE_INHERIT
+	_set_family_tree_active(false)
+	map_screen.set_screen_active(true)
 	map_screen.refresh_from_managers()
 	main_hud.set_active_screen("map")
 	main_hud.refresh_from_managers()
@@ -46,12 +42,20 @@ func _show_map() -> void:
 
 func _show_family_tree() -> void:
 	if map_screen != null:
-		map_screen.visible = false
-		map_screen.process_mode = Node.PROCESS_MODE_DISABLED
-	family_tree_screen.visible = true
-	family_tree_screen.process_mode = Node.PROCESS_MODE_INHERIT
-	if family_tree_screen.has_method("set_screen_active"):
-		family_tree_screen.call("set_screen_active", true)
+		map_screen.set_screen_active(false)
+	_set_family_tree_active(true)
 	family_tree_screen.refresh_from_managers()
 	main_hud.set_active_screen("family_tree")
 	main_hud.refresh_from_managers()
+
+
+func _set_family_tree_active(active: bool) -> void:
+	family_tree_screen.visible = active
+	family_tree_screen.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+	if family_tree_screen.has_method("set_screen_active"):
+		family_tree_screen.call("set_screen_active", active)
+	var family_camera := family_tree_screen.family_tree_camera
+	if family_camera != null:
+		family_camera.enabled = active
+		if active:
+			family_camera.make_current()

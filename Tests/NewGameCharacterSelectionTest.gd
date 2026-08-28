@@ -81,9 +81,9 @@ func _ready() -> void:
 
 	_assert_true(
 		preview_path.contains(
-			"/man/mixed/"
+			"/Male/Mixed/YoungAdult/"
 		),
-		"Selected preview comes from man/mixed folder"
+		"Selected preview comes from canonical Male/Mixed/YoungAdult folder"
 	)
 
 	modal.call(
@@ -182,9 +182,9 @@ func _ready() -> void:
 
 	_assert_true(
 		female_light_path.contains(
-			"/woman/light/"
+			"/Female/Light/YoungAdult/"
 		),
-		"Female light-skin portrait comes from woman/light folder"
+		"Female light-skin portrait comes from canonical Female/Light/YoungAdult folder"
 	)
 
 	modal.queue_free()
@@ -218,8 +218,10 @@ func _ready() -> void:
 				"skin_tone",
 				""
 			)
-		) == "mixed",
-		"Selected skin tone is stored in genetics"
+		) == "mixed"
+		and not genetics.has("hair_color")
+		and not genetics.has("eye_color"),
+		"Starting character stores skin-only active genetics"
 	)
 
 	_assert_true(
@@ -229,9 +231,19 @@ func _ready() -> void:
 				""
 			)
 		).contains(
-			"/man/mixed/"
+			"/Male/Mixed/YoungAdult/"
 		),
-		"Starting character stores the selected portrait path"
+		"Starting character stores the canonical selected portrait path"
+	)
+
+	_assert_true(
+		String(
+			starting_character.get(
+				"portrait_variant_id",
+				""
+			)
+		) == "character_001",
+		"Starting character stores the persistent portrait variant ID"
 	)
 
 	var male_names_value = NPCManager.name_config.get(

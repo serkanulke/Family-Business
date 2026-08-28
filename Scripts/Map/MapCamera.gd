@@ -23,12 +23,25 @@ func _ready() -> void:
 	call_deferred("_initialize_position")
 
 
+func set_screen_active(active: bool) -> void:
+	enabled = active
+	set_process_unhandled_input(active)
+	if active:
+		make_current()
+		_clamp_position_to_world()
+	else:
+		_mouse_dragging = false
+		_active_touch_index = -1
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_SIZE_CHANGED and is_inside_tree():
 		_clamp_position_to_world()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not enabled:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_mouse_dragging = event.pressed

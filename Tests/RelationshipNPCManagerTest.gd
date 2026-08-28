@@ -110,8 +110,15 @@ func _test_generation() -> void:
 		and age <= 44
 		and int(candidate["linked_character_id"])
 			== int(family_character["character_id"])
-		and not bool(candidate["is_player_family"]),
-		"Candidate respects 18-50 generation and 14-year age gap"
+		and not bool(candidate["is_player_family"])
+		and candidate.has("portrait_variant_id")
+		and not String(
+			candidate.get(
+				"portrait_path",
+				""
+			)
+		).is_empty(),
+		"Candidate respects age rules and receives canonical portrait state"
 	)
 
 

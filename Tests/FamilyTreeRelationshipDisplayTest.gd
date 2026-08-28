@@ -74,7 +74,7 @@ func _make_character(
 func _test_link_icon_resource_exists() -> void:
 	_assert_true(
 		ResourceLoader.exists(
-			"res://Resources/Icons/link-icon.svg"
+			"res://Resources/Icons/character-portrait/link-icon.svg"
 		),
 		"link-icon.svg is available for Family Tree reference/link nodes"
 	)

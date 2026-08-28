@@ -22,6 +22,26 @@ const NO_DIPLOMA_JOB_CHANCE_FOR_GRADUATE := 0.20
 const AVATAR_FOLDER_PATH := "res://Resources/Characters/"
 const DEFAULT_AVATAR_PATH := AVATAR_FOLDER_PATH + "default_avatar.png"
 
+const GENDER_PORTRAIT_FOLDERS := {
+	"male": "Male",
+	"female": "Female"
+}
+
+const SKIN_PORTRAIT_FOLDERS := {
+	"light": "Light",
+	"mixed": "Mixed",
+	"dark": "Dark"
+}
+
+const LIFE_STAGE_PORTRAIT_FOLDERS := {
+	"baby": "Baby",
+	"child": "Child",
+	"teen": "Teen",
+	"young_adult": "YoungAdult",
+	"adult": "Adult",
+	"elder": "Elder"
+}
+
 const RETIREMENT_AGE := 65
 const PENSION_RATE := 0.10
 const PENSION_SALARY_CAP := 25000
@@ -84,23 +104,10 @@ const STARTING_CHARACTER_MAX_AGE := 25
 
 const PUBLIC_UNIVERSITY_SCHOOL_ID := 4001
 
-const HAIR_COLORS: Array[String] = [
-	"blonde",
-	"red",
-	"brown",
-	"black"
-]
-
 const SKIN_TONES: Array[String] = [
 	"light",
 	"mixed",
 	"dark"
-]
-
-const EYE_COLORS: Array[String] = [
-	"hazel",
-	"green",
-	"blue"
 ]
 
 
@@ -189,6 +196,7 @@ func load_characters() -> void:
 
 	normalize_character_ids()
 	normalize_character_parent_links()
+	normalize_character_portraits()
 	initialize_next_character_id()
 
 	print(
@@ -379,48 +387,152 @@ func load_job_data() -> void:
 	)
 
 
-func get_portrait_folder_path(
-	gender: String,
+func get_gender_portrait_folder(
+	gender: String
+) -> String:
+	return String(
+		GENDER_PORTRAIT_FOLDERS.get(
+			gender.strip_edges().to_lower(),
+			""
+		)
+	)
+
+
+func get_skin_portrait_folder(
 	skin_tone: String
 ) -> String:
-	var normalized_gender := (
-		gender.strip_edges().to_lower()
+	return String(
+		SKIN_PORTRAIT_FOLDERS.get(
+			skin_tone.strip_edges().to_lower(),
+			""
+		)
 	)
 
-	var normalized_skin_tone := (
-		skin_tone.strip_edges().to_lower()
+
+func get_life_stage_portrait_folder(
+	life_stage: String
+) -> String:
+	return String(
+		LIFE_STAGE_PORTRAIT_FOLDERS.get(
+			life_stage.strip_edges().to_lower(),
+			""
+		)
 	)
 
-	var gender_folder := ""
 
-	if normalized_gender == "male":
-		gender_folder = "man"
-	elif normalized_gender == "female":
-		gender_folder = "woman"
-	else:
-		return ""
+func get_portrait_folder_path(
+	gender: String,
+	skin_tone: String,
+	life_stage: String = "young_adult"
+) -> String:
+	var gender_folder := get_gender_portrait_folder(
+		gender
+	)
+	var skin_folder := get_skin_portrait_folder(
+		skin_tone
+	)
+	var life_stage_folder := (
+		get_life_stage_portrait_folder(
+			life_stage
+		)
+	)
 
-	if not SKIN_TONES.has(
-		normalized_skin_tone
+	if (
+		gender_folder.is_empty()
+		or skin_folder.is_empty()
+		or life_stage_folder.is_empty()
 	):
 		return ""
 
-	return (
-		AVATAR_FOLDER_PATH
-		+ gender_folder
-		+ "/"
-		+ normalized_skin_tone
+	return AVATAR_FOLDER_PATH.path_join(
+		gender_folder
+	).path_join(
+		skin_folder
+	).path_join(
+		life_stage_folder
 	)
 
 
-func get_portrait_paths(
+func normalize_portrait_variant_id(
+	variant_id: String
+) -> String:
+	var normalized := variant_id.strip_edges()
+
+	if normalized.is_empty():
+		return ""
+
+	if normalized.is_valid_int():
+		return "character_%03d" % int(normalized)
+
+	return normalized
+
+
+func get_portrait_variant_id_from_path(
+	portrait_path: String
+) -> String:
+	var cleaned_path := portrait_path.strip_edges().replace(
+		"\\",
+		"/"
+	)
+
+	if not cleaned_path.to_lower().ends_with(
+		".png"
+	):
+		return ""
+
+	if cleaned_path.to_lower() == DEFAULT_AVATAR_PATH.to_lower():
+		return ""
+
+	return normalize_portrait_variant_id(
+		cleaned_path.get_file().get_basename()
+	)
+
+
+func resolve_portrait_path(
 	gender: String,
-	skin_tone: String
+	skin_tone: String,
+	life_stage: String,
+	portrait_variant_id: String
+) -> String:
+	var folder_path := get_portrait_folder_path(
+		gender,
+		skin_tone,
+		life_stage
+	)
+	var normalized_variant := (
+		normalize_portrait_variant_id(
+			portrait_variant_id
+		)
+	)
+
+	if (
+		folder_path.is_empty()
+		or normalized_variant.is_empty()
+	):
+		return ""
+
+	var portrait_path := folder_path.path_join(
+		normalized_variant + ".png"
+	)
+
+	if not ResourceLoader.exists(
+		portrait_path
+	):
+		return ""
+
+	return portrait_path
+
+
+func get_available_portrait_variants(
+	gender: String,
+	skin_tone: String,
+	life_stage: String
 ) -> Array[String]:
 	var result: Array[String] = []
 	var folder_path := get_portrait_folder_path(
 		gender,
-		skin_tone
+		skin_tone,
+		life_stage
 	)
 
 	if folder_path.is_empty():
@@ -431,6 +543,10 @@ func get_portrait_paths(
 	)
 
 	if directory == null:
+		push_warning(
+			"Portrait folder could not be opened: "
+			+ folder_path
+		)
 		return result
 
 	directory.list_dir_begin()
@@ -446,12 +562,23 @@ func get_portrait_paths(
 			var full_path := folder_path.path_join(
 				file_name
 			)
+			var variant_id := (
+				get_portrait_variant_id_from_path(
+					file_name
+				)
+			)
 
-			if ResourceLoader.exists(
-				full_path
+			if (
+				not variant_id.is_empty()
+				and ResourceLoader.exists(
+					full_path
+				)
+				and not result.has(
+					variant_id
+				)
 			):
 				result.append(
-					full_path
+					variant_id
 				)
 
 		file_name = directory.get_next()
@@ -462,51 +589,183 @@ func get_portrait_paths(
 	return result
 
 
-func get_random_portrait_path(
+func select_random_portrait_variant(
 	gender: String,
-	skin_tone: String
+	skin_tone: String,
+	life_stage: String,
+	excluded_variant_ids: Array = []
 ) -> String:
-	var portrait_paths := get_portrait_paths(
+	var variants := get_available_portrait_variants(
 		gender,
-		skin_tone
+		skin_tone,
+		life_stage
 	)
 
-	if portrait_paths.is_empty():
+	for excluded_value in excluded_variant_ids:
+		variants.erase(
+			normalize_portrait_variant_id(
+				String(excluded_value)
+			)
+		)
+
+	if variants.is_empty():
+		return ""
+
+	return String(
+		variants.pick_random()
+	)
+
+
+func get_portrait_paths(
+	gender: String,
+	skin_tone: String,
+	life_stage: String = "young_adult"
+) -> Array[String]:
+	var result: Array[String] = []
+	var variants := get_available_portrait_variants(
+		gender,
+		skin_tone,
+		life_stage
+	)
+
+	for variant_id in variants:
+		var portrait_path := resolve_portrait_path(
+			gender,
+			skin_tone,
+			life_stage,
+			variant_id
+		)
+
+		if not portrait_path.is_empty():
+			result.append(
+				portrait_path
+			)
+
+	return result
+
+
+func get_random_portrait_path(
+	gender: String,
+	skin_tone: String,
+	life_stage: String = "young_adult",
+	excluded_variant_ids: Array = []
+) -> String:
+	var variant_id := select_random_portrait_variant(
+		gender,
+		skin_tone,
+		life_stage,
+		excluded_variant_ids
+	)
+	var portrait_path := resolve_portrait_path(
+		gender,
+		skin_tone,
+		life_stage,
+		variant_id
+	)
+
+	if portrait_path.is_empty():
 		push_warning(
-			"No portrait PNG found for gender '%s' and skin tone '%s'."
+			"No eligible portrait PNG found for gender '%s', skin tone '%s', and life stage '%s'."
 			% [
 				gender,
-				skin_tone
+				skin_tone,
+				life_stage
 			]
 		)
 		return DEFAULT_AVATAR_PATH
 
-	return String(
-		portrait_paths.pick_random()
+	return portrait_path
+
+
+func get_parent_portrait_variant_exclusions(
+	child_gender: String,
+	parent_ids: Array
+) -> Array[String]:
+	var result: Array[String] = []
+	var normalized_child_gender := (
+		child_gender.strip_edges().to_lower()
 	)
 
+	for parent_id_value in parent_ids:
+		var parent := get_character_by_id(
+			int(parent_id_value)
+		)
 
-func get_avatar_path(
+		if parent.is_empty():
+			continue
+
+		if String(
+			parent.get(
+				"gender",
+				""
+			)
+		).strip_edges().to_lower() != normalized_child_gender:
+			continue
+
+		var variant_id := normalize_portrait_variant_id(
+			String(
+				parent.get(
+					"portrait_variant_id",
+					""
+				)
+			)
+		)
+
+		if variant_id.is_empty():
+			variant_id = get_portrait_variant_id_from_path(
+				String(
+					parent.get(
+						"portrait_path",
+						""
+					)
+				)
+			)
+
+		if (
+			not variant_id.is_empty()
+			and not result.has(
+				variant_id
+			)
+		):
+			result.append(
+				variant_id
+			)
+
+	return result
+
+
+func normalize_legacy_portrait_path(
+	portrait_path: String
+) -> String:
+	var normalized := portrait_path.strip_edges().replace(
+		"\\",
+		"/"
+	)
+
+	if normalized.is_empty():
+		return ""
+
+	var replacements := {
+		"res://Resources/Characters/Man/": "res://Resources/Characters/Male/",
+		"res://Resources/Characters/man/": "res://Resources/Characters/Male/",
+		"res://Resources/Characters/Woman/": "res://Resources/Characters/Female/",
+		"res://Resources/Characters/woman/": "res://Resources/Characters/Female/"
+	}
+
+	for old_prefix in replacements:
+		if normalized.begins_with(
+			String(old_prefix)
+		):
+			return String(replacements[old_prefix]) + normalized.trim_prefix(
+				String(old_prefix)
+			)
+
+	return normalized
+
+
+func ensure_character_portrait(
 	character: Dictionary
 ) -> String:
-	var direct_portrait_path := String(
-		character.get(
-			"portrait_path",
-			""
-		)
-	).strip_edges()
-
-	if not direct_portrait_path.is_empty():
-		if ResourceLoader.exists(
-			direct_portrait_path
-		):
-			return direct_portrait_path
-
-		push_warning(
-			"Character portrait_path could not be found: "
-			+ direct_portrait_path
-		)
-
 	var genetics_value = character.get(
 		"genetics",
 		{}
@@ -515,80 +774,142 @@ func get_avatar_path(
 	if typeof(
 		genetics_value
 	) != TYPE_DICTIONARY:
-		push_error(
-			"Character genetics must be a Dictionary."
+		push_warning(
+			"Character genetics must be a Dictionary for portrait resolution."
 		)
+		character["portrait_path"] = DEFAULT_AVATAR_PATH
 		return DEFAULT_AVATAR_PATH
 
-	var genetics: Dictionary = (
-		genetics_value
-	)
-
-	var avatar_theme: String = String(
-		character.get(
-			"avatar_theme",
-			""
-		)
-	)
-
-	var gender: String = String(
+	var genetics: Dictionary = genetics_value
+	var gender := String(
 		character.get(
 			"gender",
 			""
 		)
-	)
-
-	var life_stage: String = String(
-		character.get(
-			"life_stage",
-			""
-		)
-	)
-
-	var hair_color: String = String(
-		genetics.get(
-			"hair_color",
-			""
-		)
-	)
-
-	var skin_tone: String = String(
+	).strip_edges().to_lower()
+	var skin_tone := String(
 		genetics.get(
 			"skin_tone",
 			""
 		)
-	)
-
-	var eye_color: String = String(
-		genetics.get(
-			"eye_color",
+	).strip_edges().to_lower()
+	var life_stage := String(
+		character.get(
+			"life_stage",
 			""
+		)
+	).strip_edges().to_lower()
+	var direct_path := normalize_legacy_portrait_path(
+		String(
+			character.get(
+				"portrait_path",
+				""
+			)
+		)
+	)
+	var variant_id := normalize_portrait_variant_id(
+		String(
+			character.get(
+				"portrait_variant_id",
+				""
+			)
 		)
 	)
 
-	var avatar_file_name := (
-		"%s_%s_%s_%s_%s_%s.png"
-		% [
-			avatar_theme,
-			gender,
-			life_stage,
-			hair_color,
-			skin_tone,
-			eye_color
-		]
+	if variant_id.is_empty():
+		variant_id = get_portrait_variant_id_from_path(
+			direct_path
+		)
+
+	var resolved_path := resolve_portrait_path(
+		gender,
+		skin_tone,
+		life_stage,
+		variant_id
 	)
 
-	var avatar_path := (
-		AVATAR_FOLDER_PATH
-		+ avatar_file_name
-	)
+	if resolved_path.is_empty():
+		var parent_ids_value = character.get(
+			"parent_ids",
+			[]
+		)
+		var parent_ids: Array = []
 
-	if ResourceLoader.exists(
-		avatar_path
+		if typeof(parent_ids_value) == TYPE_ARRAY:
+			parent_ids = parent_ids_value
+
+		var exclusions := (
+			get_parent_portrait_variant_exclusions(
+				gender,
+				parent_ids
+			)
+		)
+		var selected_variant := (
+			select_random_portrait_variant(
+				gender,
+				skin_tone,
+				life_stage,
+				exclusions
+			)
+		)
+
+		if not selected_variant.is_empty():
+			variant_id = selected_variant
+			resolved_path = resolve_portrait_path(
+				gender,
+				skin_tone,
+				life_stage,
+				variant_id
+			)
+
+	if not variant_id.is_empty():
+		character["portrait_variant_id"] = variant_id
+	elif not character.has(
+		"portrait_variant_id"
 	):
-		return avatar_path
+		character["portrait_variant_id"] = ""
 
-	return DEFAULT_AVATAR_PATH
+	if resolved_path.is_empty():
+		push_warning(
+			"Character %s has no eligible portrait for gender '%s', skin tone '%s', and life stage '%s'; using the default avatar."
+			% [
+				str(
+					character.get(
+						"character_id",
+						"unknown"
+					)
+				),
+				gender,
+				skin_tone,
+				life_stage
+			]
+		)
+		character["portrait_path"] = DEFAULT_AVATAR_PATH
+		return DEFAULT_AVATAR_PATH
+
+	character["portrait_path"] = resolved_path
+	return resolved_path
+
+
+func normalize_character_portraits() -> void:
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		ensure_character_portrait(
+			character_value
+		)
+
+
+func get_avatar_path(
+	character: Dictionary
+) -> String:
+	if character.is_empty():
+		return DEFAULT_AVATAR_PATH
+
+	return ensure_character_portrait(
+		character
+	)
 
 
 func get_avatar_texture(
@@ -683,6 +1004,10 @@ func update_character_life_stage(
 
 	character["life_stage"] = (
 		new_life_stage
+	)
+
+	ensure_character_portrait(
+		character
 	)
 
 	print(
@@ -2023,9 +2348,7 @@ func generate_starting_birth_date_for_age(
 
 func generate_random_genetics() -> Dictionary:
 	return {
-		"hair_color": HAIR_COLORS.pick_random(),
-		"skin_tone": SKIN_TONES.pick_random(),
-		"eye_color": EYE_COLORS.pick_random()
+		"skin_tone": SKIN_TONES.pick_random()
 	}
 
 
@@ -2067,27 +2390,22 @@ func create_base_starting_character(
 
 		genetics["skin_tone"] = normalized_skin_tone
 
-	var resolved_portrait_path := (
-		selected_portrait_path.strip_edges()
-	)
-
-	if not normalized_skin_tone.is_empty():
-		if (
-			resolved_portrait_path.is_empty()
-			or not ResourceLoader.exists(
-				resolved_portrait_path
-			)
-		):
-			resolved_portrait_path = (
-				get_random_portrait_path(
-					normalized_gender,
-					normalized_skin_tone
-				)
-			)
-
 	var selected_age := randi_range(
 		STARTING_CHARACTER_MIN_AGE,
 		STARTING_CHARACTER_MAX_AGE
+	)
+	var selected_life_stage := get_life_stage_from_age(
+		selected_age
+	)
+	var resolved_portrait_path := (
+		normalize_legacy_portrait_path(
+			selected_portrait_path
+		)
+	)
+	var selected_variant_id := (
+		get_portrait_variant_id_from_path(
+			resolved_portrait_path
+		)
 	)
 
 	var character: Dictionary = {
@@ -2104,7 +2422,7 @@ func create_base_starting_character(
 			selected_age
 		),
 		"death_date": null,
-		"life_stage": "young_adult",
+		"life_stage": selected_life_stage,
 
 		"is_player_family": true,
 
@@ -2136,10 +2454,14 @@ func create_base_starting_character(
 		"event_log": []
 	}
 
+	character["portrait_variant_id"] = selected_variant_id
+
 	if not resolved_portrait_path.is_empty():
-		character["portrait_path"] = (
-			resolved_portrait_path
-		)
+		character["portrait_path"] = resolved_portrait_path
+
+	ensure_character_portrait(
+		character
+	)
 
 	var starting_stats := (
 		generate_starting_character_stats()
@@ -2258,70 +2580,6 @@ func get_parent_genetic_value(
 	)
 
 
-func generate_inherited_eye_color(
-	parent_one: Dictionary,
-	parent_two: Dictionary
-) -> String:
-	var eye_one := get_parent_genetic_value(
-		parent_one,
-		"eye_color"
-	)
-
-	var eye_two := get_parent_genetic_value(
-		parent_two,
-		"eye_color"
-	)
-
-	if eye_one == eye_two:
-		return eye_one
-
-	var one_parent_has_hazel := (
-		eye_one == "hazel"
-		or eye_two == "hazel"
-	)
-
-	if one_parent_has_hazel:
-		if randf() < 0.65:
-			return "hazel"
-
-		if eye_one == "hazel":
-			return eye_two
-
-		return eye_one
-
-	return String(
-		[
-			eye_one,
-			eye_two
-		].pick_random()
-	)
-
-
-func generate_inherited_hair_color(
-	parent_one: Dictionary,
-	parent_two: Dictionary
-) -> String:
-	var hair_one := get_parent_genetic_value(
-		parent_one,
-		"hair_color"
-	)
-
-	var hair_two := get_parent_genetic_value(
-		parent_two,
-		"hair_color"
-	)
-
-	if hair_one == hair_two:
-		return hair_one
-
-	return String(
-		[
-			hair_one,
-			hair_two
-		].pick_random()
-	)
-
-
 func generate_inherited_skin_tone(
 	parent_one: Dictionary,
 	parent_two: Dictionary
@@ -2349,15 +2607,7 @@ func generate_baby_genetics(
 	parent_two: Dictionary
 ) -> Dictionary:
 	return {
-		"hair_color": generate_inherited_hair_color(
-			parent_one,
-			parent_two
-		),
 		"skin_tone": generate_inherited_skin_tone(
-			parent_one,
-			parent_two
-		),
-		"eye_color": generate_inherited_eye_color(
 			parent_one,
 			parent_two
 		)
@@ -2367,13 +2617,6 @@ func generate_baby_genetics(
 func is_valid_genetics_profile(
 	genetics: Dictionary
 ) -> bool:
-	var hair_color := String(
-		genetics.get(
-			"hair_color",
-			""
-		)
-	)
-
 	var skin_tone := String(
 		genetics.get(
 			"skin_tone",
@@ -2381,18 +2624,7 @@ func is_valid_genetics_profile(
 		)
 	)
 
-	var eye_color := String(
-		genetics.get(
-			"eye_color",
-			""
-		)
-	)
-
-	return (
-		hair_color in HAIR_COLORS
-		and skin_tone in SKIN_TONES
-		and eye_color in EYE_COLORS
-	)
+	return skin_tone in SKIN_TONES
 
 
 func get_character_by_id(
@@ -2548,6 +2780,7 @@ func create_base_child_character(
 
 		"avatar_theme": "classic",
 		"genetics": child_genetics,
+		"portrait_variant_id": "",
 
 		"is_alive": true,
 		"birth_date": TimeManager.get_iso_date_string(),
@@ -2602,6 +2835,10 @@ func create_base_child_character(
 	apply_stats_to_character(
 		child,
 		child_stats
+	)
+
+	ensure_character_portrait(
+		child
 	)
 
 	return child

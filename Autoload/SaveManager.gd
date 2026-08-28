@@ -504,6 +504,13 @@ func apply_save_snapshot(
 		)
 
 	if CharacterManager.has_method(
+		"normalize_character_portraits"
+	):
+		CharacterManager.call(
+			"normalize_character_portraits"
+		)
+
+	if CharacterManager.has_method(
 		"initialize_next_character_id"
 	):
 		CharacterManager.call(

@@ -299,6 +299,7 @@ func create_relationship_candidate(
 		"gender": gender,
 		"avatar_theme": "classic",
 		"genetics": CharacterManager.generate_random_genetics(),
+		"portrait_variant_id": "",
 		"is_alive": true,
 		"birth_date": CharacterManager.generate_birth_date_for_age(
 			candidate_age
@@ -333,6 +334,10 @@ func create_relationship_candidate(
 		"flag_ids": [],
 		"event_log": []
 	}
+
+	CharacterManager.ensure_character_portrait(
+		candidate
+	)
 
 	CharacterManager.apply_stats_to_character(
 		candidate,
