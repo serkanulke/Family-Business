@@ -56,6 +56,21 @@ func _ready() -> void:
 		"One new game produces exactly one save file"
 	)
 
+	BusinessManager.businesses = [{
+		"business_instance_id": "business_0001",
+		"business_type_id": "cafe",
+		"plot_id": "cafe_01",
+		"level": 1,
+		"slots": [
+			{"slot_id": "manager_01", "assigned_character_id": null, "assigned_npc_id": null},
+		],
+	}]
+	BusinessManager.next_business_instance_number = 2
+	_assert_true(
+		SaveManager.save_game(first_save_id),
+		"Stable Map property plot_id can be written with business state"
+	)
+
 	GameManager.set_family_money(
 		32100
 	)
@@ -127,6 +142,13 @@ func _ready() -> void:
 	_assert_true(
 		GameManager.family_money == 32100,
 		"Loading an older file restores its autosaved money"
+	)
+
+	var restored_business := BusinessManager.get_business_on_plot("cafe_01")
+	_assert_true(
+		str(restored_business.get("business_instance_id", "")) == "business_0001"
+		and str(restored_business.get("plot_id", "")) == "cafe_01",
+		"Save/load preserves the stable Map property plot_id link"
 	)
 
 	_cleanup_test_saves()

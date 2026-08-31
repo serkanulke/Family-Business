@@ -6,6 +6,20 @@ signal selected(property_id: String)
 const PROPERTY_TAG_SCENE := preload("res://UI/Map/MapPropertyTag.tscn")
 const TAP_DRAG_THRESHOLD := 14.0
 
+enum VisualMode {
+	RUNTIME_GENERATED,
+	AUTHORED_EXISTING,
+}
+
+@export var property_id: String = ""
+@export_enum("family_business", "house", "land", "city_decor") var category := "family_business"
+@export var business_type_id: String = ""
+@export var footprint := Vector2i.ONE
+@export var purchasable := true
+@export var display_name: String = ""
+@export var visual_mode := VisualMode.RUNTIME_GENERATED
+@export_node_path("Sprite2D") var authored_visual_path := NodePath("Sprite2D")
+
 var property_data: Dictionary = {}
 var visual: Sprite2D
 var interaction_area: Area2D
@@ -16,31 +30,57 @@ var _mouse_dragged := false
 var _touch_states: Dictionary = {}
 
 
+func _ready() -> void:
+	if property_data.is_empty() and not property_id.is_empty():
+		configure({
+			"property_id": property_id,
+			"category": category,
+			"business_type_id": business_type_id,
+			"footprint": [footprint.x, footprint.y],
+			"purchasable": purchasable,
+			"display_name": display_name,
+			"visual_mode": visual_mode,
+			"authored_visual_path": authored_visual_path,
+		})
+
+
 func configure(data: Dictionary) -> void:
 	property_data = data.duplicate(true)
-	name = str(property_data.get("id", "MapProperty"))
+	if not property_data.has("property_id"):
+		property_data["property_id"] = str(property_data.get("id", ""))
+	if int(property_data.get("visual_mode", VisualMode.RUNTIME_GENERATED)) == VisualMode.RUNTIME_GENERATED:
+		var runtime_name := get_property_id()
+		if not runtime_name.is_empty():
+			name = runtime_name
 	_build_visual()
 	_build_interaction()
 	_build_tag()
+
+
+func get_property_id() -> String:
+	return str(property_data.get("property_id", property_data.get("id", property_id)))
+
+
+func get_property_data() -> Dictionary:
+	return property_data.duplicate(true)
 
 
 func refresh_from_business_manager() -> void:
 	if property_tag == null:
 		return
 	var category := str(property_data.get("category", ""))
-	var display_name := str(property_data.get("display_name", "Property"))
+	var resolved_display_name := _resolve_display_name()
 	var purchasable := bool(property_data.get("purchasable", false))
 	var show_tag := bool(property_data.get("tag_visibility", purchasable))
 	if category == "city_decor" or not show_tag:
-		property_tag.configure(display_name, "", false)
+		property_tag.configure(resolved_display_name, "", false, false)
 		return
 	if category != "family_business":
-		property_tag.configure(display_name, "For Sale", purchasable)
+		property_tag.configure(resolved_display_name, "For Sale", purchasable, false)
 		return
-	var property_id := str(property_data.get("id", ""))
-	var business: Dictionary = BusinessManager.get_business_on_plot(property_id)
+	var business: Dictionary = BusinessManager.get_business_on_plot(get_property_id())
 	if business.is_empty():
-		property_tag.configure(display_name, "For Sale", purchasable)
+		property_tag.configure(resolved_display_name, "For Sale", purchasable, false)
 		return
 	var slots_value = business.get("slots", [])
 	var slots: Array = slots_value if slots_value is Array else []
@@ -55,10 +95,24 @@ func refresh_from_business_manager() -> void:
 			var npc_id_value = slot.get("assigned_npc_id", null)
 			if npc_id_value != null and not str(npc_id_value).is_empty():
 				occupied += 1
-	property_tag.configure(display_name, "%d / %d staff" % [occupied, slots.size()], true)
+	property_tag.configure(
+		resolved_display_name,
+		"%d / %d staff" % [occupied, slots.size()],
+		true,
+		occupied < slots.size()
+	)
 
 
 func _build_visual() -> void:
+	if int(property_data.get("visual_mode", VisualMode.RUNTIME_GENERATED)) == VisualMode.AUTHORED_EXISTING:
+		var authored_path: NodePath = property_data.get("authored_visual_path", authored_visual_path)
+		var authored_node := get_node_or_null(authored_path)
+		if authored_node is Sprite2D:
+			visual = authored_node as Sprite2D
+		else:
+			push_warning("Authored MapProperty visual is unavailable: " + str(authored_path))
+		return
+
 	var visual_path := _resolve_visual_path()
 	if visual_path.is_empty() or not ResourceLoader.exists(visual_path):
 		push_warning("Map property visual is unavailable: " + visual_path)
@@ -83,8 +137,7 @@ func _resolve_visual_path() -> String:
 
 	var business_type_id := str(property_data.get("business_type_id", ""))
 	if business_type_id.is_empty():
-		var property_id := str(property_data.get("id", ""))
-		var business: Dictionary = BusinessManager.get_business_on_plot(property_id)
+		var business: Dictionary = BusinessManager.get_business_on_plot(get_property_id())
 		business_type_id = str(business.get("business_type_id", ""))
 
 	if business_type_id.is_empty():
@@ -96,9 +149,13 @@ func _resolve_visual_path() -> String:
 func _build_interaction() -> void:
 	interaction_area = Area2D.new()
 	interaction_area.name = "PropertyInteraction"
-	interaction_area.input_pickable = bool(property_data.get("purchasable", false))
+	interaction_area.input_pickable = (
+		bool(property_data.get("purchasable", false))
+		and str(property_data.get("category", "")) != "family_business"
+	)
 	interaction_area.monitoring = false
 	interaction_area.monitorable = false
+	interaction_area.position = _get_visual_south_anchor()
 	add_child(interaction_area)
 	var collision := CollisionPolygon2D.new()
 	collision.name = "FootprintCollision"
@@ -112,16 +169,30 @@ func _build_tag() -> void:
 	property_tag = PROPERTY_TAG_SCENE.instantiate() as MapPropertyTag
 	property_tag.name = "PropertyTag"
 	property_tag.z_index = 20
-	var offset := _array_to_vector2(property_data.get("tag_offset", [0, -120]))
-	if visual != null and not property_data.has("tag_offset"):
-		offset = Vector2(0.0, -visual.texture.get_height() - 48.0)
-	property_tag.position = offset + Vector2(-90.0, 0.0)
+	var tag_size := property_tag.custom_minimum_size
+	var tag_position := _get_visual_top_anchor() + Vector2(-tag_size.x * 0.5, -tag_size.y + 20.0)
+	if property_data.has("tag_offset"):
+		tag_position = (
+			_get_visual_south_anchor()
+			+ _array_to_vector2(property_data["tag_offset"])
+			+ Vector2(-tag_size.x * 0.5, 0.0)
+		)
+	property_tag.position = tag_position
 	property_tag.set_tag_scale(float(property_data.get("tag_scale", 1.0)))
+	var tag_selects_property := (
+		str(property_data.get("category", "")) == "family_business"
+		and bool(property_data.get("purchasable", false))
+	)
+	property_tag.set_interaction_enabled(tag_selects_property)
+	if tag_selects_property and not property_tag.tapped.is_connected(_on_tag_tapped):
+		property_tag.tapped.connect(_on_tag_tapped)
 	add_child(property_tag)
 	refresh_from_business_manager()
 
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_index: int) -> void:
+	if interaction_area == null or not interaction_area.input_pickable:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index != MOUSE_BUTTON_LEFT:
 			return
@@ -136,7 +207,7 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_index: int) -> v
 			)
 			_mouse_pressed = false
 			if is_tap:
-				selected.emit(str(property_data.get("id", "")))
+				selected.emit(get_property_id())
 	elif event is InputEventMouseMotion and _mouse_pressed:
 		_mouse_dragged = (
 			_mouse_dragged
@@ -158,13 +229,21 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_index: int) -> v
 			)
 			_touch_states.erase(event.index)
 			if is_tap:
-				selected.emit(str(property_data.get("id", "")))
+				selected.emit(get_property_id())
 	elif event is InputEventScreenDrag and _touch_states.has(event.index):
 		var state: Dictionary = _touch_states[event.index]
 		var origin: Vector2 = state.get("origin", event.position)
 		if event.position.distance_to(origin) > TAP_DRAG_THRESHOLD:
 			state["dragged"] = true
 			_touch_states[event.index] = state
+
+
+func _on_tag_tapped() -> void:
+	if (
+		str(property_data.get("category", "")) == "family_business"
+		and bool(property_data.get("purchasable", false))
+	):
+		selected.emit(get_property_id())
 
 
 func _array_to_vector2(value: Variant) -> Vector2:
@@ -174,6 +253,37 @@ func _array_to_vector2(value: Variant) -> Vector2:
 
 
 func _array_to_vector2i(value: Variant) -> Vector2i:
+	if value is Vector2i:
+		return value
 	if value is Array and value.size() >= 2:
 		return Vector2i(int(value[0]), int(value[1]))
 	return Vector2i.ONE
+
+
+func _get_visual_south_anchor() -> Vector2:
+	if visual == null or visual.texture == null:
+		return Vector2.ZERO
+	var rect := visual.get_rect()
+	var local_south := Vector2(rect.get_center().x, rect.end.y)
+	return to_local(visual.to_global(local_south))
+
+
+func _get_visual_top_anchor() -> Vector2:
+	if visual == null or visual.texture == null:
+		return Vector2(0.0, -120.0)
+	var rect := visual.get_rect()
+	var local_top := Vector2(rect.get_center().x, rect.position.y)
+	return to_local(visual.to_global(local_top))
+
+
+func _resolve_display_name() -> String:
+	var configured_name := str(property_data.get("display_name", ""))
+	if not configured_name.is_empty():
+		return configured_name
+	if str(property_data.get("category", "")) == "family_business":
+		var type_id := str(property_data.get("business_type_id", ""))
+		var business_type: Dictionary = BusinessManager.get_business_type_by_id(type_id)
+		var type_name := str(business_type.get("display_name", ""))
+		if not type_name.is_empty():
+			return type_name
+	return str(property_data.get("category", "Property")).capitalize()

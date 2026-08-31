@@ -1,0 +1,82 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Dynamic SaveManager tests
+========================================
+[PASS] Save list starts empty
+[PASS] No save files means no save cards are displayed
+[PASS] Save counter displays the real zero count
+Time reset: 1985-01-26
+Characters reset for new game.
+No eligible starting major for character: 1
+Starting job assigned: Warehouse Worker | Salary: 1800 | Character: 1
+Starting character created: 1 | Name: William | Gender: male | Age: 18 | Major: <null> | Job: 1002 | Salary: 1800
+Starting company assigned: CivicCore Services | Character: 1 | Job: 1002
+Worker NPCs generated: 9 | Total: 9
+Worker NPC pool reset. | Initial: 9 | Next generation in months: 3
+Game saved. | Save ID: 1787985360204 | Family: Johnson | Money: 15000 | Date: 1985-01-26
+New game started. | Character ID: 1 | Name: William | Family: Johnson | Money: 15000 | Diamonds: 0 | Date: 1985-01-26
+[PASS] First new game creates a real character
+[PASS] First new game automatically creates a save file
+[PASS] One new game produces exactly one save file
+Game saved. | Save ID: 1787985360204 | Family: Johnson | Money: 15000 | Date: 1985-01-26
+[PASS] Stable Map property plot_id can be written with business state
+Game saved. | Save ID: 1787985360204 | Family: Johnson | Money: 32100 | Date: 1985-01-26
+[PASS] Important state change is autosaved to the current file
+Game saved. | Save ID: 1787985360204 | Family: Johnson | Money: 32100 | Date: 1985-01-26
+Time reset: 1985-01-26
+Characters reset for new game.
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Female/Mixed/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:546)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:598)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:847)
+       [3] create_base_starting_character (res://Autoload/CharacterManager.gd:2462)
+       [4] create_starting_character (res://Autoload/CharacterManager.gd:2484)
+       [5] start_new_game (res://Autoload/GameManager.gd:258)
+       [6] _ready (res://Tests/DynamicSaveManagerTest.gd:98)
+WARNING: Character 1 has no eligible portrait for gender 'female', skin tone 'mixed', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:873)
+       [1] create_base_starting_character (res://Autoload/CharacterManager.gd:2462)
+       [2] create_starting_character (res://Autoload/CharacterManager.gd:2484)
+       [3] start_new_game (res://Autoload/GameManager.gd:258)
+       [4] _ready (res://Tests/DynamicSaveManagerTest.gd:98)
+No eligible starting major for character: 1
+Starting job assigned: Barista | Salary: 1400 | Character: 1
+Starting character created: 1 | Name: Emma | Gender: female | Age: 21 | Major: <null> | Job: 1003 | Salary: 1400
+Starting company assigned: BrightSide Retail & Media | Character: 1 | Job: 1003
+Worker NPCs generated: 8 | Total: 8
+Worker NPC pool reset. | Initial: 8 | Next generation in months: 3
+Game saved. | Save ID: 1787985360287 | Family: Anderson | Money: 15000 | Date: 1985-01-26
+New game started. | Character ID: 1 | Name: Emma | Family: Anderson | Money: 15000 | Diamonds: 0 | Date: 1985-01-26
+[PASS] Second new game creates a real character
+[PASS] Every new game receives a new unique save ID
+[PASS] Two new games remain as two independent save files
+[PASS] Continue resolves to the most recent save
+[PASS] Load Game displays only the two existing save files
+[PASS] Save counter reflects the real file count
+[PASS] Newest save is displayed first
+Game loaded. | Save ID: 1787985360204 | Family: Johnson | Money: 32100 | Date: 1985-01-26
+[PASS] An older save can be loaded directly
+[PASS] Loading an older file restores its family
+[PASS] Loading an older file restores its autosaved money
+[PASS] Save/load preserves the stable Map property plot_id link
+
+Dynamic SaveManager tests: 19 passed / 0 failed
+========================================
+ALL DYNAMIC SAVE MANAGER TESTS PASSED.

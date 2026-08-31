@@ -2,13 +2,13 @@
 
 ## Snapshot
 
-- Inspected: 2026-08-28
+- Inspected: 2026-08-29
 - Branch: `main`
 - HEAD: `86a220c` (`Ui elements`, 2026-08-18)
 - Engine configuration: Godot 4.7
 - Startup scene: `Scenes/MainMenu/MainMenu.tscn`
 
-This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, business, and main-scene validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
+This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, Buy Building Modal, business, and main-scene validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
 
 ## Status Definitions
 
@@ -36,9 +36,10 @@ This status is derived only from files present in the inspected working tree. Th
 | Family-business backend | The approved 12-type roster is fully configured. Type loading, acquisition cost, instance creation, plot occupancy, upgrades, slots, family/Worker NPC assignment and replacement, performance tiers, income, expense, net profit, and independent static map/modal visual resolution exist. Runtime instances contain no visual variant state. |
 | Worker NPC backend | Config-driven generation, age filters, candidate ranking, availability, slot assignment, retirement, and business-income contribution exist as a system separate from Relationship NPCs. |
 | Business staffing modal flow | Business data adapter, financial/staff display, upgrade action, worker-type choice, candidate sheets, assignment, replacement, and integration tests exist. The adapter uses only `modal_visual_path`; missing modal assets are handled without crashing or falling back to map art. |
+| Family-business purchase modal flow | Authored family-business selection routes `MapProperty -> MapScreen -> Main`. Owned plots open the shared BusinessModal; unowned plots open one shared BuyBuildingModal. The modal binds authoritative Level 1 gross potential, fixed expense, slot count, ready-made acquisition cost, and `modal_visual_path`, disables purchase with local feedback when funds are insufficient, revalidates plot/funds, and delegates creation to `BusinessManager`. Success refreshes the Map tag and shared HUD, then opens BusinessModal for the new instance. House and Land remain outside this flow. |
 | Save/load/autosave | Version 4 manager snapshot includes item inventory, equipment, and all three slot stocks. Version 2 loading and Version 3 global-stock migration remain compatible. Unique save IDs, dynamic save listing, Continue/Load Game flows, delete API, and deferred autosaves tied to manager signals exist. |
 | Main menu and load-game UI | Main menu, new-game modal, runtime save-slot list, continue/load navigation, and gameplay scene transitions exist. |
-| Authored Map and runtime infrastructure | `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites inside a `6200 x 4200` rectangular MapWorld. The fixed-zoom camera supports desktop mouse and one-finger touch drag; wheel zoom remains disabled. This repair changed only screen/camera/container infrastructure, not TileSets, placement, or artwork. |
+| Authored Map and runtime infrastructure | `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites inside a `6200 x 4200` rectangular MapWorld. All 68 authored interactive parents now use explicit MapProperty metadata: 52 family businesses, 10 houses, and 6 land plots. Authored-existing visual mode reuses each original Sprite2D and adds only tag/interaction children. The fixed-zoom camera supports desktop mouse and one-finger touch drag; wheel zoom remains disabled. TileSets, artwork, and all 68 interactive Sprite2D position/scale/texture records remain unchanged. |
 | Family Tree / Map navigation | Main owns the persistent Family Tree, lazily created and reused Map, and one shared Main HUD. Screen changes now explicitly isolate visibility, processing, CanvasLayer state, and the active Camera2D: only the active screen camera remains enabled/current. Date/Money/Diamond and navigation do not duplicate, while Family Tree time controls remain Family Tree-only. |
 
 ## Partial
@@ -46,12 +47,11 @@ This status is derived only from files present in the inspected working tree. Th
 | System | Missing or limited integration observed |
 | --- | --- |
 | Overall gameplay shell | Family Tree and Map are integrated. Lifestyle remains a visual navigation entry because no Lifestyle screen exists. |
-| Family-business player flow | `BusinessManager`, `BusinessModal`, and reusable Map property/tag components support all 12 configured business types, but the currently authored building sprites are not instantiated as `MapProperty` records. Map property/business wiring remains deferred while the project owner manually authors the city. |
 | Education player flow | Backend emits education and major-selection events, but no player-facing education choice scene or signal consumer was found outside tests/autosave hooks. |
 | Career player flow | Backend emits job offers, but no player-facing offer scene or signal consumer was found outside tests/autosave hooks. |
 | Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
 | Settings | Settings values and setter methods exist in `GameManager`, and menu/HUD settings visuals exist, but no settings screen or connected editing flow was found. |
-| Building visuals | Manually placed building and road artwork exists in `UI/Map.tscn`. No artwork, TileSet, or placement was created or modified by this runtime repair. |
+| Building visuals | Manually placed building and road artwork exists in `UI/Map.tscn`. Gameplay wiring does not recreate or reposition authored Sprite2D visuals; the before/after interactive Sprite2D position/scale/texture manifest remains identical. |
 | House and land ownership flow | Authored properties, tags, selection, sizes, fit validation, and scattered For Sale state exist. No House/Land manager, save schema, approved prices, purchase confirmation, or construction-selection UI was found, so these selections emit requests but do not mutate ownership. |
 | Legacy Bookshop save migration | Bookshop is removed from current `BusinessTypes.json` and authored map data. No GDD decision identifies how an already purchased Bookshop in an older save should be converted or compensated, so existing save records are preserved as unsupported legacy instances rather than silently deleted or mapped to an unrelated type. |
 | Lifestyle class label | Equipped-item Lifestyle score and star presentation are implemented. The optional cosmetic class label remains hidden because no canonical label resolver/text set was found; this does not block Lifestyle gameplay. |
@@ -70,7 +70,7 @@ This status is derived only from files present in the inspected working tree. Th
 
 ## Test Inventory
 
-The repository contains 34 `.tscn` test scenes covering:
+The repository contains 36 `.tscn` test scenes covering:
 
 - business manager, economy, modal integration, family and Worker NPC assignment;
 - Worker NPC generation, slot rules, and retirement;
@@ -97,7 +97,7 @@ Fresh Character portrait/genetics migration validation on 2026-08-25:
 - `Tests/CharacterCardTest.tscn`: 85 passed / 0 failed.
 - `Tests/FamilyCandidateTest.tscn`: 7 passed / 0 failed.
 - `Tests/WorkerAssignmentFlowTest.tscn`: 7 passed / 0 failed.
-- `Tests/DynamicSaveManagerTest.tscn`: 17 passed / 0 failed.
+- `Tests/DynamicSaveManagerTest.tscn`: 19 passed / 0 failed.
 - `Tests/FamilyTreeVisualTest.tscn` and `Tests/FamilyTreeVisualUITest.tscn` completed their headless smoke runs without a script/runtime crash; these visual scenes do not print assertion totals.
 - Expected warnings identify absent canonical portrait pools and confirm fallback to the existing default avatar. The ordinary Windows root-certificate-store warning remains unrelated to gameplay.
 
@@ -139,6 +139,44 @@ Fresh Map runtime bugfix validation on 2026-08-28:
 - `Tests/MapScreenTest.tscn`: 9 passed / 0 failed. Coverage confirms the authored layer structure, continuous CanvasItem visibility containers, fixed `6200 x 4200` limits, all-edge clamping, fixed zoom, mouse drag, one-finger touch drag, and sensitivity `2.0`.
 - `Tests/MainFamilyTreeIntegrationTest.tscn`: 9 passed / 0 failed. Coverage now checks the actual viewport camera, disables the inactive camera, verifies MapWorld/Backdrop/building canvas items are hidden on Family Tree, and confirms screen/HUD instance reuse.
 - Post-fix editor F5 and Remote Scene Tree verification confirmed visible two-axis Map pan, unchanged wheel zoom, clean Map to Family Tree rendering, repeated Map/Family Tree reuse with one MapScreen and one shared HUD, and no new parser/runtime, invalid-path, null-instance, or duplicate-signal errors. Family Tree camera code was not modified.
+
+Fresh authored Map property/gameplay-routing validation on 2026-08-28:
+
+- Canonical GDD v3.6 D-131 through D-136 and the approved footprint table were checked before implementation; the implemented footprints match the canonical values, and School/Skyscrapers remain non-interactive `city_decor`.
+- Godot 4.7 editor/project scan completed with exit code 0 and no Map property, Main, or BusinessModal parser/resource errors.
+- `Tests/MapScreenTest.tscn`: 19 passed / 0 failed. Coverage includes the 52/10/6 category counts, unique stable IDs, authoritative business type IDs, authored-existing and runtime-generated visual modes, no decorative interaction, no duplicate Sprite2D creation, transformed south-anchor collisions including scaled Cruise, Business/House/Land selection, drag-threshold suppression, tag refresh, camera bounds, pan, and fixed zoom.
+- `Tests/MainFamilyTreeIntegrationTest.tscn`: 11 passed / 0 failed. Coverage includes Family Tree/Map reuse and render isolation plus owned-business modal routing, unowned-business/House no-modal behavior, and one shared modal instance.
+- `Tests/DynamicSaveManagerTest.tscn`: 19 passed / 0 failed with real `user://` writes; a business using `plot_id = "cafe_01"` retained the same stable Map link after save/load.
+- The 68 interactive Sprite2D position/scale/texture manifest remained byte-for-byte equivalent before and after wiring (SHA-256 `8D4E91E1991DD1243DF9CA63821B378CA9C5C07D41E4EFD838C3DCED9DA7CCE9`).
+
+Fresh Buy Building Modal validation on 2026-08-29:
+
+- Canonical GDD v3.6 Section 11.2 was checked before implementation. The modal uses the ready-made Level 1 base cost; it does not apply the 1.40 new-construction multiplier. Potential income is the Level 1 maximum gross from active slot contributions, and monthly expense is the Level 1 fixed expense.
+- Godot 4.7.1 editor scan and `Scenes/Main/Main.tscn` startup smoke both completed with exit code 0 and no BuyBuildingModal/Main parser, missing-resource, null-instance, or runtime error. The restricted headless editor still reported its environment-only certificate/editor-settings warnings.
+- `Tests/BuyBuildingModalTest.tscn`: 22 passed / 0 failed. Coverage includes full-screen input blocking, reusable centered scene structure, all 12 authoritative business-type bindings, independent modal visuals, Hospital Level 1 values, insufficient funds, X-without-purchase, correct instance/plot/slot creation, single deduction, success signal, and duplicate-request prevention.
+- `Tests/MainFamilyTreeIntegrationTest.tscn`: 15 passed / 0 failed. Coverage includes owned versus unowned routing, House/Land exclusion, one shared instance of each business modal, Map-pan blocking while BuyBuildingModal is open, success refresh of Map tag and shared money HUD, and automatic transition to the existing BusinessModal.
+- Regression suites passed: `MapScreenTest` 19/19, `BusinessManagerTest` 25/25, `BusinessEconomyTest` 8/8, `BusinessModalIntegrationTest` 2/2, and `DynamicSaveManagerTest` 19/19 with real `user://` writes. Stable `plot_id` save/load behavior remains intact.
+- Real-renderer 1080 x 1920 captures `Tests/Artifacts/buy_building_modal_hospital.png` and `Tests/Artifacts/buy_building_modal_after_purchase.png` verify the dimmed authored Map composition, Hospital purchase presentation, post-purchase balance change, and automatic owned BusinessModal handoff.
+
+Fresh MapPropertyTag readability, interaction, and staffing-state validation on 2026-08-29:
+
+- Canonical GDD v3.6 business staffing and reusable Map property-tag requirements were checked before implementation. The work adds no gameplay value, ownership rule, or save field.
+- `MapPropertyTag` now renders a 24 px title and 20 px state line in a 240 x 92 full-card target. Understaffed owned businesses use the warning treatment; fully staffed owned businesses and unowned `For Sale` properties use the normal treatment. House and Land state/selection behavior is unchanged.
+- Business footprint diamonds remain generated from their authored visuals but are no longer input-pickable. A full tag-card tap routes the stable property ID, a drag beyond 14 px does not select, and consumed tag pointer events do not reach Map camera pan.
+- `MapScreen` now reacts to the existing `BusinessManager` family-character slot, Worker NPC slot, business-created, and business-upgraded signals. It resolves the stable `plot_id` and re-reads current runtime slots, so assignment and removal update the displayed count without reopening Map; `Main` also refreshes after shared-modal close as a safe boundary fallback.
+- `Tests/MapScreenTest.tscn`: 27 passed / 0 failed. New coverage checks effective 24/20 px rendering, real-viewport full-card business selection, disabled business-footprint selection, unchanged House/Land routing, tag drag suppression, real viewport input isolation from Map pan, `0/3 -> 1/3 -> 3/3 -> 2/3` event-driven staffing refresh, warning/normal transitions, unowned `For Sale`, and the existing authored-map invariants.
+- Regression suites passed: `MainFamilyTreeIntegrationTest` 15/15, `BuyBuildingModalTest` 22/22, `BusinessManagerTest` 25/25, `BusinessEconomyTest` 8/8, `BusinessModalIntegrationTest` 2/2, `WorkerAssignmentFlowTest` 7/7, `WorkerNPCSlotTest` 7/7, and `DynamicSaveManagerTest` 19/19 with real `user://` writes. Stable business `plot_id` save/load remains intact.
+- The real Godot 4.7.1 renderer produced the 1080 x 1920 capture `Tests/Artifacts/map_property_tag_readability.png`; it verifies the normal and red warning treatments in the unchanged authored Map composition. This pass did not edit `UI/Map.tscn`, business sprites, building transforms, or JSON/save schemas.
+
+Fresh BuyBuildingModal and MapPropertyTag visual/UX follow-up on 2026-08-29:
+
+- Canonical GDD v3.6 Sections 11 and 13.1/D-136 were rechecked. This follow-up changes presentation only and introduces no purchase, staffing, ownership, economy, JSON, or save-schema rule.
+- Insufficient funds continue to disable the Buy Building CTA while leaving its acquisition price visible. The redundant `Not enough money` helper text was removed from every affordability path; backend affordability validation remains in place. The feedback row stays reserved for actual unavailable-property or generic purchase failures and is hidden when empty.
+- `MapPropertyTag` now guarantees geometric center alignment: equal 18 px horizontal and 11 px vertical margins, a full-width centered VBox, full-width title/state labels, and centered vertical content. The understaffed StyleBox uses a clearly visible pastel-red fill (`#FCC8C3FA`) and stronger red border; fully staffed and unowned `For Sale` states retain the normal cream style.
+- `Tests/BuyBuildingModalTest.tscn`: 22 passed / 0 failed. Coverage confirms a visibly distinct disabled CTA, visible price, hidden/empty affordability feedback, and unchanged backend rejection with no deduction or business creation.
+- `Tests/MapScreenTest.tscn`: 28 passed / 0 failed. Coverage now proves both label centers equal the card's geometric center, warning states use the red filled StyleBox for `0/3`, `1/3`, and `2/3`, `3/3` returns to the normal StyleBox, and unowned `For Sale` remains normal. Existing click, drag, pan-isolation, House/Land, authored-sprite, and stable-ID checks remain green.
+- Routing regressions passed: `MainFamilyTreeIntegrationTest` 15/15 and `BusinessModalIntegrationTest` 2/2. The Godot 4.7.1 editor scan completed without parser or resource errors; restricted-environment certificate/editor-settings warnings remain non-project warnings.
+- Real-renderer 1080 x 1920 captures `Tests/Artifacts/buy_building_modal_insufficient_funds.png` and `Tests/Artifacts/map_property_tag_readability.png` visually confirm the simplified disabled modal and the centered, filled warning tag. Authored Map layout, property selection routing, business sprites, and `UI/Map.tscn` were not changed in this follow-up.
 
 ## Documentation Follow-up Rule
 

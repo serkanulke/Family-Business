@@ -1,0 +1,367 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://Scripts/UI/Business/buy_building_modal.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Regular.ttf" id="2_regular"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Medium.ttf" id="3_medium"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-SemiBold.ttf" id="4_semibold"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Bold.ttf" id="5_bold"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/upper-chart.svg" id="6_income"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/down-chart.svg" id="7_expense"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/empty-slot.svg" id="8_employee"]
+[ext_resource type="Texture2D" path="res://Resources/Icons/main-ui/coin.png" id="9_coin"]
+
+[sub_resource type="StyleBoxFlat" id="StyleModal"]
+bg_color = Color(0.988235, 0.937255, 0.858824, 1)
+corner_radius_top_left = 44
+corner_radius_top_right = 44
+corner_radius_bottom_right = 44
+corner_radius_bottom_left = 44
+shadow_color = Color(0, 0, 0, 0.2)
+shadow_size = 18
+shadow_offset = Vector2(0, 10)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleSoftPanel"]
+bg_color = Color(1, 0.960784, 0.929412, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956863, 0.870588, 0.827451, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleSeparator"]
+bg_color = Color(0.956863, 0.870588, 0.827451, 1)
+content_margin_left = 1.5
+content_margin_right = 1.5
+
+[sub_resource type="StyleBoxFlat" id="StyleClose"]
+bg_color = Color(1, 1, 1, 0.94)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+shadow_color = Color(0, 0, 0, 0.12)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBuy"]
+bg_color = Color(0.388235, 0.666667, 0.486275, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBuyPressed"]
+bg_color = Color(0.309804, 0.568627, 0.4, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+anti_aliasing = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBuyDisabled"]
+bg_color = Color(0.635294, 0.662745, 0.635294, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+anti_aliasing = true
+
+[node name="BuyBuildingModal" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_script")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.0470588, 0.0666667, 0.0705882, 0.79)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_constants/margin_left = 68
+theme_override_constants/margin_top = 120
+theme_override_constants/margin_right = 68
+theme_override_constants/margin_bottom = 120
+
+[node name="Center" type="CenterContainer" parent="SafeArea"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="ModalCard" type="PanelContainer" parent="SafeArea/Center"]
+custom_minimum_size = Vector2(780, 0)
+layout_mode = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleModal")
+
+[node name="CardMargin" type="MarginContainer" parent="SafeArea/Center/ModalCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 34
+theme_override_constants/margin_bottom = 34
+
+[node name="Content" type="VBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content"]
+custom_minimum_size = Vector2(0, 178)
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="BuildingImage" type="TextureRect" parent="SafeArea/Center/ModalCard/CardMargin/Content/Header"]
+custom_minimum_size = Vector2(250, 160)
+layout_mode = 2
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="HeaderInfo" type="VBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="BusinessTitle" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/Header/HeaderInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("5_bold")
+theme_override_font_sizes/font_size = 42
+text = "HOSPITAL"
+autowrap_mode = 2
+
+[node name="BusinessLevel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/Header/HeaderInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 28
+text = "Level 1"
+
+[node name="CloseButton" type="Button" parent="SafeArea/Center/ModalCard/CardMargin/Content/Header"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleClose")
+theme_override_styles/hover = SubResource("StyleClose")
+theme_override_styles/pressed = SubResource("StyleClose")
+text = "×"
+
+[node name="FinancialPanel" type="PanelContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content"]
+custom_minimum_size = Vector2(0, 154)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSoftPanel")
+
+[node name="FinancialMargin" type="MarginContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="Columns" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="IncomeColumn" type="VBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="PotentialIncomeLabel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/IncomeColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 22
+text = "POTENTIAL INCOME"
+horizontal_alignment = 1
+
+[node name="IncomeValueRow" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/IncomeColumn"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="PotentialIncomeValue" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/IncomeColumn/IncomeValueRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.027451, 0.533333, 0.309804, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 34
+text = "+17,000"
+
+[node name="IncomeTrend" type="TextureRect" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/IncomeColumn/IncomeValueRow"]
+custom_minimum_size = Vector2(42, 32)
+layout_mode = 2
+texture = ExtResource("6_income")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Separator" type="VSeparator" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleSeparator")
+
+[node name="ExpenseColumn" type="VBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="MonthlyExpenseLabel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/ExpenseColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 22
+text = "MONTHLY EXPENSE"
+horizontal_alignment = 1
+
+[node name="ExpenseValueRow" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/ExpenseColumn"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="MonthlyExpenseValue" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/ExpenseColumn/ExpenseValueRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.25098, 0.243137, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 34
+text = "-6,800"
+
+[node name="ExpenseTrend" type="TextureRect" parent="SafeArea/Center/ModalCard/CardMargin/Content/FinancialPanel/FinancialMargin/Columns/ExpenseColumn/ExpenseValueRow"]
+custom_minimum_size = Vector2(42, 32)
+layout_mode = 2
+texture = ExtResource("7_expense")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="EmployeePanel" type="PanelContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content"]
+custom_minimum_size = Vector2(0, 142)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleSoftPanel")
+
+[node name="EmployeeMargin" type="MarginContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="EmployeeRow" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="EmployeeIcon" type="TextureRect" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin/EmployeeRow"]
+custom_minimum_size = Vector2(78, 78)
+layout_mode = 2
+texture = ExtResource("8_employee")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="EmployeeText" type="VBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin/EmployeeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="EmployeeSlotsLabel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin/EmployeeRow/EmployeeText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
+theme_override_fonts/font = ExtResource("4_semibold")
+theme_override_font_sizes/font_size = 26
+text = "EMPLOYEE SLOTS"
+
+[node name="EmployeeSlotsDetail" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin/EmployeeRow/EmployeeText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.290196, 0.27451, 0.258824, 1)
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 22
+text = "3 employee slots available after purchase."
+autowrap_mode = 2
+
+[node name="FeedbackLabel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.176471, 0.156863, 1)
+theme_override_fonts/font = ExtResource("3_medium")
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BuyButton" type="Button" parent="SafeArea/Center/ModalCard/CardMargin/Content"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBuy")
+theme_override_styles/hover = SubResource("StyleBuy")
+theme_override_styles/pressed = SubResource("StyleBuyPressed")
+theme_override_styles/disabled = SubResource("StyleBuyDisabled")
+
+[node name="ButtonCenter" type="CenterContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/BuyButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter"]
+layout_mode = 2
+theme_override_constants/separation = 14
+mouse_filter = 2
+
+[node name="BuyButtonLabel" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("5_bold")
+theme_override_font_sizes/font_size = 36
+text = "BUY BUILDING"
+mouse_filter = 2
+
+[node name="CoinIcon" type="TextureRect" parent="SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+texture = ExtResource("9_coin")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="BuyButtonAmount" type="Label" parent="SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("5_bold")
+theme_override_font_sizes/font_size = 36
+text = "120,000"
+mouse_filter = 2

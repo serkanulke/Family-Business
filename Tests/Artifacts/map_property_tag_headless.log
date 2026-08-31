@@ -1,0 +1,43 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Map keeps its organized authoring layers without a duplicate local HUD
+[PASS] Building group containers preserve the CanvasItem visibility chain
+[PASS] World boundary guide is editor-only and hidden in production
+[PASS] Authored Map exposes 52 family businesses, 10 houses, and 6 land properties
+[PASS] Every interactive property has a unique stable ID and authoritative category metadata
+[PASS] MapProperty reuses exactly one authored Sprite2D without generating duplicates
+[PASS] Decorative buildings remain outside property interaction
+[PASS] Runtime-generated MapProperty visual mode remains available
+[PASS] Collision diamonds use true 2:1 footprints anchored to each authored texture transform
+[PASS] Cruise collision anchor accounts for its authored Sprite2D scale
+[PASS] Business footprint collision remains present but is disabled for selection
+[PASS] Business tag, House footprint, and Land footprint route stable IDs through MapScreen
+[PASS] Business tag drag beyond the existing threshold does not emit a click
+[PASS] Property tag renders 24 px title and at least 20 px state text at authored Map scale
+[PASS] Business tag card is the primary full-card input target
+[PASS] Pointer drag over the tag is consumed by the card and cannot pan or select the Map
+[PASS] Owned understaffing is red while unowned business remains normal For Sale state
+[PASS] Character staffing signal refreshes the authoritative Map count immediately
+[PASS] Fully staffed business returns to the normal tag treatment
+[PASS] Worker removal signal restores the understaffed warning without reopening Map
+[PASS] Camera uses the fixed 6200x4200 rectangular world limits
+[PASS] Camera is not locked at startup and can travel right/down
+[PASS] Camera reaches and stops at all rectangular world boundaries
+[PASS] Desktop left-mouse drag pans both axes at sensitivity 2.0
+[PASS] Mobile one-finger drag uses the same high-sensitivity pan path
+[PASS] Mouse wheel and external changes cannot alter the fixed Map zoom
+Map infrastructure tests: 26 passed / 0 failed
+ALL MAP INFRASTRUCTURE TESTS PASSED.

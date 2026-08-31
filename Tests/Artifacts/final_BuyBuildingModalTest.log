@@ -1,0 +1,40 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Full-screen modal and dim layer block Map input
+[PASS] Responsive container hierarchy owns one centered purchase card
+[PASS] Purchase modal exposes one X close action and one primary CTA
+[PASS] cafe binds authoritative Level 1 data and modal visual
+[PASS] gym binds authoritative Level 1 data and modal visual
+[PASS] restaurant binds authoritative Level 1 data and modal visual
+[PASS] warehouse binds authoritative Level 1 data and modal visual
+[PASS] factory binds authoritative Level 1 data and modal visual
+[PASS] hospital binds authoritative Level 1 data and modal visual
+[PASS] tech_company binds authoritative Level 1 data and modal visual
+[PASS] bank binds authoritative Level 1 data and modal visual
+[PASS] stadium binds authoritative Level 1 data and modal visual
+[PASS] auto_service binds authoritative Level 1 data and modal visual
+[PASS] cruise binds authoritative Level 1 data and modal visual
+[PASS] hotel binds authoritative Level 1 data and modal visual
+[PASS] Hospital uses repository Level 1 income, expense, slots, and ready-made cost
+[PASS] Insufficient funds disable purchase and show local feedback
+[PASS] Insufficient-funds request creates no business and deducts no money
+[PASS] X closes without purchase, mutation, or navigation
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: cafe | Plot: cafe_purchase_test | New Construction: false | Cost: 25000
+[PASS] Purchase creates the correct Level 1 family business on the stable plot
+[PASS] Purchase deducts once and duplicate requests cannot create or signal twice
+[PASS] Successful purchase closes only the Buy Building Modal
+Buy Building Modal tests: 22 passed / 0 failed
+ALL BUY BUILDING MODAL TESTS PASSED.

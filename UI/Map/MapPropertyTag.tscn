@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Map/MapPropertyTag.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-SemiBold.ttf" id="2_title_font"]
+[ext_resource type="FontFile" path="res://Resources/Fonts/Roboto-Medium.ttf" id="3_state_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleTag"]
 bg_color = Color(0.984314, 0.94902, 0.890196, 0.96)
@@ -16,33 +18,57 @@ corner_radius_bottom_left = 14
 shadow_color = Color(0, 0, 0, 0.18)
 shadow_size = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleWarning"]
+bg_color = Color(0.988235, 0.784314, 0.764706, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.827451, 0.215686, 0.184314, 0.92)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.18)
+shadow_size = 4
+
 [node name="MapPropertyTag" type="PanelContainer"]
-custom_minimum_size = Vector2(180, 68)
-mouse_filter = 2
+custom_minimum_size = Vector2(240, 92)
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleTag")
 script = ExtResource("1_script")
+normal_style = SubResource("StyleTag")
+warning_style = SubResource("StyleWarning")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 7
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 7
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 11
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 11
 
 [node name="Rows" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 0
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+alignment = 1
 
 [node name="Title" type="Label" parent="Margin/Rows"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.117647, 0.117647, 0.117647, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_fonts/font = ExtResource("2_title_font")
+theme_override_font_sizes/font_size = 24
 text = "Property"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="State" type="Label" parent="Margin/Rows"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_fonts/font = ExtResource("3_state_font")
+theme_override_font_sizes/font_size = 20
 text = "For Sale"
 horizontal_alignment = 1
+vertical_alignment = 1

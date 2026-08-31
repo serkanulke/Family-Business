@@ -18,11 +18,33 @@ Items loaded: 261
 BusinessManager static + backend tests starting
 ========================================
 [PASS] Approved 12-type roster loads, Bookshop is absent, and Hospital resolves
+[PASS] All 12 business types have valid five-level slot/economy data and only the new visual schema
 [PASS] Hospital Lv1 cost, expense, slots and max gross match BusinessTypes.json
 [PASS] Hospital Lv5 cost, expense, slots and max gross match BusinessTypes.json
 [PASS] Required stats are performance references; only missing stat data blocks assignment
 [PASS] S/A/B/C/D tiers apply the correct gross contribution multipliers
-[PASS] Missing business visual variant uses the configured placeholder path
+[PASS] Map and modal visual resolvers return their independent static JSON paths
+[PASS] Family-business map properties resolve the map-specific BusinessTypes path
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: auto_service | Plot: plot_existing_0 | New Construction: false | Cost: 60000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 80000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 3 | Cost: 110000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 4 | Cost: 150000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 5 | Cost: 200000
+FAMILY BUSINESS CREATED | ID: business_0002 | Type: auto_service | Plot: plot_constructed_0 | New Construction: true | Cost: 84000
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: hotel | Plot: plot_existing_1 | New Construction: false | Cost: 160000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 205000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 3 | Cost: 285000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 4 | Cost: 385000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 5 | Cost: 520000
+FAMILY BUSINESS CREATED | ID: business_0002 | Type: hotel | Plot: plot_constructed_1 | New Construction: true | Cost: 224000
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: cruise | Plot: plot_existing_2 | New Construction: false | Cost: 300000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 420000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 3 | Cost: 600000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 4 | Cost: 850000
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 5 | Cost: 1200000
+FAMILY BUSINESS CREATED | ID: business_0002 | Type: cruise | Plot: plot_constructed_2 | New Construction: true | Cost: 420000
+[PASS] Auto Service, Hotel, and Cruise support generic purchase, construction, Lv1 creation, Lv2-Lv5 upgrades, and slot progression
+[PASS] Cruise cost and fixed monthly expense exceed Stadium at every level
 [PASS] Existing Hospital uses the Lv1 base purchase cost
 [PASS] New construction applies the shared 1.4 multiplier to Lv1 cost
 FAMILY BUSINESS CREATED | ID: business_0001 | Type: hospital | Plot: plot_existing_001 | New Construction: false | Cost: 120000
@@ -59,6 +81,6 @@ FAMILY BUSINESS ASSIGNED | Character: 1 | Business: test_business_001 | Slot: do
 [PASS] Occupied family-business slot rejects another character
 
 ========================================
-Business tests: 21 passed / 0 failed
+Business tests: 25 passed / 0 failed
 ========================================
 ALL BUSINESS TESTS PASSED.

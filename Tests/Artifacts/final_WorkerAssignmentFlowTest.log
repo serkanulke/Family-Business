@@ -29,6 +29,66 @@ FAMILY BUSINESS ASSIGNED | Character: 1 | Business: business_test_001 | Slot: do
 [PASS] Replace safely changes Worker NPC to Family Member
 [PASS] Invalid NPC candidate does not remove the current Family Member
 [PASS] Invalid Family Member candidate does not remove the current Worker NPC
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Light/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:546)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:598)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:847)
+       [3] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [4] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [5] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [6] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [7] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
+WARNING: Character 1 has no eligible portrait for gender 'male', skin tone 'light', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:873)
+       [1] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [2] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [3] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [4] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [5] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Light/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:546)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:598)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:847)
+       [3] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [4] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [5] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [6] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [7] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
+WARNING: Character 2 has no eligible portrait for gender 'male', skin tone 'light', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:873)
+       [1] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [2] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [3] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [4] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [5] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Light/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:546)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:598)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:847)
+       [3] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [4] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [5] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [6] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [7] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
+WARNING: Character 3 has no eligible portrait for gender 'male', skin tone 'light', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:873)
+       [1] get_avatar_path (res://Autoload/CharacterManager.gd:910)
+       [2] get_family_candidates_for_slot (res://Autoload/BusinessManager.gd:1609)
+       [3] _test_external_job_is_only_cleared_after_real_family_assignment (res://Tests/WorkerAssignmentFlowTest.gd:417)
+       [4] _run_tests (res://Tests/WorkerAssignmentFlowTest.gd:94)
+       [5] _ready (res://Tests/WorkerAssignmentFlowTest.gd:39)
 FAMILY BUSINESS ASSIGNED | Character: 3 | Business: business_test_001 | Slot: doctor_01
 [PASS] Opening/listing Family candidates keeps external job until actual assignment
 

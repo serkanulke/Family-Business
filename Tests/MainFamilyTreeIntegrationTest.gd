@@ -31,6 +31,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var map_screen := main_instance.get_node("World/MapScreen") as MapScreen
+	var business_modal := main_instance.get_node("ModalLayer/BusinessModal") as BusinessModal
+	var buy_building_modal := main_instance.get_node("ModalLayer/BuyBuildingModal") as BuyBuildingModal
 	var map_icon := shared_hud.find_child("MapIcon", true, false) as TextureRect
 	var family_icon := shared_hud.find_child("FamilyTreeIcon", true, false) as TextureRect
 	_assert_true(
@@ -46,6 +48,90 @@ func _ready() -> void:
 		and family_icon != null and family_icon.size.is_equal_approx(Vector2(110, 110)),
 		"Shared reference navigation switches to the correct Map active state"
 	)
+	var original_businesses := BusinessManager.businesses.duplicate(true)
+	var original_money := GameManager.family_money
+	var original_next_business_id := BusinessManager.next_business_instance_number
+	BusinessManager.businesses = [{
+		"business_instance_id": "business_map_route_test",
+		"business_type_id": "cafe",
+		"plot_id": "cafe_01",
+		"level": 1,
+		"slots": [
+			{"slot_id": "manager_01", "assigned_character_id": null, "assigned_npc_id": null},
+			{"slot_id": "barista_01", "assigned_character_id": null, "assigned_npc_id": null},
+		],
+	}]
+	map_screen.call("_on_property_selected", "cafe_01")
+	_assert_true(
+		business_modal.visible and not buy_building_modal.visible
+		and business_modal.business_instance_id == "business_map_route_test",
+		"Owned family-business property opens the shared BusinessModal with its instance ID"
+	)
+	business_modal.close_modal()
+	map_screen.call("_on_property_selected", "cafe_02")
+	_assert_true(
+		buy_building_modal.visible and not business_modal.visible
+		and buy_building_modal.property_id == "cafe_02"
+		and buy_building_modal.business_type_id == "cafe",
+		"Unowned family-business property opens the shared BuyBuildingModal with stable metadata"
+	)
+	var blocked_camera_position := map_screen.map_camera.position
+	var blocked_mouse_down := InputEventMouseButton.new()
+	blocked_mouse_down.button_index = MOUSE_BUTTON_LEFT
+	blocked_mouse_down.pressed = true
+	blocked_mouse_down.position = Vector2(540, 960)
+	Input.parse_input_event(blocked_mouse_down)
+	var blocked_mouse_move := InputEventMouseMotion.new()
+	blocked_mouse_move.position = Vector2(440, 880)
+	blocked_mouse_move.relative = Vector2(-100, -80)
+	Input.parse_input_event(blocked_mouse_move)
+	var blocked_mouse_up := InputEventMouseButton.new()
+	blocked_mouse_up.button_index = MOUSE_BUTTON_LEFT
+	blocked_mouse_up.pressed = false
+	blocked_mouse_up.position = blocked_mouse_move.position
+	Input.parse_input_event(blocked_mouse_up)
+	await get_tree().process_frame
+	_assert_true(
+		map_screen.map_camera.position.is_equal_approx(blocked_camera_position),
+		"Open BuyBuildingModal consumes pointer drag before it can pan the Map"
+	)
+	buy_building_modal.close_modal()
+	map_screen.call("_on_property_selected", "house_01")
+	map_screen.call("_on_property_selected", "land_2x2_01")
+	_assert_true(
+		not business_modal.visible and not buy_building_modal.visible
+		and main_instance.get_node("ModalLayer").get_child_count() == 2,
+		"House/Land properties open no business modal and Main owns one instance of each modal"
+	)
+
+	GameManager.set_family_money(30_000)
+	map_screen.call("_on_property_selected", "cafe_02")
+	buy_building_modal.call("_on_buy_pressed")
+	var purchased_business := BusinessManager.get_business_on_plot("cafe_02")
+	var purchased_property: MapProperty = null
+	for property_value in map_screen.get_map_properties():
+		if property_value.get_property_id() == "cafe_02":
+			purchased_property = property_value
+			break
+	_assert_true(
+		not purchased_business.is_empty()
+		and str(purchased_business.get("business_type_id", "")) == "cafe"
+		and GameManager.family_money == 5_000
+		and not buy_building_modal.visible
+		and business_modal.visible
+		and business_modal.business_instance_id == str(purchased_business.get("business_instance_id", "")),
+		"Successful Map purchase deducts once and transitions directly into BusinessModal"
+	)
+	_assert_true(
+		purchased_property != null
+		and purchased_property.property_tag.state_label.text == "0 / 3 staff"
+		and shared_hud.coin_value_label.text == "5k",
+		"Successful purchase refreshes the authored Map tag and shared money HUD"
+	)
+	business_modal.close_modal()
+	BusinessManager.businesses = original_businesses
+	BusinessManager.next_business_instance_number = original_next_business_id
+	GameManager.set_family_money(original_money)
 	var camera := map_screen.map_camera
 	camera.position = Vector2(3100, 2100)
 	var input_start := camera.position

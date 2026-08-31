@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d4nlav8o7py21" path="res://Scripts/Map/MapScreen.gd" id="1_screen"]
 [ext_resource type="Script" uid="uid://cjq64ki253vwp" path="res://Scripts/Map/MapCamera.gd" id="2_camera"]
 [ext_resource type="Script" uid="uid://bmh7nf38ypgmr" path="res://Scripts/Map/MapBoundaryGuide.gd" id="3_boundary"]
+[ext_resource type="Script" uid="uid://bbvhwtcyc1bmi" path="res://Scripts/Map/MapProperty.gd" id="4_property"]
 [ext_resource type="Texture2D" uid="uid://b6kuolpl0gygc" path="res://Resources/Map/roads/asphalt.svg" id="3_ytbjc"]
 [ext_resource type="Texture2D" uid="uid://cb8wlclohf3rn" path="res://Resources/Map/roads/grass.svg" id="4_x5t8u"]
 [ext_resource type="Texture2D" uid="uid://iuqutrblwhxi" path="res://Resources/Map/roads/sea.svg" id="5_4owgi"]
@@ -207,12 +208,22 @@ y_sort_enabled = true
 [node name="Interactive" type="Node2D" parent="MapWorld/Buildings" unique_id=322330054]
 
 [node name="Stadium" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1102569216]
+script = ExtResource("4_property")
+property_id = "stadium_01"
+business_type_id = "stadium"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Stadium" unique_id=1391577507]
 position = Vector2(5122, 938)
 texture = ExtResource("12_wdxwg")
 
 [node name="Cruise" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1527788575]
+script = ExtResource("4_property")
+property_id = "cruise_01"
+business_type_id = "cruise"
+footprint = Vector2i(1, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cruise" unique_id=139330551]
 position = Vector2(572, 376)
@@ -221,6 +232,11 @@ texture = ExtResource("18_5xcfx")
 
 [node name="Hotel_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=384558744]
 z_index = 2
+script = ExtResource("4_property")
+property_id = "hotel_01"
+business_type_id = "hotel"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hotel_01" unique_id=1945285011]
 position = Vector2(5750, 543)
@@ -228,6 +244,11 @@ texture = ExtResource("13_ws7bv")
 
 [node name="Hotel_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1478370754]
 z_index = 2
+script = ExtResource("4_property")
+property_id = "hotel_02"
+business_type_id = "hotel"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hotel_02" unique_id=1306494862]
 position = Vector2(3150, 2242)
@@ -235,6 +256,11 @@ texture = ExtResource("13_ws7bv")
 
 [node name="Hotel_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=335583984]
 z_index = 2
+script = ExtResource("4_property")
+property_id = "hotel_03"
+business_type_id = "hotel"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hotel_03" unique_id=1625738912]
 position = Vector2(2451, 793)
@@ -242,6 +268,11 @@ texture = ExtResource("13_ws7bv")
 
 [node name="Hotel_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=687108579]
 z_index = 2
+script = ExtResource("4_property")
+property_id = "hotel_04"
+business_type_id = "hotel"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hotel_04" unique_id=938654078]
 position = Vector2(1547, 1842)
@@ -249,372 +280,682 @@ texture = ExtResource("13_ws7bv")
 
 [node name="Hotel_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=77591713]
 z_index = 2
+script = ExtResource("4_property")
+property_id = "hotel_05"
+business_type_id = "hotel"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hotel_05" unique_id=790516275]
 position = Vector2(851, 3392)
 texture = ExtResource("13_ws7bv")
 
 [node name="Cafe_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=580986907]
+script = ExtResource("4_property")
+property_id = "cafe_01"
+business_type_id = "cafe"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cafe_01" unique_id=1943398747]
 position = Vector2(5349, 526)
 texture = ExtResource("15_0byit")
 
 [node name="Cafe_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1830148553]
+script = ExtResource("4_property")
+property_id = "cafe_02"
+business_type_id = "cafe"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cafe_02" unique_id=1832741720]
 position = Vector2(4000, 3930)
 texture = ExtResource("15_0byit")
 
 [node name="Cafe_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=760441372]
+script = ExtResource("4_property")
+property_id = "cafe_03"
+business_type_id = "cafe"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cafe_03" unique_id=491278149]
 position = Vector2(943, 1630)
 texture = ExtResource("15_0byit")
 
 [node name="Cafe_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=189792791]
+script = ExtResource("4_property")
+property_id = "cafe_04"
+business_type_id = "cafe"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cafe_04" unique_id=1378866673]
 position = Vector2(1911, 2124)
 texture = ExtResource("15_0byit")
 
 [node name="Cafe_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=903324704]
+script = ExtResource("4_property")
+property_id = "cafe_05"
+business_type_id = "cafe"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Cafe_05" unique_id=1618580534]
 position = Vector2(1015, 3970)
 texture = ExtResource("15_0byit")
 
 [node name="Warehouse_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=544856298]
+script = ExtResource("4_property")
+property_id = "warehouse_01"
+business_type_id = "warehouse"
+footprint = Vector2i(4, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Warehouse_01" unique_id=1257454778]
 position = Vector2(5354, 3867)
 texture = ExtResource("18_q3jgx")
 
 [node name="Warehouse_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1699691194]
+script = ExtResource("4_property")
+property_id = "warehouse_02"
+business_type_id = "warehouse"
+footprint = Vector2i(4, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Warehouse_02" unique_id=1909556294]
 position = Vector2(5749, 3667)
 texture = ExtResource("18_q3jgx")
 
 [node name="Warehouse_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1336427347]
+script = ExtResource("4_property")
+property_id = "warehouse_03"
+business_type_id = "warehouse"
+footprint = Vector2i(4, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Warehouse_03" unique_id=1220501915]
 position = Vector2(4849, 3617)
 texture = ExtResource("18_q3jgx")
 
 [node name="Warehouse_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1868227700]
+script = ExtResource("4_property")
+property_id = "warehouse_04"
+business_type_id = "warehouse"
+footprint = Vector2i(4, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Warehouse_04" unique_id=1335204125]
 position = Vector2(4452, 3815)
 texture = ExtResource("18_q3jgx")
 
 [node name="Warehouse_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1313095545]
+script = ExtResource("4_property")
+property_id = "warehouse_05"
+business_type_id = "warehouse"
+footprint = Vector2i(4, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Warehouse_05" unique_id=372670659]
 position = Vector2(4347, 3366)
 texture = ExtResource("18_q3jgx")
 
 [node name="Factory_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=416239750]
+script = ExtResource("4_property")
+property_id = "factory_05"
+business_type_id = "factory"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Factory_05" unique_id=669867969]
 position = Vector2(3801, 3084)
 texture = ExtResource("19_tcm4w")
 
 [node name="Factory_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1714200377]
+script = ExtResource("4_property")
+property_id = "factory_01"
+business_type_id = "factory"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Factory_01" unique_id=1162516508]
 position = Vector2(5401, 3287)
 texture = ExtResource("19_tcm4w")
 
 [node name="Factory_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1424236282]
+script = ExtResource("4_property")
+property_id = "factory_02"
+business_type_id = "factory"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Factory_02" unique_id=2136284007]
 position = Vector2(3900, 3534)
 texture = ExtResource("19_tcm4w")
 
 [node name="Factory_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=682676431]
+script = ExtResource("4_property")
+property_id = "factory_03"
+business_type_id = "factory"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Factory_03" unique_id=448257821]
 position = Vector2(3305, 3834)
 texture = ExtResource("19_tcm4w")
 
 [node name="Factory_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1138434623]
+script = ExtResource("4_property")
+property_id = "factory_04"
+business_type_id = "factory"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Factory_04" unique_id=43542865]
 position = Vector2(3201, 3284)
 texture = ExtResource("19_tcm4w")
 
 [node name="Gym_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1097830836]
+script = ExtResource("4_property")
+property_id = "gym_01"
+business_type_id = "gym"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Gym_01" unique_id=352812898]
 position = Vector2(4319, 482)
 texture = ExtResource("19_q3jgx")
 
 [node name="Gym_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1352671432]
+script = ExtResource("4_property")
+property_id = "gym_02"
+business_type_id = "gym"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Gym_02" unique_id=831671782]
 position = Vector2(1458, 2482)
 texture = ExtResource("19_q3jgx")
 
 [node name="Gym_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=28218739]
+script = ExtResource("4_property")
+property_id = "gym_03"
+business_type_id = "gym"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Gym_03" unique_id=20345210]
 position = Vector2(2585, 1371)
 texture = ExtResource("19_q3jgx")
 
 [node name="Gym_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=709028168]
+script = ExtResource("4_property")
+property_id = "gym_04"
+business_type_id = "gym"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Gym_04" unique_id=1024360172]
 position = Vector2(1401, 3763)
 texture = ExtResource("19_q3jgx")
 
 [node name="Gym_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=2086849179]
+script = ExtResource("4_property")
+property_id = "gym_05"
+business_type_id = "gym"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Gym_05" unique_id=920614431]
 position = Vector2(310, 1909)
 texture = ExtResource("19_q3jgx")
 
 [node name="Hospital_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1114516581]
+script = ExtResource("4_property")
+property_id = "hospital_01"
+business_type_id = "hospital"
+footprint = Vector2i(3, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hospital_01" unique_id=1985186264]
 position = Vector2(4200, 1019)
 texture = ExtResource("20_fh3yi")
 
 [node name="Hospital_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1184740869]
+script = ExtResource("4_property")
+property_id = "hospital_02"
+business_type_id = "hospital"
+footprint = Vector2i(3, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hospital_02" unique_id=1319839605]
 position = Vector2(2602, 2420)
 texture = ExtResource("20_fh3yi")
 
 [node name="Hospital_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=86353096]
+script = ExtResource("4_property")
+property_id = "hospital_03"
+business_type_id = "hospital"
+footprint = Vector2i(3, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hospital_03" unique_id=927003572]
 position = Vector2(1999, 3321)
 texture = ExtResource("20_fh3yi")
 
 [node name="Hospital_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1551765776]
+script = ExtResource("4_property")
+property_id = "hospital_04"
+business_type_id = "hospital"
+footprint = Vector2i(3, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hospital_04" unique_id=786741717]
 position = Vector2(410, 2923)
 texture = ExtResource("20_fh3yi")
 
 [node name="Hospital_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=922390172]
+script = ExtResource("4_property")
+property_id = "hospital_05"
+business_type_id = "hospital"
+footprint = Vector2i(3, 3)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Hospital_05" unique_id=369657548]
 position = Vector2(5404, 2219)
 texture = ExtResource("20_fh3yi")
 
 [node name="Bank_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=881355617]
+script = ExtResource("4_property")
+property_id = "bank_01"
+business_type_id = "bank"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Bank_01" unique_id=2135575560]
 position = Vector2(4797, 3061)
 texture = ExtResource("20_dx152")
 
 [node name="Bank_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1250426473]
+script = ExtResource("4_property")
+property_id = "bank_02"
+business_type_id = "bank"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Bank_02" unique_id=1907891476]
 position = Vector2(3900, 600)
 texture = ExtResource("20_dx152")
 
 [node name="Bank_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1526670432]
+script = ExtResource("4_property")
+property_id = "bank_03"
+business_type_id = "bank"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Bank_03" unique_id=1087478983]
 position = Vector2(899, 2408)
 texture = ExtResource("20_dx152")
 
 [node name="Bank_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=149331664]
+script = ExtResource("4_property")
+property_id = "bank_04"
+business_type_id = "bank"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Bank_04" unique_id=6817436]
 position = Vector2(2500, 1908)
 texture = ExtResource("20_dx152")
 
 [node name="Bank_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=971917107]
+script = ExtResource("4_property")
+property_id = "bank_05"
+business_type_id = "bank"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Bank_05" unique_id=702740161]
 position = Vector2(3700, 1908)
 texture = ExtResource("20_dx152")
 
 [node name="TechCompany_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1196695153]
+script = ExtResource("4_property")
+property_id = "tech_company_01"
+business_type_id = "tech_company"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/TechCompany_01" unique_id=1712456432]
 position = Vector2(4303, 1641)
 texture = ExtResource("22_830p8")
 
 [node name="TechCompany_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1393416955]
+script = ExtResource("4_property")
+property_id = "tech_company_02"
+business_type_id = "tech_company"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/TechCompany_02" unique_id=2102842368]
 position = Vector2(655, 4064)
 texture = ExtResource("22_830p8")
 
 [node name="TechCompany_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=2114125779]
+script = ExtResource("4_property")
+property_id = "tech_company_03"
+business_type_id = "tech_company"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/TechCompany_03" unique_id=1383754378]
 position = Vector2(1744, 2230)
 texture = ExtResource("22_830p8")
 
 [node name="TechCompany_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1065334008]
+script = ExtResource("4_property")
+property_id = "tech_company_04"
+business_type_id = "tech_company"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/TechCompany_04" unique_id=1149115019]
 position = Vector2(3158, 1616)
 texture = ExtResource("22_830p8")
 
 [node name="TechCompany_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1573798622]
+script = ExtResource("4_property")
+property_id = "tech_company_05"
+business_type_id = "tech_company"
+footprint = Vector2i(3, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/TechCompany_05" unique_id=637701530]
 position = Vector2(3623, 1374)
 texture = ExtResource("22_830p8")
 
 [node name="Restaurant_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=441193874]
+script = ExtResource("4_property")
+property_id = "restaurant_01"
+business_type_id = "restaurant"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Restaurant_01" unique_id=654271066]
 position = Vector2(4200, 4043)
 texture = ExtResource("21_yh6sc")
 
 [node name="Restaurant_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=633549497]
+script = ExtResource("4_property")
+property_id = "restaurant_02"
+business_type_id = "restaurant"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Restaurant_02" unique_id=1523377635]
 position = Vector2(2042, 2863)
 texture = ExtResource("21_yh6sc")
 
 [node name="Restaurant_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=633289372]
+script = ExtResource("4_property")
+property_id = "restaurant_03"
+business_type_id = "restaurant"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Restaurant_03" unique_id=903737621]
 position = Vector2(4776, 1301)
 texture = ExtResource("21_yh6sc")
 
 [node name="Restaurant_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=789110862]
+script = ExtResource("4_property")
+property_id = "restaurant_04"
+business_type_id = "restaurant"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Restaurant_04" unique_id=669948439]
 position = Vector2(1844, 1765)
 texture = ExtResource("21_yh6sc")
 
 [node name="Restaurant_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=555490510]
+script = ExtResource("4_property")
+property_id = "restaurant_05"
+business_type_id = "restaurant"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Restaurant_05" unique_id=541421289]
 position = Vector2(1993, 1096)
 texture = ExtResource("21_yh6sc")
 
 [node name="AutoService_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1378681877]
+script = ExtResource("4_property")
+property_id = "auto_service_01"
+business_type_id = "auto_service"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/AutoService_01" unique_id=1940785270]
 position = Vector2(2689, 3464)
 texture = ExtResource("22_yh6sc")
 
 [node name="AutoService_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1598922301]
+script = ExtResource("4_property")
+property_id = "auto_service_02"
+business_type_id = "auto_service"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/AutoService_02" unique_id=1006602984]
 position = Vector2(2999, 3614)
 texture = ExtResource("22_yh6sc")
 
 [node name="AutoService_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=345291187]
+script = ExtResource("4_property")
+property_id = "auto_service_03"
+business_type_id = "auto_service"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/AutoService_03" unique_id=1789537691]
 position = Vector2(2800, 4013)
 texture = ExtResource("22_yh6sc")
 
 [node name="AutoService_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=344341737]
+script = ExtResource("4_property")
+property_id = "auto_service_04"
+business_type_id = "auto_service"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/AutoService_04" unique_id=1671369714]
 position = Vector2(4890, 3963)
 texture = ExtResource("22_yh6sc")
 
 [node name="AutoService_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=950044015]
+script = ExtResource("4_property")
+property_id = "auto_service_05"
+business_type_id = "auto_service"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/AutoService_05" unique_id=145849813]
 position = Vector2(5387, 2910)
 texture = ExtResource("22_yh6sc")
 
 [node name="House_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=2001247484]
+script = ExtResource("4_property")
+property_id = "house_01"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_01" unique_id=1552410533]
 position = Vector2(3619, 274)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=266126049]
+script = ExtResource("4_property")
+property_id = "house_02"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_02" unique_id=1599147174]
 position = Vector2(2765, 456)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=803405371]
+script = ExtResource("4_property")
+property_id = "house_03"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_03" unique_id=2017034773]
 position = Vector2(1394, 1131)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_04" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1224533535]
+script = ExtResource("4_property")
+property_id = "house_04"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_04" unique_id=1053077098]
 position = Vector2(4658, 1903)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_05" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1830371869]
+script = ExtResource("4_property")
+property_id = "house_05"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_05" unique_id=2146754802]
 position = Vector2(1465, 2900)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_06" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=710008285]
+script = ExtResource("4_property")
+property_id = "house_06"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_06" unique_id=601783134]
 position = Vector2(3008, 1178)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_07" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1706644420]
+script = ExtResource("4_property")
+property_id = "house_07"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_07" unique_id=1948938190]
 position = Vector2(308, 2281)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_08" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=31065441]
+script = ExtResource("4_property")
+property_id = "house_08"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_08" unique_id=119912958]
 position = Vector2(1054, 1301)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_09" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1441062949]
+script = ExtResource("4_property")
+property_id = "house_09"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_09" unique_id=2001625560]
 position = Vector2(1951, 1454)
 texture = ExtResource("23_fh3yi")
 
 [node name="House_10" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=68833863]
+script = ExtResource("4_property")
+property_id = "house_10"
+category = "house"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/House_10" unique_id=1896797357]
 position = Vector2(688, 1734)
 texture = ExtResource("23_fh3yi")
 
 [node name="Land_2x2_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1487835696]
+script = ExtResource("4_property")
+property_id = "land_2x2_01"
+category = "land"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_2x2_01" unique_id=1259380330]
 position = Vector2(2181, 1634)
 texture = ExtResource("26_60mhj")
 
 [node name="Land_2x2_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=465001587]
+script = ExtResource("4_property")
+property_id = "land_2x2_02"
+category = "land"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_2x2_02" unique_id=2069162328]
 position = Vector2(3001, 624)
 texture = ExtResource("26_60mhj")
 
 [node name="Land_2x2_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=312588546]
+script = ExtResource("4_property")
+property_id = "land_2x2_03"
+category = "land"
+footprint = Vector2i(2, 2)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_2x2_03" unique_id=1413157748]
 position = Vector2(2099, 3826)
 texture = ExtResource("26_60mhj")
 
 [node name="Land_4x4_01" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=2001291831]
+script = ExtResource("4_property")
+property_id = "land_4x4_01"
+category = "land"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_4x4_01" unique_id=2102237705]
 position = Vector2(4877, 2562)
 texture = ExtResource("27_7fo8h")
 
 [node name="Land_4x4_02" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=101727324]
+script = ExtResource("4_property")
+property_id = "land_4x4_02"
+category = "land"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_4x4_02" unique_id=1084480358]
 position = Vector2(5374, 1710)
 texture = ExtResource("27_7fo8h")
 
 [node name="Land_4x4_03" type="Node2D" parent="MapWorld/Buildings/Interactive" unique_id=1728142749]
+script = ExtResource("4_property")
+property_id = "land_4x4_03"
+category = "land"
+footprint = Vector2i(4, 4)
+visual_mode = 1
 
 [node name="Sprite2D" type="Sprite2D" parent="MapWorld/Buildings/Interactive/Land_4x4_03" unique_id=332153181]
 position = Vector2(3382, 934)
