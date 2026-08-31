@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://Scripts/UI/Business/business_modal.gd" id="1_script"]
 [ext_resource type="Script" path="res://Scripts/UI/Business/business_modal_worker_flow_connector.gd" id="2_connector"]
@@ -36,6 +36,18 @@ corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleUpgradeButton"]
+bg_color = Color(0.992157, 0.960784, 0.917647, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.905882, 0.807843, 0.745098, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleUpgradeButtonDisabled"]
 bg_color = Color(0.992157, 0.960784, 0.917647, 1)
 border_width_left = 2
 border_width_top = 2
@@ -143,12 +155,6 @@ theme_override_constants/separation = 7
 [node name="IconTitle" type="HBoxContainer" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo"]
 layout_mode = 2
 theme_override_constants/separation = 10
-
-[node name="BusinessIcon" type="TextureRect" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
-custom_minimum_size = Vector2(34, 34)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
 
 [node name="BusinessTitle" type="Label" parent="ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle"]
 layout_mode = 2
@@ -358,6 +364,7 @@ theme_override_colors/font_color = Color(0.427451, 0.270588, 0.203922, 1)
 theme_override_styles/normal = SubResource("StyleUpgradeButton")
 theme_override_styles/hover = SubResource("StyleUpgradeButton")
 theme_override_styles/pressed = SubResource("StyleUpgradeButton")
+theme_override_styles/disabled = SubResource("StyleUpgradeButtonDisabled")
 text = ""
 
 [node name="UpgradeButtonContent" type="CenterContainer" parent="ModalCard/OuterMargin/Content/UpgradeButton"]

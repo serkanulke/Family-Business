@@ -17,7 +17,7 @@ signal current_save_changed(
 	save_id: int
 )
 
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
 const MIN_SUPPORTED_SAVE_VERSION := 2
 const DEFAULT_SAVE_DIRECTORY := "user://saves"
 const SAVE_FILE_PREFIX := "save_"
@@ -292,6 +292,7 @@ func create_save_snapshot() -> Dictionary:
 			"characters": CharacterManager.characters.duplicate(true),
 			"next_character_id": CharacterManager.next_character_id
 		},
+		"house_manager": HouseManager.create_save_state(),
 		"business_manager": {
 			"businesses": BusinessManager.businesses.duplicate(true),
 			"next_business_instance_number": BusinessManager.next_business_instance_number
@@ -311,7 +312,9 @@ func create_save_snapshot() -> Dictionary:
 		"economy_manager": {
 			"last_external_salary_payment_date": EconomyManager.last_external_salary_payment_date,
 			"last_family_business_payment_date": EconomyManager.last_family_business_payment_date,
-			"last_family_business_breakdown": EconomyManager.last_family_business_breakdown.duplicate(true)
+			"last_family_business_breakdown": EconomyManager.last_family_business_breakdown.duplicate(true),
+			"last_house_payment_date": EconomyManager.last_house_payment_date,
+			"last_house_expense": EconomyManager.last_house_expense
 		},
 		"education_manager": {
 			"education_event_queue": EducationManager.education_event_queue.duplicate(true),
@@ -347,6 +350,10 @@ func apply_save_snapshot(
 	var business_state := _get_dictionary(
 		save_data,
 		"business_manager"
+	)
+	var house_state := _get_dictionary(
+		save_data,
+		"house_manager"
 	)
 	var npc_state := _get_dictionary(
 		save_data,
@@ -541,6 +548,8 @@ func apply_save_snapshot(
 			"update_all_retirements"
 		)
 
+	HouseManager.restore_save_state(house_state)
+
 	BusinessManager.businesses = _get_array(
 		business_state,
 		"businesses"
@@ -618,6 +627,13 @@ func apply_save_snapshot(
 		economy_state,
 		"last_family_business_breakdown"
 	).duplicate(true)
+	EconomyManager.last_house_payment_date = String(
+		economy_state.get("last_house_payment_date", "")
+	)
+	EconomyManager.last_house_expense = maxi(
+		int(economy_state.get("last_house_expense", 0)),
+		0
+	)
 
 	EducationManager.education_event_queue = _get_array(
 		education_state,
@@ -838,6 +854,22 @@ func _connect_autosave_signals() -> void:
 	_connect_signal_for_autosave(
 		CharacterManager,
 		"character_died"
+	)
+	_connect_signal_for_autosave(
+		HouseManager,
+		"house_created"
+	)
+	_connect_signal_for_autosave(
+		HouseManager,
+		"house_state_changed"
+	)
+	_connect_signal_for_autosave(
+		HouseManager,
+		"house_upgraded"
+	)
+	_connect_signal_for_autosave(
+		HouseManager,
+		"unhoused_penalties_applied"
 	)
 	_connect_signal_for_autosave(
 		NPCManager,
@@ -1071,6 +1103,8 @@ func _validate_save_data(
 		"economy_manager",
 		"education_manager"
 	]
+	if version >= 5:
+		required_sections.append("house_manager")
 	if version >= 3:
 		required_sections.append("item_manager")
 

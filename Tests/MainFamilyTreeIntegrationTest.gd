@@ -33,6 +33,8 @@ func _ready() -> void:
 	var map_screen := main_instance.get_node("World/MapScreen") as MapScreen
 	var business_modal := main_instance.get_node("ModalLayer/BusinessModal") as BusinessModal
 	var buy_building_modal := main_instance.get_node("ModalLayer/BuyBuildingModal") as BuyBuildingModal
+	var house_modal := main_instance.get_node("ModalLayer/HouseModal") as HouseModal
+	var buy_house_modal := main_instance.get_node("ModalLayer/BuyHouseModal") as BuyHouseModal
 	var map_icon := shared_hud.find_child("MapIcon", true, false) as TextureRect
 	var family_icon := shared_hud.find_child("FamilyTreeIcon", true, false) as TextureRect
 	_assert_true(
@@ -51,6 +53,8 @@ func _ready() -> void:
 	var original_businesses := BusinessManager.businesses.duplicate(true)
 	var original_money := GameManager.family_money
 	var original_next_business_id := BusinessManager.next_business_instance_number
+	var original_houses := HouseManager.houses.duplicate(true)
+	var original_next_house_id := HouseManager.next_house_instance_number
 	BusinessManager.businesses = [{
 		"business_instance_id": "business_map_route_test",
 		"business_type_id": "cafe",
@@ -96,12 +100,27 @@ func _ready() -> void:
 		"Open BuyBuildingModal consumes pointer drag before it can pan the Map"
 	)
 	buy_building_modal.close_modal()
+	HouseManager.houses = []
+	map_screen.call("_on_property_selected", "house_02")
+	_assert_true(
+		buy_house_modal.visible and not house_modal.visible,
+		"Unowned House opens the House purchase flow, not owned management"
+	)
+	buy_house_modal.close_modal()
+	HouseManager.restore_save_state({"houses": [{"house_instance_id": "house_route_test", "house_definition_id": "family_house", "property_id": "house_01", "level": 1, "role_assignments": {"head_of_household": null, "cook": null, "housekeeper": null, "caregiver": null}, "resident_character_ids": []}]})
 	map_screen.call("_on_property_selected", "house_01")
+	_assert_true(
+		house_modal.visible and not buy_house_modal.visible
+		and house_modal.house_instance_id == "house_route_test",
+		"Owned House opens management for the exact House instance"
+	)
+	house_modal.close_modal()
 	map_screen.call("_on_property_selected", "land_2x2_01")
 	_assert_true(
 		not business_modal.visible and not buy_building_modal.visible
-		and main_instance.get_node("ModalLayer").get_child_count() == 2,
-		"House/Land properties open no business modal and Main owns one instance of each modal"
+		and not house_modal.visible and not buy_house_modal.visible
+		and main_instance.get_node("ModalLayer").get_child_count() == 4,
+		"Land opens no modal and Main owns one reusable instance of each property modal"
 	)
 
 	GameManager.set_family_money(30_000)
@@ -131,6 +150,8 @@ func _ready() -> void:
 	business_modal.close_modal()
 	BusinessManager.businesses = original_businesses
 	BusinessManager.next_business_instance_number = original_next_business_id
+	HouseManager.houses = original_houses
+	HouseManager.next_house_instance_number = original_next_house_id
 	GameManager.set_family_money(original_money)
 	var camera := map_screen.map_camera
 	camera.position = Vector2(3100, 2100)

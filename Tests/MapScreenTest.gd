@@ -159,16 +159,18 @@ func _test_property_router_and_drag_threshold(map_screen: MapScreen) -> void:
 	if not map_screen.property_selected.is_connected(_on_property_selected):
 		map_screen.property_selected.connect(_on_property_selected)
 	_simulate_footprint_tap(map_screen, "Cafe_01")
-	_assert_true(
-		selected_property_ids.is_empty(),
-		"Business footprint collision remains present but is disabled for selection"
-	)
-	_simulate_tag_tap(map_screen, "Cafe_01")
 	_simulate_footprint_tap(map_screen, "House_01")
 	_simulate_footprint_tap(map_screen, "Land_2x2_01")
 	_assert_true(
+		selected_property_ids.is_empty(),
+		"Business, House, and Land footprints remain present but are disabled for selection"
+	)
+	_simulate_tag_tap(map_screen, "Cafe_01")
+	_simulate_tag_tap(map_screen, "House_01")
+	_simulate_tag_tap(map_screen, "Land_2x2_01")
+	_assert_true(
 		selected_property_ids == ["cafe_01", "house_01", "land_2x2_01"],
-		"Business tag, House footprint, and Land footprint route stable IDs through MapScreen"
+		"Business, House, and Land Property Tags route stable IDs through MapScreen"
 	)
 	selected_property_ids.clear()
 	var map_property := map_screen.get_node("MapWorld/Buildings/Interactive/Cafe_01") as MapProperty

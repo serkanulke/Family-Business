@@ -163,7 +163,7 @@ func _test_monthly_shop_and_purchase() -> void:
 		await _test_real_sheet_binding(_test_character(9901, "Item Test A"), slot)
 
 	var save_snapshot := SaveManager.create_save_snapshot()
-	_assert_equal(int(save_snapshot.get("save_version", 0)), 4, "Save snapshot uses slot-stock schema version 4")
+	_assert_equal(int(save_snapshot.get("save_version", 0)), 5, "Save snapshot uses House + slot-stock schema version 5")
 	_assert_true(typeof(save_snapshot.get("item_manager", null)) == TYPE_DICTIONARY, "Save contains ItemManager state")
 	ItemManager.monthly_stock_by_slot = {}
 	ItemManager.monthly_stock_month_key = -1
@@ -182,7 +182,7 @@ func _test_monthly_shop_and_purchase() -> void:
 	}
 	_assert_true(SaveManager.apply_save_snapshot(legacy_snapshot), "Version 3 global-stock save migrates")
 	_assert_equal(_unique_count(ItemManager.get_monthly_stock_ids()), legacy_ids.size(), "Version 3 migration preserves distinct surviving stock IDs")
-	_assert_true(SaveManager.apply_save_snapshot(save_snapshot), "Version 4 state restores after migration validation")
+	_assert_true(SaveManager.apply_save_snapshot(save_snapshot), "Version 5 state restores after migration validation")
 
 	var purchase_slot := "accessory"
 	var purchase_stock := ItemManager.get_monthly_stock_ids(purchase_slot)

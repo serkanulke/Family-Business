@@ -19,9 +19,10 @@ This document records schemas observed in the current JSON files, manager-create
 | `relationship_npc.json` | `generation` and `names` | Loaded by `RelationshipNpcManager`. |
 | `ItemCatalog.json` | `catalog_version`, `pricing_status`, and `items[]` (261 generated definitions) | Generated explicitly from existing PNG paths and loaded by `ItemManager`; it is stable source data and is not regenerated when the shop opens. |
 | `Avatar.json` | `themes[]` (1 record) | No code or scene reference found. Character portraits are currently resolved by `CharacterManager` from resource folders/paths. |
-| `Flag.json` | `flags[]` (30 records) | No code or scene reference found. Character records do contain `flag_ids`. |
+| `Flag.json` | `flags[]` (30 records) | Character records contain `flag_ids`; `HouseholdPerks.json` references the existing musician/painter IDs for Head-of-Household perk resolution. No general flag manager was found. |
 | `GameData.json` | `game` object | No code or scene reference found. |
-| `House.json` | `houses[]` (1 record) | No code or scene reference found. |
+| `House.json` | `house_definitions[]` (1 definition) | Loaded by `HouseManager`; defines visuals, five levels, prices/capacities/expenses, roles/required stats/importance, role-performance contributions, score bounds, and status thresholds. |
+| `HouseholdPerks.json` | `household_perks[]` | Loaded by `HouseManager`; maps existing Character flag IDs/names to event-queryable household perk IDs and display labels. |
 | `RelationshipNPC.json` | `{ "relationship_npcs": [] }` | No code or scene reference found; active relationship candidates are full character records. |
 
 Filename case matters in the current repository: both `relationship_npc.json` and `RelationshipNPC.json` exist and have different roles/statuses.
@@ -186,12 +187,35 @@ Purchased family inventory entries are references to definitions rather than ful
 
 Normal instances receive `expiration_date = purchase_date + durability_months` in game-calendar months. Heirlooms omit `expiration_date`. `ItemManager.equipped_assignments` is keyed by character ID and then slot; family inventory itself is shared. An ItemInstance may appear in at most one character assignment. Equipped items remain in `family_inventory`; the player-facing Owned list is a runtime projection that excludes every family-wide equipped `instance_id`. The projection does not compare `item_id`, so another instance of the same catalog definition remains available. `monthly_stock_by_slot` contains separate `accessory`, `outfit`, and `vehicle` arrays of at most six distinct catalog IDs, accompanied by one `monthly_stock_month_key` and configurable `monthly_stock_target_per_slot`.
 
-## Save Snapshot Version 4
+## House Data
+
+`House.json` keeps immutable production definitions separate from mutable ownership. Its single current `family_house` definition contains `starting_property_id`, `map_visual_path`, `modal_visual_path`, five `levels`, four `roles`, a House-specific `performance_model`, `household_score`, and the five `status_thresholds`. Level 1 stores the ready-made purchase price; Levels 2–5 store the price required to enter that level. New construction resolves the Level 1 base price through `EconomyManager`'s shared 1.40 multiplier.
+
+Runtime House records are owned by `HouseManager`:
+
+```text
+{
+  house_instance_id: String,       # house_0001, ...
+  house_definition_id: String,     # family_house
+  property_id: String,             # authored Map property, e.g. house_01
+  level: int,
+  role_assignments: {
+    head_of_household, cook, housekeeper, caregiver: int | null
+  },
+  resident_character_ids: int[]
+}
+```
+
+Role occupants and resident IDs share one capacity and are normalized to one assignment per Character during save restoration. Performance tier, Household Score/Status, occupancy, expense, and active perks are derived rather than persisted.
+
+`HouseholdPerks.json` currently defines `artistic`, matched by any of the existing `musician` (`1002`) or `painter` (`1003`) flags. UI reads display labels while future event code can query canonical perk IDs.
+
+## Save Snapshot Version 5
 
 `SaveManager` writes JSON files named `save_<id>.json` under `user://saves`. The snapshot root is:
 
 ```text
-save_version: 4
+save_version: 5
 metadata: { family_name, wealth, population, owned_businesses, game_date }
 game_manager: {
   lifespan_setting,
@@ -205,6 +229,11 @@ time_manager: {
   is_paused, speed_multiplier, day_timer
 }
 character_manager: { characters, next_character_id }
+house_manager: {
+  houses,
+  next_house_instance_number,
+  last_unhoused_penalty_date
+}
 business_manager: { businesses, next_business_instance_number }
 npc_manager: {
   worker_npcs, next_worker_npc_number,
@@ -215,7 +244,9 @@ career_manager: { active_job_offers }
 economy_manager: {
   last_external_salary_payment_date,
   last_family_business_payment_date,
-  last_family_business_breakdown
+  last_family_business_breakdown,
+  last_house_payment_date,
+  last_house_expense
 }
 education_manager: {
   education_event_queue, current_education_event,
@@ -236,7 +267,7 @@ item_manager: {
 }
 ```
 
-The loader requires all version 4 manager sections. Version 2 snapshots remain supported with an empty item-state migration. Version 3 snapshots are also supported: their former global `monthly_stock_ids` array is distributed into canonical slot arrays using catalog definitions, without changing the referenced item IDs.
+The loader requires the House section for version 5. Versions 2–4 remain supported; when House state is absent, the lowest-ID living playable family Character becomes Head of Household in deterministic `house_01`. Version 2 keeps its empty item-state migration, and Version 3 global `monthly_stock_ids` are still distributed into canonical slot arrays.
 
 ## Identifier and Relationship Conventions
 
@@ -245,6 +276,8 @@ The loader requires all version 4 manager sections. Version 2 snapshots remain s
 | Character and Relationship NPC | Positive integer `character_id` |
 | Worker NPC | String `id` with `npc_` prefix |
 | Family business instance | String `business_instance_id` with `business_` prefix |
+| Family House instance | String `house_instance_id` with `house_` prefix |
+| House map property | Stable String `property_id`, currently `house_01` through `house_10` |
 | Business type | String `business_type_id` |
 | Business plot | String `plot_id` |
 | External company | String `company_id` |

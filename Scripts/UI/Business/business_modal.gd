@@ -18,12 +18,11 @@ const COLOR_ASSIGN := Color("#63A479")
 const COLOR_SELECTED := Color("#E2CBB5")
 
 const PATH_BUILDING_IMAGE := "res://Resources/Buildings/Hospital/hospital.png"
-const PATH_BUSINESS_ICON := "res://Resources/Icons/hospital-sign.png"
 const PATH_INCOME_TREND := "res://Resources/Icons/upper-chart.svg"
 const PATH_EXPENSE_TREND := "res://Resources/Icons/down-chart.svg"
 const PATH_EMPTY_SLOT := "res://Resources/Icons/empty-slot.svg"
 const PATH_UPGRADE_ICON := "res://Resources/Icons/building_icon.svg"
-const PATH_UPGRADE_COINS := "res://Resources/Icons/coin.png"
+const PATH_UPGRADE_COINS := "res://Resources/Icons/main-ui/coin.png"
 const PATH_TIER_DIR := "res://Resources/Icons/performance-tier/"
 
 const FONT_REGULAR := "res://Resources/Fonts/Roboto-Regular.ttf"
@@ -36,7 +35,6 @@ const BUSINESS_MODAL_DATA_ADAPTER := preload("res://Scripts/UI/Business/business
 @export var business_instance_id: String = ""
 
 @onready var building_image: TextureRect = $ModalCard/OuterMargin/Content/BusinessHeader/BuildingImage
-@onready var business_icon: TextureRect = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessIcon
 @onready var business_title: Label = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/IconTitle/BusinessTitle
 @onready var business_level: Label = $ModalCard/OuterMargin/Content/BusinessHeader/BusinessInfo/BusinessLevel
 
@@ -73,6 +71,8 @@ func _ready() -> void:
 	upgrade_button.pressed.connect(_on_upgrade_pressed)
 	_apply_static_fonts()
 	_load_default_assets()
+	if not GameManager.family_money_changed.is_connected(_on_family_money_changed):
+		GameManager.family_money_changed.connect(_on_family_money_changed)
 
 	# Standalone F6 preview only. Embedded instances wait for real manager data.
 	if (
@@ -116,8 +116,6 @@ func configure_from_data(data: Dictionary) -> void:
 		["image_path", "building_image", "texture_path"],
 		true
 	)
-	_set_texture_from_data(business_icon, data, ["icon_path", "business_icon"])
-
 	_build_staff_rows(_as_array(_first(data, ["slots", "staff_slots"], [])))
 	_apply_upgrade_data(_first(data, ["next_upgrade", "upgrade"], {}))
 
@@ -359,6 +357,8 @@ func _apply_upgrade_data(value: Variant) -> void:
 	potential_income.text = "%s Potential Income" % _money(potential, true)
 	added_expense.text = "%s Expense" % _money(expense, true)
 	upgrade_button_amount.text = _money(cost, false)
+	upgrade_button.disabled = cost <= 0.0 or not GameManager.can_afford(int(round(cost)))
+	_apply_upgrade_button_state()
 
 
 func _on_close_pressed() -> void:
@@ -370,7 +370,6 @@ func _on_upgrade_pressed() -> void:
 
 
 func _load_default_assets() -> void:
-	_try_set_texture(business_icon, PATH_BUSINESS_ICON)
 	_try_set_texture(income_trend, PATH_INCOME_TREND)
 	_try_set_texture(expense_trend, PATH_EXPENSE_TREND)
 	_try_set_texture(upgrade_icon, PATH_UPGRADE_ICON)
@@ -397,6 +396,18 @@ func _apply_static_fonts() -> void:
 	_try_set_button_font(upgrade_button, FONT_SEMIBOLD)
 	upgrade_button.add_theme_font_size_override("font_size", 28)
 	_try_set_button_font(close_button, FONT_REGULAR)
+
+
+func _apply_upgrade_button_state() -> void:
+	var content_color := Color("#E3CDB5") if upgrade_button.disabled else COLOR_BROWN
+	upgrade_button_label.add_theme_color_override("font_color", content_color)
+	upgrade_button_amount.add_theme_color_override("font_color", content_color)
+	upgrade_button_coins.modulate = Color(1, 1, 1, 0.42) if upgrade_button.disabled else Color.WHITE
+
+
+func _on_family_money_changed(_new_amount: int) -> void:
+	if visible and not business_instance_id.is_empty():
+		refresh_from_business_manager()
 
 
 func _set_label_font(label: Label, path: String, font_size: int, color: Color) -> void:
@@ -541,7 +552,6 @@ func _preview_data() -> Dictionary:
 		"monthly_expense": 180000,
 		"net_profit": 240000,
 		"image_path": PATH_BUILDING_IMAGE,
-		"icon_path": PATH_BUSINESS_ICON,
 		"slots": [
 			{
 				"role_name": "Chief Physician",

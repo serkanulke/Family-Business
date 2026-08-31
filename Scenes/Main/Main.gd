@@ -8,6 +8,8 @@ const MAP_SCENE := preload("res://UI/Map.tscn")
 @onready var main_hud: MainHUD = $SharedUI/MainHUD
 @onready var business_modal: BusinessModal = $ModalLayer/BusinessModal
 @onready var buy_building_modal: BuyBuildingModal = $ModalLayer/BuyBuildingModal
+@onready var house_modal: HouseModal = $ModalLayer/HouseModal
+@onready var buy_house_modal: BuyHouseModal = $ModalLayer/BuyHouseModal
 
 var map_screen: MapScreen
 
@@ -21,6 +23,12 @@ func _ready() -> void:
 		buy_building_modal.closed.connect(_on_shared_modal_closed)
 	if not business_modal.closed.is_connected(_on_shared_modal_closed):
 		business_modal.closed.connect(_on_shared_modal_closed)
+	if not house_modal.closed.is_connected(_on_shared_modal_closed):
+		house_modal.closed.connect(_on_shared_modal_closed)
+	if not buy_house_modal.closed.is_connected(_on_shared_modal_closed):
+		buy_house_modal.closed.connect(_on_shared_modal_closed)
+	if not buy_house_modal.purchase_completed.is_connected(_on_house_purchase_completed):
+		buy_house_modal.purchase_completed.connect(_on_house_purchase_completed)
 	_show_family_tree()
 
 
@@ -79,7 +87,11 @@ func _on_map_property_selected(property_id: String) -> void:
 	var property_data := map_screen.get_property_data(property_id)
 	if property_data.is_empty():
 		return
-	if str(property_data.get("category", "")) != "family_business":
+	var category := str(property_data.get("category", ""))
+	if category == "house":
+		_open_house_property(property_id)
+		return
+	if category != "family_business":
 		return
 	var property_business_type_id := str(property_data.get("business_type_id", ""))
 	if property_business_type_id.is_empty():
@@ -107,6 +119,35 @@ func _on_map_property_selected(property_id: String) -> void:
 	_set_map_modal_input_blocked(true)
 
 
+func _open_house_property(property_id: String) -> void:
+	var house := HouseManager.get_house_on_property(property_id)
+	if house.is_empty():
+		if house_modal.visible:
+			house_modal.close_modal()
+		if buy_house_modal.open_for_property(property_id):
+			_set_map_modal_input_blocked(true)
+		return
+	if buy_house_modal.visible:
+		buy_house_modal.close_modal()
+	var house_instance_id := str(house.get("house_instance_id", ""))
+	if house_modal.open_for_house(house_instance_id):
+		_set_map_modal_input_blocked(true)
+
+
+func _on_house_purchase_completed(
+	house_instance_id: String,
+	property_id: String
+) -> void:
+	var house := HouseManager.get_house_by_instance_id(house_instance_id)
+	if house.is_empty() or str(house.get("property_id", "")) != property_id:
+		return
+	if map_screen != null:
+		map_screen.refresh_from_managers()
+	main_hud.refresh_from_managers()
+	house_modal.open_for_house(house_instance_id)
+	_set_map_modal_input_blocked(true)
+
+
 func _on_building_purchase_completed(
 	business_instance_id: String,
 	property_id: String
@@ -131,13 +172,22 @@ func _close_shared_modals() -> void:
 		business_modal.close_modal()
 	if buy_building_modal.visible:
 		buy_building_modal.close_modal()
+	if house_modal.visible:
+		house_modal.close_modal()
+	if buy_house_modal.visible:
+		buy_house_modal.close_modal()
 	_set_map_modal_input_blocked(false)
 
 
 func _on_shared_modal_closed() -> void:
 	if map_screen != null:
 		map_screen.refresh_from_managers()
-	if not business_modal.visible and not buy_building_modal.visible:
+	if (
+		not business_modal.visible
+		and not buy_building_modal.visible
+		and not house_modal.visible
+		and not buy_house_modal.visible
+	):
 		_set_map_modal_input_blocked(false)
 
 

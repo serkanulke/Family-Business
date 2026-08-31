@@ -41,8 +41,8 @@ func _test_scene_contract(modal: BuyBuildingModal) -> void:
 	)
 	var card := modal.get_node("SafeArea/Center/ModalCard") as PanelContainer
 	_assert_true(
-		card != null and card.custom_minimum_size.x == 780.0,
-		"Responsive container hierarchy owns one centered purchase card"
+		card != null and card.custom_minimum_size.x == 670.0,
+		"Approved responsive hierarchy owns one centered 670 px purchase card"
 	)
 	_assert_true(
 		modal.get_node_or_null("SafeArea/Center/ModalCard/CardMargin/Content/Header/CloseButton") != null

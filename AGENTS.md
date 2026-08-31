@@ -20,6 +20,16 @@ Before implementing or modifying any gameplay system:
 
 `docs/CONVERSATION_MEMORY.md` is historical context only. It never overrides the canonical GDD, a confirmed pending decision, or the factual state of the repository.
 
+## Authoritative Visual References
+
+When the user supplies an approved screen, modal, mockup, screenshot, or other visual UI reference, that reference is authoritative for presentation. Reproduce it as closely as Godot permits at the project's reference resolution. Do not redesign, improve, reinterpret, normalize, simplify, restyle, or substitute independent UI conventions unless the user explicitly grants visual-design freedom for that specific area.
+
+Required fidelity includes layout and geometry; component dimensions; margins, padding, gaps, and alignment; text centering; typography size, weight, line height, and placement; colors; borders and separators; shadows; icon size and placement; button geometry and enabled or disabled states; pill or tag treatment; and every corner radius, including asymmetric or per-corner radii. Preserve referenced image and portrait aspect ratio, crop, mask, silhouette, and edge treatment. Do not arbitrarily round, crop, mask, reframe, recolor, or otherwise restyle an existing asset unless the approved reference shows that treatment or the user explicitly requests it.
+
+Treat visual deviations as implementation defects rather than design alternatives. If a referenced detail is ambiguous, technically impossible, or depends on a missing asset, preserve every unambiguous detail, report the unresolved point, and request direction instead of guessing. Fit functional implementation to the approved visual design rather than changing the approved design for implementation convenience.
+
+When no direct visual reference is supplied for a required UI element, inspect the project's existing user-approved Family Business screens and reuse the closest established component and design language. This applies to modals, bottom sheets, cards, buttons, tags, pills, icons, character selectors, empty states, headers, information panels, typography, spacing, corner radii, colors, and separators. Do not invent a new design language. If neither a direct approved reference nor an approved existing precedent resolves the presentation, stop and report the ambiguity instead of making an independent visual-design decision.
+
 ## Before Changing Code or Data
 
 - Read the relevant project documentation first: `docs/ARCHITECTURE.md`, `docs/DATA_SCHEMA.md`, `docs/DEVELOPMENT_STATUS.md`, `docs/PENDING_DECISIONS.md`, and `docs/CONVERSATION_MEMORY.md` as applicable.

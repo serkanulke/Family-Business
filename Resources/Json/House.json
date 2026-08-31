@@ -1,12 +1,72 @@
 {
-  "houses": [
+  "house_definitions": [
     {
-      "house_instance_id": "house_001",
-      "resident_slots": [
+      "house_definition_id": "family_house",
+      "display_name": "HOUSE",
+      "max_level": 5,
+      "starting_property_id": "house_01",
+      "map_visual_path": "res://Resources/Buildings/Houses/house.png",
+      "modal_visual_path": "res://Resources/Buildings/Houses/house_modal.png",
+      "levels": [
+        {"level": 1, "capacity": 5, "ready_made_purchase_price": 25000, "upgrade_price": 0, "fixed_monthly_expense": 1000},
+        {"level": 2, "capacity": 10, "ready_made_purchase_price": 0, "upgrade_price": 35000, "fixed_monthly_expense": 2000},
+        {"level": 3, "capacity": 15, "ready_made_purchase_price": 0, "upgrade_price": 50000, "fixed_monthly_expense": 3000},
+        {"level": 4, "capacity": 20, "ready_made_purchase_price": 0, "upgrade_price": 70000, "fixed_monthly_expense": 4000},
+        {"level": 5, "capacity": 25, "ready_made_purchase_price": 0, "upgrade_price": 100000, "fixed_monthly_expense": 5000}
+      ],
+      "roles": [
         {
-          "slot_id": "resident_01",
-          "character_id": 1
+          "role_id": "head_of_household",
+          "display_name": "Head of Household",
+          "required_stats": ["logic", "social", "confidence", "discipline"],
+          "importance_rule": {"always_important": true}
+        },
+        {
+          "role_id": "cook",
+          "display_name": "Cook",
+          "required_stats": ["health", "discipline", "creativity"],
+          "importance_rule": {"min_total_occupants": 2}
+        },
+        {
+          "role_id": "housekeeper",
+          "display_name": "Housekeeper",
+          "required_stats": ["health", "discipline"],
+          "importance_rule": {"min_total_occupants": 3}
+        },
+        {
+          "role_id": "caregiver",
+          "display_name": "Caregiver",
+          "required_stats": ["health", "social", "discipline"],
+          "importance_rule": {
+            "min_adult_occupants": 4,
+            "required_life_stages": ["baby", "child"],
+            "important_from_total_occupants": 5
+          }
         }
+      ],
+      "performance_model": {
+        "tiers": [
+          {"tier": "S", "min_score": 85, "max_score": 100, "score_contribution": 12},
+          {"tier": "A", "min_score": 75, "max_score": 84, "score_contribution": 7},
+          {"tier": "B", "min_score": 65, "max_score": 74, "score_contribution": 3},
+          {"tier": "C", "min_score": 50, "max_score": 64, "score_contribution": 0},
+          {"tier": "D", "min_score": 0, "max_score": 49, "score_contribution": -6}
+        ]
+      },
+      "household_score": {
+        "baseline": 50,
+        "minimum": 0,
+        "maximum": 100,
+        "important_empty_role_contribution": -10,
+        "secondary_partial_weight": 0.5,
+        "full_contribution_from_occupants": 5
+      },
+      "status_thresholds": [
+        {"status_id": "orderly", "display_name": "Orderly", "min_score": 85, "max_score": 100, "color": "#8B2ED1", "icon_path": "res://Resources/Icons/house-status/status_orderly_icon.svg"},
+        {"status_id": "harmonious", "display_name": "Harmonious", "min_score": 70, "max_score": 84, "color": "#149BD3", "icon_path": "res://Resources/Icons/house-status/status_harmonious_icon.svg"},
+        {"status_id": "stable", "display_name": "Stable", "min_score": 55, "max_score": 69, "color": "#0BA76A", "icon_path": "res://Resources/Icons/house-status/status_stable_icon.svg"},
+        {"status_id": "neutral", "display_name": "Neutral", "min_score": 35, "max_score": 54, "color": "#858C98", "icon_path": "res://Resources/Icons/house-status/status_neutral_icon.svg"},
+        {"status_id": "chaotic", "display_name": "Chaotic", "min_score": 0, "max_score": 34, "color": "#E83F42", "icon_path": "res://Resources/Icons/house-status/status_chaotic_icon.svg"}
       ]
     }
   ]

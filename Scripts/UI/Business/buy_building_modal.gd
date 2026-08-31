@@ -17,6 +17,8 @@ const PROPERTY_UNAVAILABLE_TEXT := "This building is no longer available."
 @onready var employee_slots_detail: Label = $SafeArea/Center/ModalCard/CardMargin/Content/EmployeePanel/EmployeeMargin/EmployeeRow/EmployeeText/EmployeeSlotsDetail
 @onready var feedback_label: Label = $SafeArea/Center/ModalCard/CardMargin/Content/FeedbackLabel
 @onready var buy_button: Button = $SafeArea/Center/ModalCard/CardMargin/Content/BuyButton
+@onready var buy_button_label: Label = $SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow/BuyButtonLabel
+@onready var buy_button_coin: TextureRect = $SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow/CoinIcon
 @onready var buy_button_amount: Label = $SafeArea/Center/ModalCard/CardMargin/Content/BuyButton/ButtonCenter/ButtonRow/BuyButtonAmount
 
 var property_id: String = ""
@@ -166,6 +168,10 @@ func _refresh_purchase_state() -> void:
 		and GameManager.can_afford(acquisition_cost)
 	)
 	buy_button.disabled = not can_purchase
+	var content_color := Color("#E3CDB5") if buy_button.disabled else Color.WHITE
+	buy_button_label.add_theme_color_override("font_color", content_color)
+	buy_button_amount.add_theme_color_override("font_color", content_color)
+	buy_button_coin.modulate = Color(1, 1, 1, 0.42) if buy_button.disabled else Color.WHITE
 
 
 func _set_feedback(message: String) -> void:

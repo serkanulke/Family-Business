@@ -16,6 +16,12 @@ signal family_businesses_settled(
 	payment_date: String
 )
 
+signal houses_settled(
+	total_fixed_expense: int,
+	house_count: int,
+	payment_date: String
+)
+
 
 const NEW_CONSTRUCTION_MULTIPLIER := 1.40
 
@@ -23,6 +29,8 @@ const NEW_CONSTRUCTION_MULTIPLIER := 1.40
 var last_external_salary_payment_date: String = ""
 var last_family_business_payment_date: String = ""
 var last_family_business_breakdown: Array = []
+var last_house_payment_date: String = ""
+var last_house_expense: int = 0
 
 
 func _ready() -> void:
@@ -55,6 +63,8 @@ func _on_new_game_started(
 	last_external_salary_payment_date = ""
 	last_family_business_payment_date = ""
 	last_family_business_breakdown = []
+	last_house_payment_date = ""
+	last_house_expense = 0
 
 
 func _on_date_changed(
@@ -65,6 +75,26 @@ func _on_date_changed(
 
 	pay_external_salaries()
 	settle_family_businesses()
+	settle_houses()
+
+
+func settle_houses() -> bool:
+	if TimeManager.current_day != 1:
+		return false
+	var current_date := TimeManager.get_iso_date_string()
+	if last_house_payment_date == current_date:
+		return false
+	var total_expense := HouseManager.get_total_monthly_expense()
+	if total_expense <= 0:
+		last_house_payment_date = current_date
+		last_house_expense = 0
+		return false
+	if not GameManager.spend_family_money(total_expense):
+		return false
+	last_house_payment_date = current_date
+	last_house_expense = total_expense
+	houses_settled.emit(total_expense, HouseManager.houses.size(), current_date)
+	return true
 
 
 func is_character_eligible_for_external_salary(

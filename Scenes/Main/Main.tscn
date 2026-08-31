@@ -1,10 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://bvcopx3ku8gti"]
+[gd_scene load_steps=8 format=3 uid="uid://bvcopx3ku8gti"]
 
 [ext_resource type="PackedScene" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
 [ext_resource type="Script" path="res://Scenes/Main/Main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://UI/MainHUD.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BusinessModal.tscn" id="4_business_modal"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BuyBuildingModal.tscn" id="5_buy_building_modal"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/House/HouseModal.tscn" id="6_house_modal"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/House/BuyHouseModal.tscn" id="7_buy_house_modal"]
 
 [node name="Main" type="Node" unique_id=1660465117]
 script = ExtResource("2_main")
@@ -27,4 +29,10 @@ layer = 30
 visible = false
 
 [node name="BuyBuildingModal" parent="ModalLayer" instance=ExtResource("5_buy_building_modal")]
+visible = false
+
+[node name="HouseModal" parent="ModalLayer" instance=ExtResource("6_house_modal")]
+visible = false
+
+[node name="BuyHouseModal" parent="ModalLayer" instance=ExtResource("7_buy_house_modal")]
 visible = false

@@ -1,0 +1,11 @@
+{
+  "household_perks": [
+    {
+      "perk_id": "artistic",
+      "display_name": "Artistic",
+      "trigger_flag_ids": [1002, 1003],
+      "trigger_flag_names": ["musician", "painter"],
+      "match_rule": "any"
+    }
+  ]
+}

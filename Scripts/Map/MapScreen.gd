@@ -17,6 +17,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_register_authored_properties()
 	_connect_business_manager_signals()
+	_connect_house_manager_signals()
 
 
 func set_screen_active(active: bool) -> void:
@@ -102,6 +103,13 @@ func _connect_business_manager_signals() -> void:
 		)
 
 
+func _connect_house_manager_signals() -> void:
+	if not HouseManager.house_created.is_connected(_on_house_created):
+		HouseManager.house_created.connect(_on_house_created)
+	if not HouseManager.house_state_changed.is_connected(_on_house_state_changed):
+		HouseManager.house_state_changed.connect(_on_house_state_changed)
+
+
 func _on_family_business_slot_changed(
 	business_instance_id: String,
 	_slot_id: String,
@@ -133,6 +141,20 @@ func _on_family_business_upgraded(
 	_upgrade_cost: int
 ) -> void:
 	_refresh_business_property(business_instance_id)
+
+
+func _on_house_created(
+	_house_instance_id: String,
+	property_id: String,
+	_purchase_cost: int
+) -> void:
+	_refresh_property(property_id)
+
+
+func _on_house_state_changed(house_instance_id: String, _reason: String) -> void:
+	var house := HouseManager.get_house_by_instance_id(house_instance_id)
+	if not house.is_empty():
+		_refresh_property(str(house.get("property_id", "")))
 
 
 func _refresh_business_property(business_instance_id: String) -> void:

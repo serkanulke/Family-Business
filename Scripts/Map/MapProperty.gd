@@ -75,6 +75,22 @@ func refresh_from_business_manager() -> void:
 	if category == "city_decor" or not show_tag:
 		property_tag.configure(resolved_display_name, "", false, false)
 		return
+	if category == "house":
+		var house := HouseManager.get_house_on_property(get_property_id())
+		if house.is_empty():
+			property_tag.configure(resolved_display_name, "For Sale", purchasable, false)
+		else:
+			var house_instance_id := str(house.get("house_instance_id", ""))
+			property_tag.configure(
+				resolved_display_name,
+				"%d / %d household" % [
+					HouseManager.get_house_occupancy(house_instance_id),
+					HouseManager.get_house_capacity(house_instance_id)
+				],
+				true,
+				false
+			)
+		return
 	if category != "family_business":
 		property_tag.configure(resolved_display_name, "For Sale", purchasable, false)
 		return
@@ -149,10 +165,9 @@ func _resolve_visual_path() -> String:
 func _build_interaction() -> void:
 	interaction_area = Area2D.new()
 	interaction_area.name = "PropertyInteraction"
-	interaction_area.input_pickable = (
-		bool(property_data.get("purchasable", false))
-		and str(property_data.get("category", "")) != "family_business"
-	)
+	# Property selection is owned by the floating Property Tag. The authored
+	# footprint remains for geometry/debugging, but never opens a modal.
+	interaction_area.input_pickable = false
 	interaction_area.monitoring = false
 	interaction_area.monitorable = false
 	interaction_area.position = _get_visual_south_anchor()
@@ -179,8 +194,9 @@ func _build_tag() -> void:
 		)
 	property_tag.position = tag_position
 	property_tag.set_tag_scale(float(property_data.get("tag_scale", 1.0)))
+	var category := str(property_data.get("category", ""))
 	var tag_selects_property := (
-		str(property_data.get("category", "")) == "family_business"
+		category in ["family_business", "house", "land"]
 		and bool(property_data.get("purchasable", false))
 	)
 	property_tag.set_interaction_enabled(tag_selects_property)
@@ -239,10 +255,7 @@ func _on_input_event(_viewport: Node, event: InputEvent, _shape_index: int) -> v
 
 
 func _on_tag_tapped() -> void:
-	if (
-		str(property_data.get("category", "")) == "family_business"
-		and bool(property_data.get("purchasable", false))
-	):
+	if bool(property_data.get("purchasable", false)):
 		selected.emit(get_property_id())
 
 
