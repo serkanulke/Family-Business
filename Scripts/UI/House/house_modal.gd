@@ -16,6 +16,7 @@ const EMPTY_SLOT_ICON := "res://Resources/Icons/empty-slot.svg"
 const COIN_ICON := "res://Resources/Icons/main-ui/coin.png"
 const ARROW_ICON := "res://Resources/Icons/arrow-right.svg"
 const BUILDING_ICON := "res://Resources/Icons/building_icon.svg"
+const PATH_TIER_DIR := "res://Resources/Icons/performance-tier/"
 const COLOR_TEXT := Color("#1E1E1E")
 const COLOR_BROWN := Color("#6D4534")
 const COLOR_GREEN := Color("#07884F")
@@ -26,7 +27,6 @@ const COLOR_SOFT := Color("#FDF5EA")
 const COLOR_CARD := Color("#FFF8F5")
 const COLOR_SUMMARY := Color("#FEF1E9")
 const COLOR_BORDER := Color("#F4E2D8")
-const COLOR_TIER := Color("#FFA126")
 
 var house_instance_id: String = ""
 var title_label: Label
@@ -651,16 +651,18 @@ func _role_stat_pills(role: Dictionary) -> Control:
 func _role_tier_row(tier: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	var badge := PanelContainer.new()
-	badge.custom_minimum_size = Vector2(24, 24)
-	badge.add_theme_stylebox_override("panel", _rounded_style(COLOR_TIER, COLOR_TIER, 12, 0))
-	var tier_label := Label.new()
-	tier_label.text = tier
-	tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tier_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_set_label(tier_label, FONT_SEMIBOLD, 16, Color.WHITE)
-	badge.add_child(tier_label)
-	row.add_child(badge)
+
+	# Use the real project performance-tier asset instead of drawing a new
+	# colored circle + letter. This matches BusinessModal's established tier UI.
+	var normalized_tier := tier.strip_edges().to_upper()
+	var tier_icon := TextureRect.new()
+	tier_icon.name = "TierIcon_" + normalized_tier
+	tier_icon.custom_minimum_size = Vector2(27, 27)
+	tier_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tier_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_set_texture(tier_icon, PATH_TIER_DIR + normalized_tier + ".svg")
+	row.add_child(tier_icon)
+
 	var family_label := Label.new()
 	family_label.text = "Family Member"
 	_set_label(family_label, FONT_REGULAR, 21, COLOR_TEXT)
