@@ -158,6 +158,31 @@ func get_house_capacity(house_instance_id: String) -> int:
 	).get("capacity", 0))
 
 
+func get_house_resident_capacity(house_instance_id: String) -> int:
+	var house := get_house_by_instance_id(house_instance_id)
+	if house.is_empty():
+		return 0
+	var house_definition_id := str(
+		house.get("house_definition_id", DEFAULT_HOUSE_DEFINITION_ID)
+	)
+	var role_slot_count := get_role_definitions(house_definition_id).size()
+	return maxi(get_house_capacity(house_instance_id) - role_slot_count, 0)
+
+
+func get_house_resident_count(house_instance_id: String) -> int:
+	var house := get_house_by_instance_id(house_instance_id)
+	if house.is_empty():
+		return 0
+	var result: Array[int] = []
+	var residents_value = house.get("resident_character_ids", [])
+	if residents_value is Array:
+		for character_id_value in residents_value:
+			var character_id := int(character_id_value)
+			if character_id > 0 and not result.has(character_id):
+				result.append(character_id)
+	return result.size()
+
+
 func get_house_monthly_expense(house_instance_id: String) -> int:
 	var house := get_house_by_instance_id(house_instance_id)
 	if house.is_empty():
@@ -335,6 +360,8 @@ func assign_character_as_resident(
 			str(assignment.get("house_instance_id", "")) == house_instance_id
 			and str(assignment.get("assignment_type", "")) == "resident"
 		)
+	if get_house_resident_count(house_instance_id) >= get_house_resident_capacity(house_instance_id):
+		return false
 	if get_house_occupancy(house_instance_id) >= get_house_capacity(house_instance_id):
 		return false
 	var residents: Array = house.get("resident_character_ids", [])
@@ -398,8 +425,10 @@ func get_role_candidates(house_instance_id: String, role_id: String) -> Array:
 	return results
 
 
-func get_resident_candidates(_house_instance_id: String) -> Array:
+func get_resident_candidates(house_instance_id: String) -> Array:
 	var results: Array = []
+	if get_house_resident_count(house_instance_id) >= get_house_resident_capacity(house_instance_id):
+		return results
 	for value in CharacterManager.characters:
 		if not value is Dictionary:
 			continue
@@ -632,6 +661,8 @@ func restore_save_state(state: Dictionary) -> void:
 			occupied_characters[character_id] = true
 		restored["role_assignments"] = restored_roles
 		var residents: Array = []
+		var total_capacity := int(get_level_definition(level).get("capacity", 0))
+		var resident_capacity := maxi(total_capacity - restored_roles.size(), 0)
 		var source_residents_value = value.get("resident_character_ids", [])
 		if source_residents_value is Array:
 			for resident_value in source_residents_value:
@@ -645,7 +676,9 @@ func restore_save_state(state: Dictionary) -> void:
 					or not bool(character.get("is_player_family", false))
 				):
 					continue
-				if restored_roles.values().filter(func(item): return item != null).size() + residents.size() >= int(get_level_definition(level).get("capacity", 0)):
+				if residents.size() >= resident_capacity:
+					break
+				if restored_roles.values().filter(func(item): return item != null).size() + residents.size() >= total_capacity:
 					break
 				residents.append(character_id)
 				occupied_characters[character_id] = true

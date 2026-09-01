@@ -1,7 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://bvcopx3ku8gti"]
+[gd_scene format=3 uid="uid://bvcopx3ku8gti"]
 
 [ext_resource type="PackedScene" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
-[ext_resource type="Script" path="res://Scenes/Main/Main.gd" id="2_main"]
+[ext_resource type="Script" uid="uid://ctumuhfy4rlj2" path="res://Scenes/Main/Main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://UI/MainHUD.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BusinessModal.tscn" id="4_business_modal"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BuyBuildingModal.tscn" id="5_buy_building_modal"]
@@ -17,22 +17,21 @@ script = ExtResource("2_main")
 
 [node name="FamilyTreeScreen" parent="World" unique_id=61167402 instance=ExtResource("1_family_tree_screen")]
 
-[node name="SharedUI" type="CanvasLayer" parent="."]
+[node name="SharedUI" type="CanvasLayer" parent="." unique_id=1706477882]
 layer = 10
 
-[node name="MainHUD" parent="SharedUI" instance=ExtResource("3_hud")]
+[node name="MainHUD" parent="SharedUI" unique_id=703183536 instance=ExtResource("3_hud")]
 
-[node name="ModalLayer" type="CanvasLayer" parent="."]
+[node name="ModalLayer" type="CanvasLayer" parent="." unique_id=535620864]
 layer = 30
 
-[node name="BusinessModal" parent="ModalLayer" instance=ExtResource("4_business_modal")]
+[node name="BusinessModal" parent="ModalLayer" unique_id=761949536 instance=ExtResource("4_business_modal")]
 visible = false
 
-[node name="BuyBuildingModal" parent="ModalLayer" instance=ExtResource("5_buy_building_modal")]
+[node name="BuyBuildingModal" parent="ModalLayer" unique_id=858903342 instance=ExtResource("5_buy_building_modal")]
+
+[node name="HouseModal" parent="ModalLayer" unique_id=1583742176 instance=ExtResource("6_house_modal")]
 visible = false
 
-[node name="HouseModal" parent="ModalLayer" instance=ExtResource("6_house_modal")]
-visible = false
-
-[node name="BuyHouseModal" parent="ModalLayer" instance=ExtResource("7_buy_house_modal")]
+[node name="BuyHouseModal" parent="ModalLayer" unique_id=426818295 instance=ExtResource("7_buy_house_modal")]
 visible = false

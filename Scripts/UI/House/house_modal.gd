@@ -405,14 +405,26 @@ func _refresh_perks() -> void:
 func _refresh_household_list(house: Dictionary) -> void:
 	for child in household_list.get_children():
 		child.queue_free()
+
+	# Role cards are fixed House slots and consume the same total capacity as
+	# generic resident slots. Count the role cards actually rendered here so
+	# the UI cannot create a phantom extra resident slot.
+	var role_slot_count := 0
 	for value in HouseManager.get_role_definitions(str(house.get("house_definition_id", "family_house"))):
 		if value is Dictionary:
 			household_list.add_child(_role_card(value))
+			role_slot_count += 1
+
+	var resident_count := 0
 	var residents_value = house.get("resident_character_ids", [])
 	if residents_value is Array:
 		for character_id_value in residents_value:
 			household_list.add_child(_resident_card(int(character_id_value)))
-	if HouseManager.get_house_occupancy(house_instance_id) < HouseManager.get_house_capacity(house_instance_id):
+			resident_count += 1
+
+	var total_capacity := HouseManager.get_house_capacity(house_instance_id)
+	var resident_capacity := maxi(total_capacity - role_slot_count, 0)
+	if resident_count < resident_capacity:
 		household_list.add_child(_empty_resident_card())
 
 

@@ -391,10 +391,10 @@ func _apply_static_fonts() -> void:
 	_set_label_font(new_slot, FONT_REGULAR, 20, COLOR_TEXT)
 	_set_label_font(potential_income, FONT_REGULAR, 20, COLOR_GREEN)
 	_set_label_font(added_expense, FONT_REGULAR, 20, COLOR_RED)
-	_set_label_font(upgrade_button_label, FONT_SEMIBOLD, 28, COLOR_BROWN)
-	_set_label_font(upgrade_button_amount, FONT_SEMIBOLD, 28, COLOR_BROWN)
+	_set_label_font(upgrade_button_label, FONT_SEMIBOLD, 32, COLOR_BROWN)
+	_set_label_font(upgrade_button_amount, FONT_SEMIBOLD, 32, COLOR_BROWN)
 	_try_set_button_font(upgrade_button, FONT_SEMIBOLD)
-	upgrade_button.add_theme_font_size_override("font_size", 28)
+	upgrade_button.add_theme_font_size_override("font_size", 32)
 	_try_set_button_font(close_button, FONT_REGULAR)
 
 
