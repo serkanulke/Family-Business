@@ -63,7 +63,7 @@ func get_date_string() -> String:
 func advance_day() -> void:
 	current_day += 1
 
-	if current_day > DAYS_IN_MONTH[current_month - 1]:
+	if current_day > get_days_in_month(current_year, current_month):
 		current_day = 1
 		current_month += 1
 
@@ -125,6 +125,22 @@ func get_iso_date_string() -> String:
 		current_month,
 		current_day
 	]
+
+
+func get_days_in_month(year: int, month: int) -> int:
+	return GameCalendar.days_in_month(year, month)
+
+
+func is_leap_year(year: int) -> bool:
+	return GameCalendar.is_leap_year(year)
+
+
+func add_calendar_interval(date_text: String, unit: String, amount: int) -> String:
+	return GameCalendar.add_interval(date_text, unit, amount)
+
+
+func compare_iso_dates(left: String, right: String) -> int:
+	return GameCalendar.compare(left, right)
 
 
 func reset_time() -> void:

@@ -2,7 +2,7 @@
 
 ## Scope and Evidence
 
-This document describes the repository state inspected through 2026-09-01 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1–2 integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
+This document describes the repository state inspected through 2026-09-01 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1–3 integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
 
 The working tree already contained modified and untracked project assets before these support documents were added. Those files were inspected as current repository state and were not changed by this documentation task.
 
@@ -13,7 +13,7 @@ The working tree already contained modified and untracked project assets before 
 - Startup scene: `res://Scenes/MainMenu/MainMenu.tscn`.
 - Gameplay scene: `res://Scenes/Main/Main.tscn`; it owns the persistent Family Tree instance, lazily instantiates the Map screen, and owns the single shared top/navigation HUD.
 - Persistent runtime state is held by autoload managers and serialized by `SaveManager` to `user://saves`.
-- Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries. Event definitions are the exception at the current phase boundary: `EventDataRegistry` can validate and index them without creating mutable gameplay state or an Autoload.
+- Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries. `EventDataRegistry` remains the sole static Event-definition source; the `EventManager` Autoload composes it with session runtime services rather than duplicating definition or domain state.
 
 ## Repository Layout
 
@@ -27,7 +27,8 @@ The working tree already contained modified and untracked project assets before 
 | `UI/ItemListShop/` | Reusable Accessory/Outfit/Vehicle Item List bottom sheet, display-only item cards, information panel, filter bar, and filename/path-based Accessory category classifier. |
 | `Scripts/FamilyTree/` | Family-tree layout, rendering, character nodes, link nodes, and camera behavior. |
 | `Scripts/Map/` | Authored Map screen integration, explicit screen/camera activation, fixed rectangular camera input, an editor-only boundary guide, and reusable property/tag helpers. |
-| `Scripts/Events/` | Autoload-free Event definition registry/validator plus the Phase 2 read-only requirement, participant, availability, manual-discovery, provider-boundary, and EventInstance primitives. |
+| `Scripts/Events/` | Event definition registry/validator; requirement, participant, availability, and manual-discovery services; EventInstance lifecycle; calendar-trigger evaluation; pool selection; and runtime repeat/cooldown state. |
+| `Scripts/Time/` | Shared Gregorian game-calendar arithmetic used by `TimeManager` and Event timing. |
 | `UI/Map/` | Reusable floating property-tag scene used by map properties. |
 | `Scripts/UI/Business/` | Business modal, manager-to-UI adapter, and worker-flow connector. |
 | `UI/Business/WorkerSelection/` | Worker source selection and candidate assignment flow. |
@@ -36,7 +37,7 @@ The working tree already contained modified and untracked project assets before 
 | `Data/Saves/` | Present but empty in the inspected tree; runtime saves use `user://saves` instead. |
 | `Themes/` | Business modal, Character Card, and Item List / Shop theme resources. |
 
-Several directories under `Scenes/` and `Scripts/` remain empty, including building/manager-oriented placeholders. There is still no Event scene/UI, Event Autoload, or Phase 3 orchestration manager.
+Several directories under `Scenes/` remain empty, including building/manager-oriented placeholders. There is still no Event scene/UI; Phase 3 adds backend orchestration only.
 
 ## Static Event Data Boundary
 
@@ -54,11 +55,25 @@ The Phase 2 runtime is explicitly constructed and Autoload-free. `EventRuntimeSe
 
 `EventParticipantResolver` resolves trigger, player-selected, relationship, existing Relationship NPC, primary-House, owned-family-Business, and provided-context sources. Player-selected groups receive candidate eligibility/reasons, min/max and duplicate enforcement, and confirmation-time revalidation. Resolved runtime participants are IDs; family Businesses remain family-owned contexts.
 
-`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are neutral replaceable contracts in this phase. They store no production history, entitlements, cooldowns, or repeat state. Later authoritative systems can replace them without changing requirement/discovery consumers.
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` remain replaceable contracts. History and entitlement providers are still neutral; Phase 3 configures the availability provider with session-local repeat and cooldown records so existing discovery consumers receive real runtime locks.
 
 `EventInstance` stores only runtime identity, definition link/version, trigger, created date, status, resolved participant IDs/context, and optional source-instance ID. Instance IDs use the session-local deterministic `evt_00000001` format. Display copy remains in `EventDataRegistry`.
 
-Phase 2 is read-only toward gameplay. It does not dispatch system/calendar/chain/scheduled triggers, select weighted pools, create an Event queue, pause time, start cooldowns, write repeat/history state, resolve outcomes, execute effects, mutate domain managers, persist Event state, or own UI. No Event Autoload was added to `project.godot`; those responsibilities remain Phase 3 and later.
+Phase 2 remains read-only toward gameplay. Its public discovery and availability APIs are preserved; Phase 3 composes them through the orchestrator described below.
+
+## Event Runtime Orchestration — Phase 3
+
+`EventManager` is an Autoload after `ItemManager` and before `SaveManager`. It constructs the production registry and Phase 2 runtime services, then owns only session Event timing state: trigger-occurrence identities, the active/queued instances, deterministic runtime IDs, scheduled records, repeat completion keys, cooldown records, and selection/deduplication ledgers. Static Event definitions stay in `EventDataRegistry`; Character, House, Business, economy, education, career, relationship, and item state remain in their authoritative managers.
+
+The public trigger boundary supports all five families. `dispatch_system_trigger` accepts semantic names and occurrence context without exposing raw Godot signal paths to JSON. Minimal adapters currently translate canonical Character birth/death, Education due/major requests, House state/upgrade, and family-Business creation/upgrade/role signals. Other semantic names can be dispatched through the same API, but complete Career, Relationship, lifecycle, education, and other domain-flow migration remains Phase 5.
+
+`TimeManager.date_changed` drives Event-defined calendar cadence and scheduled-due processing. `GameCalendar` is the shared Gregorian helper for day/week/month/year addition, leap years, month-end clamping, comparison, and ordinal conversion; `TimeManager.advance_day` now uses the same month-length rules. Calendar definitions own their daily, weekly, monthly, yearly, exact-date, or date-window cadence, and an occurrence ledger prevents repeat evaluation of the same cadence occurrence.
+
+`EventPoolSelector` filters before seeded weighted selection and implements `weighted_one`, no-duplicate `weighted_multiple`, `all_eligible`, `max_events`, and weight-based mutually exclusive groups. Priority affects only the stable queue order. `EventManager` revalidates a queued instance before activation, keeps one active presentation instance, prevents duplicate occurrences, and exposes queue/lifecycle signals for later UI. The first blocking Event captures the exact prior paused/running state and x1/x2/x3 multiplier; queued blocking work remains paused, and the state is restored only after blocking work clears.
+
+Completion is the explicit Phase 3 commit point for all seven repeat modes and all six cooldown scopes. Cancellation and expiry do not consume repeat eligibility or start cooldown. Calendar cooldowns use real days/weeks/months/years, including normalized Character pairs, month-end clamping, and leap dates. Scheduled records use deterministic `sched_00000001` IDs, retain resolved participants/context/source instance, and are revalidated for definition, enabled state, participant validity, requirements, repeat, cooldown, and affordability when due; stale entries expire without gameplay mutation.
+
+The runtime can export a JSON-serializable snapshot shape for later Phase 4 integration, but it has no import path and `SaveManager`/save version 5 are unchanged. Phase 3 does not resolve choices/outcomes, execute effects, write final story history, mutate gameplay through Events, own UI, or populate production Event content.
 
 ## Autoload Managers
 
@@ -67,7 +82,7 @@ Autoload order in `project.godot` is significant because later managers use earl
 | Autoload name | File | Observed responsibility and collaborations |
 | --- | --- | --- |
 | `GameManager` | `Autoload/GameManager.gd` | Global settings, family name, money and diamonds, plus new-game orchestration. Resets time and characters, creates the starting character, and assigns an external company when applicable. |
-| `TimeManager` | `Autoload/TimeManager.gd` | Simulation date, pause/play, x1/x2/x3 speed, and `date_changed` signaling. Starts paused. |
+| `TimeManager` | `Autoload/TimeManager.gd` | Gregorian simulation date, shared calendar helpers, pause/play, x1/x2/x3 speed, and `date_changed` signaling. Starts paused. |
 | `CharacterManager` | `Autoload/CharacterManager.gd` | Loads characters, majors, and jobs; owns playable and relationship-character records; calculates age/life stage; handles creation, skin-tone genetics, parent links, retirement, pensions, death checks, and canonical full-Character portrait discovery/resolution. |
 | `EducationManager` | `Autoload/EducationManager.gd` | Loads schools; queues birthday education events; handles enrollment, cost/stat effects, graduation, university choice, major selection, and time pause/resume around queued events. |
 | `CareerManager` | `Autoload/CareerManager.gd` | Loads companies; matches jobs and companies; checks eligibility; generates, accepts, and rejects external job offers; maintains offer cooldowns. |
@@ -77,6 +92,7 @@ Autoload order in `project.godot` is significant because later managers use earl
 | `NPCManager` | `Autoload/NPCManager.gd` | Owns the separate Worker NPC pool; generates workers from configuration, filters and ranks candidates, detects assignment, and retires workers. |
 | `RelationshipNpcManager` | `Autoload/RelationshipNPCManager.gd` | Creates relationship candidates as character records, generates their education/career history, converts candidates into family members, handles divorce/remarriage rules, and creates biological/donor/adopted children through `CharacterManager`. |
 | `ItemManager` | `Autoload/ItemManager.gd` | Loads the generated stable item catalog, owns the shared family inventory and character-specific equipment assignments, creates separate Accessory/Outfit/Vehicle monthly stocks, validates purchases, removes expired items, calculates equipped-item Lifestyle, and exposes slot-filtered UI queries. |
+| `EventManager` | `Autoload/EventManager.gd` | Loads the static Event registry; dispatches semantic/calendar/manual/chain/scheduled triggers; selects pools/exclusive groups; owns the session queue, pause contract, repeat/cooldown state, scheduling, due revalidation, and future-UI signals. It executes no effects and owns no domain state. |
 | `SaveManager` | `Autoload/SaveManager.gd` | Saves and restores a versioned snapshot of all manager state including `ItemManager`, creates dynamic save IDs, lists/deletes saves, and requests deferred autosaves from gameplay signals. |
 
 ## Runtime Flow
@@ -84,9 +100,9 @@ Autoload order in `project.godot` is significant because later managers use earl
 1. The main-menu scene starts the application and pauses simulation time.
 2. A new game is created through `NewGameModal` and `GameManager`; a selected gender/skin tone and generated names feed `CharacterManager`.
 3. Managers load static JSON definitions during `_ready()` and keep mutable gameplay state in memory.
-4. `TimeManager.date_changed` drives lifecycle, education, career, Worker NPC, and economy checks.
+4. `TimeManager.date_changed` drives lifecycle, education, career, Worker NPC, economy, Event calendar cadence, and scheduled Event due checks.
 5. Manager signals update the family-tree HUD and trigger deferred autosaves.
-6. `SaveManager` serializes manager state as version 5 JSON under `user://saves` and restores it without emitting ordinary gameplay signals mid-load. Version 2–4 snapshots remain loadable; missing House state is migrated to one deterministic starting House and version 3 global item stock is migrated into slot-specific stock arrays.
+6. `SaveManager` serializes manager state as version 5 JSON under `user://saves` and restores it without emitting ordinary gameplay signals mid-load. Version 2–4 snapshots remain loadable; missing House state is migrated to one deterministic starting House and version 3 global item stock is migrated into slot-specific stock arrays. Event runtime state is deliberately not part of this snapshot until Phase 4.
 
 Full-Character portraits are centralized in `CharacterManager`. Starting characters, relationship candidates, biological newborns, donor-conceived children, and adopted children all resolve through the same `Male/Female + skin tone + life stage + portrait_variant_id` path helpers. The selected variant persists across life-stage changes when the destination counterpart exists; otherwise the manager selects another eligible variant while excluding same-gender persisted parent variants. Family Tree, Character Card, and business staffing consumers continue to call `get_avatar_path()`/`get_avatar_texture()`, so they receive the same normalized result without owning path rules.
 

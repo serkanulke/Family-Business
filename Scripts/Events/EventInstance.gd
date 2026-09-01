@@ -7,6 +7,8 @@ var event_id: String
 var definition_version: int
 var trigger_type: String
 var created_date: String
+var started_date = null
+var completed_date = null
 var status: String
 var participants: Dictionary
 var context: Dictionary
@@ -42,8 +44,28 @@ func to_dictionary() -> Dictionary:
 		"definition_version": definition_version,
 		"trigger_type": trigger_type,
 		"created_date": created_date,
+		"started_date": started_date,
+		"completed_date": completed_date,
 		"status": status,
 		"participants": participants.duplicate(true),
 		"context": context.duplicate(true),
 		"source_instance_id": source_instance_id
 	}
+
+
+func mark_active(date_text: String) -> void:
+	status = "active"
+	started_date = date_text
+
+
+func mark_completed(date_text: String) -> void:
+	status = "completed"
+	completed_date = date_text
+
+
+func mark_cancelled() -> void:
+	status = "cancelled"
+
+
+func mark_expired() -> void:
+	status = "expired"

@@ -105,11 +105,11 @@ Choices have a per-Event unique `choice_id`, title, optional description/icon/re
 
 The effect whitelist is `stat_change`, `stat_set`, `add_flag`, `remove_flag`; `relationship_start`, `relationship_change`, `relationship_status_change`, `relationship_end`; `money_change`, `diamond_change`; `job_assign`, `job_remove`, `job_change`, `career_progress`; `education_enroll`, `education_change`, `education_complete`; `add_item`, `remove_item`, `damage_item`, `equip_item`, `unequip_item`; `house_assignment`, `remove_from_house`; `business_effect`, `business_upgrade`, `business_role_change`; and `queue_event`, `schedule_event`, `cancel_scheduled_event`. Each effect validates its participant/context target and statically available data/Event references. Executable code, scripts, callables, raw methods, and signal paths are forbidden.
 
-These are static definition schemas. Phase 2 adds the runtime query structures below without changing the production JSON roots.
+These are static definition schemas. Phase 2–3 add the runtime structures below without changing the production JSON roots.
 
 ## Event Runtime Query Structures — Phase 2
 
-`EventInstance` is session-local and is not part of the save snapshot:
+`EventInstance` is session-local and is not part of save version 5:
 
 ```text
 {
@@ -118,14 +118,16 @@ These are static definition schemas. Phase 2 adds the runtime query structures b
   definition_version: int,
   trigger_type: String,
   created_date: YYYY-MM-DD,
-  status: String,                   # Phase 2 activation uses active
+  started_date: YYYY-MM-DD | null,
+  completed_date: YYYY-MM-DD | null,
+  status: queued | active | completed | cancelled | expired,
   participants: Dictionary,         # character IDs, Character-ID arrays, House/Business IDs
   context: Dictionary,
   source_instance_id: String | null
 }
 ```
 
-The instance never stores duplicated title, description, art, or presentation data. Runtime IDs increment deterministically within the current service session and are not persisted in Phase 2.
+The instance never stores duplicated title, description, art, or presentation data. Runtime IDs increment deterministically within the current service session. Phase 3 exports the next counter in a serializable runtime snapshot, but does not connect that snapshot to `SaveManager`.
 
 Requirement evaluation returns:
 
@@ -155,9 +157,70 @@ Participant resolution returns resolved IDs/context plus `pending_selections`, `
 
 Group results also retain the definition's minimum, maximum, and non-visual `selection_ui` content metadata. No UI geometry is included.
 
-Manual discovery returns one availability entry per matching definition. `status` is `available`, `locked_requirements`, `locked_cooldown`, `locked_cost`, `completed_non_repeatable`, `requires_participants`, or `disabled`. Each entry includes Event ID, structured failure reasons, resolved participants/context, pending selections/candidates, and registry-backed content/presentation/definition data. Pool discovery sets `weighted_selection_performed: false`; weighted selection is not a Phase 2 structure.
+Manual discovery returns one availability entry per matching definition. `status` is `available`, `locked_requirements`, `locked_cooldown`, `locked_cost`, `completed_non_repeatable`, `requires_participants`, or `disabled`. Each entry includes Event ID, structured failure reasons, resolved participants/context, pending selections/candidates, and registry-backed content/presentation/definition data. The Phase 2 discovery call remains non-selecting; Phase 3 `EventManager.invoke_manual_pool` performs the pool selection and queueing step after discovery eligibility.
 
-`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts, not stored data. Their neutral defaults report no history, entitlement, cooldown, or completed non-repeatable state. Phase 2 tests replace them with controlled providers. No Event field is added to save version 5.
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts. History and entitlement remain neutral by default. `EventManager` supplies a Phase 3 availability provider that owns the session-local repeat/cooldown records below. No Event field is added to save version 5.
+
+## Event Orchestration Runtime Structures — Phase 3
+
+A trigger occurrence is a session structure used for dispatch and duplicate suppression:
+
+```text
+{
+  occurrence_id: String,
+  trigger_type: system | calendar | manual | chain | scheduled,
+  semantic_event: String,
+  game_date: YYYY-MM-DD,
+  source: String,
+  primary_character_id: int,
+  context: Dictionary
+}
+```
+
+The queue state is `{ active_event: EventInstance | {}, queued_events: EventInstance[] }`. Priority sorts queued instances descending and an internal insertion number preserves stable equal-priority order. Occurrence/participant/context identities are normalized for duplicate suppression; Character-ID arrays are order-independent in identity comparisons.
+
+A scheduled runtime record is:
+
+```text
+{
+  scheduled_event_id: String,       # sched_00000001
+  event_id: String,
+  due_date: YYYY-MM-DD,
+  participants: Dictionary,
+  context: Dictionary,
+  source_instance_id: String | null,
+  status: scheduled | queued | cancelled | expired,
+  queued_instance_id: String | null,
+  failure_reasons: Array
+}
+```
+
+Repeat consumption is recorded only on completion:
+
+```text
+{
+  event_id: String,
+  mode: once | once_per_character | once_per_character_pair | once_per_family | once_per_house | once_per_business,
+  repeat_key: String,
+  completed_date: YYYY-MM-DD
+}
+```
+
+Cooldowns are also committed only on completion:
+
+```text
+{
+  event_id: String,
+  scope: event | character | character_pair | family | house | business,
+  scope_key: String,
+  started_date: YYYY-MM-DD,
+  available_date: YYYY-MM-DD
+}
+```
+
+Character-pair keys are numerically normalized. The `available_date` is calculated with Gregorian day/week/month/year arithmetic; months and years preserve the original day when possible and clamp to the target month end otherwise.
+
+`EventManager.export_runtime_state()` combines queue state, scheduled records, repeat records, cooldowns, next Event/schedule counters, per-instance occurrence context, and processed selection-occurrence keys into JSON-compatible dictionaries/arrays. This is a Phase 4-ready serialization boundary only: there is no Phase 3 import, story-history schema, replay logic, `SaveManager` field, or save-version change.
 
 ## Character Records
 

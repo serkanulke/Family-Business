@@ -204,6 +204,39 @@ func create_instance_primitive(
 	)
 
 
+func get_next_instance_number() -> int:
+	return _next_instance_number
+
+
+func reset_instance_counter(next_number: int = 1) -> void:
+	_next_instance_number = maxi(1, next_number)
+
+
+func get_resolved_availability(
+	event_id: String,
+	participants: Dictionary,
+	context: Dictionary = {}
+) -> Dictionary:
+	var event := registry.get_event(event_id)
+	if event.is_empty():
+		return _availability(event_id, DISABLED, [_failure("definition_missing", "Event definition is unavailable.")])
+	if not bool(event.get("enabled", false)):
+		return _availability(event_id, DISABLED, [_failure("definition_disabled", "This Event is currently disabled.")], event)
+	var validation := participant_resolver.validate_existing(event, participants, context)
+	if not bool(validation.get("ready", false)):
+		return _availability(event_id, LOCKED_REQUIREMENTS, validation.get("failure_reasons", []), event, validation)
+	var requirement_result := requirement_evaluator.evaluate(event.get("requirements", {"all": []}), participants, context)
+	if not bool(requirement_result.get("eligible", false)):
+		return _availability(event_id, LOCKED_REQUIREMENTS, requirement_result.get("failure_reasons", []), event, validation)
+	if state_provider.is_completed_non_repeatable(event, participants, context):
+		return _availability(event_id, COMPLETED_NON_REPEATABLE, [_failure("completed_non_repeatable", "This Event has already been completed.")], event, validation)
+	if state_provider.is_on_cooldown(event, participants, context):
+		return _availability(event_id, LOCKED_COOLDOWN, [_failure("locked_cooldown", "This Event is still on cooldown.")], event, validation)
+	if not query_provider.can_afford_cost(event.get("cost", null)):
+		return _availability(event_id, LOCKED_COST, [_failure("locked_cost", "The family cannot currently afford this Event.")], event, validation)
+	return _availability(event_id, AVAILABLE, [], event, validation)
+
+
 func _availability(
 	event_id: String,
 	status: String,

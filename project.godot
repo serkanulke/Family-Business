@@ -28,6 +28,7 @@ BusinessManager="*uid://dkg1jihhkocp"
 NPCManager="*uid://dmisaidp5g3ui"
 RelationshipNpcManager="*uid://c28e336oj8xjl"
 ItemManager="*uid://c8cx7gfe23f6p"
+EventManager="*res://Autoload/EventManager.gd"
 SaveManager="*uid://ddi8ooj0vglj6"
 
 [display]
