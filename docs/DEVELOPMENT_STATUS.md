@@ -2,13 +2,13 @@
 
 ## Snapshot
 
-- Inspected: 2026-08-31
+- Inspected: 2026-09-01
 - Branch: `main`
 - HEAD: `86a220c` (`Ui elements`, 2026-08-18)
 - Engine configuration: Godot 4.7
 - Startup scene: `Scenes/MainMenu/MainMenu.tscn`
 
-This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, Buy Building Modal, business, and main-scene validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
+This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, property modal, House, and Event System Phase 1 validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
 
 ## Status Definitions
 
@@ -43,6 +43,7 @@ This status is derived only from files present in the inspected working tree. Th
 | Main menu and load-game UI | Main menu, new-game modal, runtime save-slot list, continue/load navigation, and gameplay scene transitions exist. |
 | Authored Map and runtime infrastructure | `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites inside a `6200 x 4200` rectangular MapWorld. All 68 authored interactive parents use explicit MapProperty metadata: 52 family businesses, 10 houses, and 6 land plots. Authored-existing visual mode reuses each original Sprite2D and adds only tag/interaction children. Business, House, and Land property selection is exclusively through the floating Property Tag; all building footprint collisions remain non-pickable. The fixed-zoom camera supports desktop mouse and one-finger touch drag; wheel zoom remains disabled. TileSets, artwork, and all 68 interactive Sprite2D position/scale/texture records remain unchanged. |
 | Family Tree / Map navigation | Main owns the persistent Family Tree, lazily created and reused Map, and one shared Main HUD. Screen changes now explicitly isolate visibility, processing, CanvasLayer state, and the active Camera2D: only the active screen camera remains enabled/current. Date/Money/Diamond and navigation do not duplicate, while Family Tree time controls remain Family Tree-only. |
+| Event System Phase 1 static data foundation | All 12 approved empty category files exist under `Resources/Json/Events/`. Autoload-free `EventDataRegistry` and `EventDataValidator` provide safe JSON loading, atomic global/category/pool lookup publication, source/Event/path diagnostics, complete Phase 1 static schema/reference/effect/graph validation, Family Agency per-Event cooldown enforcement, and optional `Job.event_tags` validation. No production Event content was authored. |
 
 ## Partial
 
@@ -52,6 +53,7 @@ This status is derived only from files present in the inspected working tree. Th
 | Education player flow | Backend emits education and major-selection events, but no player-facing education choice scene or signal consumer was found outside tests/autosave hooks. |
 | Career player flow | Backend emits job offers, but no player-facing offer scene or signal consumer was found outside tests/autosave hooks. |
 | Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
+| Event System | Phase 1 static definition infrastructure is implemented. Event runtime instances, live requirement evaluation, participant resolution, manual discovery, triggers/selection, queue/pause behavior, repeat/cooldown state, scheduling, resolution/effect execution, history, save/load integration, adapters, and Event UI are not implemented. |
 | Settings | Settings values and setter methods exist in `GameManager`, and menu/HUD settings visuals exist, but no settings screen or connected editing flow was found. |
 | Building visuals | Manually placed building and road artwork exists in `UI/Map.tscn`. Gameplay wiring does not recreate or reposition authored Sprite2D visuals; the before/after interactive Sprite2D position/scale/texture manifest remains identical. |
 | Land construction flow | House ownership and ready-made purchase are implemented. The approved 2×2/4×4 Land purchase-to-construction selection flow remains deferred; House backend already exposes the shared 1.40 new-construction cost for that later integration. |
@@ -68,10 +70,11 @@ This status is derived only from files present in the inspected working tree. Th
 | `GameData.json` runtime integration | The file exists, but no code or scene reference was found. Active state is held by autoload managers and save snapshots. |
 | `Avatar.json` integration | The file exists, but no code or scene reference was found; current portrait resolution uses resource paths and `CharacterManager`. |
 | `RelationshipNPC.json` integration | The empty uppercase-named collection exists, but no code or scene reference was found. Relationship candidates are stored in `CharacterManager.characters`. |
+| Event category content | The 12 production category roots intentionally contain empty `pools` and `events` arrays; production Event definitions/copy/art/weights/effects/tag assignments have not been authored or approved in this phase. |
 
 ## Test Inventory
 
-The repository contains 36 `.tscn` test scenes covering:
+The repository contains 45 `.tscn` test scenes covering:
 
 - business manager, economy, modal integration, family and Worker NPC assignment;
 - Worker NPC generation, slot rules, and retirement;
@@ -82,6 +85,7 @@ The repository contains 36 `.tscn` test scenes covering:
 - portrait-folder mapping, skin-only genetics, persistent variants, parent exclusions, aging, legacy path recovery, donor/adoption behavior, and missing-asset safety;
 - Character Card data binding, GDD Lifestyle star thresholds, item-slot signal routing, and Family Tree modal integration;
 - Item List / Shop slot isolation, Accessory conceptual filters, card pricing/presentation, durability derivation, interaction context, modal behavior, scroll/expand behavior, and rendered reference comparison.
+- Event Phase 1 production-category loading; valid schema representation; malformed roots; duplicate IDs; pools/triggers/calendar dates; participants; every requirement family and canonical stat/reference checks; repeat/cooldown and Family Agency limits; presentation/costs; all resolution/effect families; Event-flow references/cycles; and optional Job event tags.
 
 Fresh Character portrait/genetics migration validation on 2026-08-25:
 
@@ -221,5 +225,14 @@ Fresh approved property-modal and Property Tag consistency pass on 2026-08-31:
 - Focused tests passed: `BuyBuildingModalTest` 22/22, `BuyHouseModalTest` 3/3, `HouseModalTest` 21/21, `MapScreenTest` 28/28, `MainFamilyTreeIntegrationTest` 17/17, and `BusinessModalIntegrationTest` 2/2. Backend regressions passed: `HouseManagerTest` 55/55, `BusinessManagerTest` 25/25, and `HouseAssignmentSheetTest` 17/17.
 - Real OpenGL 1080 x 1920 captures were produced for disabled Buy Building, disabled Buy House, House information, disabled House upgrade, and disabled Business upgrade states. These were visually reviewed against the supplied references through the production Main/Map paths.
 - The project startup scene was also run with the real OpenGL compatibility renderer for 120 frames and exited 0 without project parser, missing-resource, or runtime errors. The Windows certificate-store warning is environment-only and unchanged.
+
+Fresh Event System Phase 1 static-data validation on 2026-09-01:
+
+- Canonical Google Docs GDD v3.6 Section 14 and D-147–D-153, `EVENT_SYSTEM_SPEC.md`, and `EVENT_SYSTEM_IMPLEMENTATION_PLAN.md` were read before implementation. No newer Event decision exists in `PENDING_DECISIONS.md`.
+- `Resources/Json/Events/` now contains exactly the 12 approved category roots with schema version 1 and empty production pools/Events. No production Event, Job tag assignment, gameplay value, EventManager, Autoload, runtime evaluator, queue, scheduler, effect executor, save field, adapter, or UI was added.
+- `EventDataRegistry` loads all required files, rejects malformed/incomplete sets, publishes lookups atomically, and exposes source/category/Event/path diagnostics. `EventDataValidator` covers the full Phase 1 root, pool, Event core, trigger/date, participant, recursive requirement, operator/value/reference, repeat/cooldown, Family Agency, presentation/resource, choice/cost, resolution/outcome/modifier, effect-whitelist, Event-reference, and static cycle contracts. Optional Job `event_tags` is valid when absent and validated as unique non-empty Strings when present.
+- `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. Coverage includes all requested valid/invalid categories and proves every approved trigger, repeat, cooldown scope/unit, requirement family (with Job tags separately fixture-validated), resolution mode, and effect family can be represented statically. Calendar validation rejects structurally valid-looking but impossible annual and ISO dates, and optional Event metadata is type-checked.
+- Godot 4.7.1 headless editor project/script scan exited 0 without parser or missing-resource errors. The Windows certificate-store and restricted editor-settings warnings remain environment-only and pre-existing.
+- The real project startup scene completed a 120-frame headless smoke with exit code 0 and no project parser, missing-resource, or runtime errors. Focused shared-data regressions passed for `CareerManagerTest` 14/14, `BusinessManagerTest` 25/25, and `ItemManagerTest` 189/189. `HouseManagerTest` reproduced 53/55 twice, with the existing `Caregiver follows adult-count plus Baby/Child rule` and `Full role contribution applies from five occupants` failures; no House implementation/data was changed in this phase. Event System Phase 2 was not started.
 
 After code or data changes, update this file. Also update `ARCHITECTURE.md` for responsibility/dependency changes, `DATA_SCHEMA.md` for schema/save changes, and `PENDING_DECISIONS.md` for confirmed decisions not yet synchronized to the canonical GDD.

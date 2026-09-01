@@ -2,7 +2,7 @@
 
 ## Scope and Evidence
 
-This document describes the repository state inspected through 2026-08-31 at branch `main`, commit `86a220c` (`Ui elements`), plus the current working-tree Item List / Shop, Map, property modal, House, and Character portrait/genetics integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
+This document describes the repository state inspected through 2026-09-01 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1 static-data integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
 
 The working tree already contained modified and untracked project assets before these support documents were added. Those files were inspected as current repository state and were not changed by this documentation task.
 
@@ -13,7 +13,7 @@ The working tree already contained modified and untracked project assets before 
 - Startup scene: `res://Scenes/MainMenu/MainMenu.tscn`.
 - Gameplay scene: `res://Scenes/Main/Main.tscn`; it owns the persistent Family Tree instance, lazily instantiates the Map screen, and owns the single shared top/navigation HUD.
 - Persistent runtime state is held by autoload managers and serialized by `SaveManager` to `user://saves`.
-- Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries.
+- Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries. Event definitions are the exception at the current phase boundary: `EventDataRegistry` can validate and index them without creating mutable gameplay state or an Autoload.
 
 ## Repository Layout
 
@@ -21,11 +21,13 @@ The working tree already contained modified and untracked project assets before 
 | --- | --- |
 | `Autoload/` | Global gameplay state and manager logic. |
 | `Resources/Json/` | Static definitions, empty seed collections, and several currently unreferenced data files. |
+| `Resources/Json/Events/` | The 12 approved Event category roots. Phase 1 leaves their production `pools` and `events` arrays empty. |
 | `Scenes/` | Main menu, new-game modal, load-game UI, main gameplay root, family tree, character nodes, and business modal scenes. |
 | `UI/CharacterCard/` | Runtime-built, scrollable Character Card overlay and its manager-backed presentation script. |
 | `UI/ItemListShop/` | Reusable Accessory/Outfit/Vehicle Item List bottom sheet, display-only item cards, information panel, filter bar, and filename/path-based Accessory category classifier. |
 | `Scripts/FamilyTree/` | Family-tree layout, rendering, character nodes, link nodes, and camera behavior. |
 | `Scripts/Map/` | Authored Map screen integration, explicit screen/camera activation, fixed rectangular camera input, an editor-only boundary guide, and reusable property/tag helpers. |
+| `Scripts/Events/` | Autoload-free static Event definition registry/loader and validator. No Event runtime lifecycle is implemented here. |
 | `UI/Map/` | Reusable floating property-tag scene used by map properties. |
 | `Scripts/UI/Business/` | Business modal, manager-to-UI adapter, and worker-flow connector. |
 | `UI/Business/WorkerSelection/` | Worker source selection and candidate assignment flow. |
@@ -34,7 +36,15 @@ The working tree already contained modified and untracked project assets before 
 | `Data/Saves/` | Present but empty in the inspected tree; runtime saves use `user://saves` instead. |
 | `Themes/` | Business modal, Character Card, and Item List / Shop theme resources. |
 
-Several directories under `Scenes/` and `Scripts/` exist but are currently empty, including building/event/manager-oriented placeholders.
+Several directories under `Scenes/` and `Scripts/` remain empty, including building/manager-oriented placeholders. `Scripts/Events/` now contains only Phase 1 static definition infrastructure; there is still no Event scene/UI or gameplay manager.
+
+## Static Event Data Boundary
+
+`EventDataRegistry` is an explicitly constructed `RefCounted`, not an Autoload. Its production entry point reads exactly the 12 approved files under `Resources/Json/Events/`, parses them safely, invokes the common validator, and publishes lookups only when the complete supplied set is valid. A failed load retains file/category/Event/path diagnostics but does not expose a partially valid registry. Successful registries provide global `event_id` and `pool_id` lookup plus category and pool Event indexes.
+
+`EventDataValidator` owns Phase 1 static checks: root/category/schema integrity; pools; all five trigger families and calendar date forms; participant declarations and selection metadata; recursive requirements and operator/value/reference compatibility; repeat/cooldown and the Family Agency per-Event 60-calendar-month rule; presentation resource references and scene-owned style rejection; costs, choices, deterministic/weighted/score-check resolutions; the approved effect whitelist; Event-flow references; and statically detectable queue/schedule cycles. It indexes authoritative IDs from the existing Job, School, Major, Flag, Item, Business Type, House, Household Status, and Household Perk JSON definitions. Optional `Job.json.event_tags` is validated when present and remains valid when absent.
+
+This layer does not evaluate live requirements, resolve runtime participants, select/queue Events, track history/cooldowns, schedule work, execute effects, mutate gameplay state, save Event state, or own UI. No `EventManager` exists or is registered in `project.godot`; those responsibilities remain Phase 2 and later.
 
 ## Autoload Managers
 

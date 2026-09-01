@@ -10,7 +10,7 @@ This document records schemas observed in the current JSON files, manager-create
 | --- | --- | --- |
 | `Character.json` | `{ "characters": [] }` | Loaded by `CharacterManager`; currently an empty seed collection. Runtime changes remain in memory/save data. |
 | `Major.json` | `majors[]` (16 records) | Loaded by `CharacterManager`. |
-| `Job.json` | `jobs[]` (88 records) | Loaded by `CharacterManager`. |
+| `Job.json` | `jobs[]` (88 records); each record may optionally contain `event_tags: String[]` | Loaded by `CharacterManager`; Phase 1 Event validation checks optional tags without requiring or auto-authoring them. Existing 88 records remain unchanged and omit the field. |
 | `School.json` | `schools[]` (12 records) | Loaded by `EducationManager`. |
 | `Companies.json` | `companies[]` (90 records) | Loaded by `CareerManager`. |
 | `Business.json` | `{ "businesses": [] }` | Loaded by `BusinessManager`; currently an empty seed collection. Runtime changes remain in memory/save data. |
@@ -24,8 +24,88 @@ This document records schemas observed in the current JSON files, manager-create
 | `House.json` | `house_definitions[]` (1 definition) | Loaded by `HouseManager`; defines visuals, five levels, prices/capacities/expenses, roles/required stats/importance, role-performance contributions, score bounds, and status thresholds. |
 | `HouseholdPerks.json` | `household_perks[]` | Loaded by `HouseManager`; maps existing Character flag IDs/names to event-queryable household perk IDs and display labels. |
 | `RelationshipNPC.json` | `{ "relationship_npcs": [] }` | No code or scene reference found; active relationship candidates are full character records. |
+| `Events/*.json` | `{ schema_version: 1, category, pools[], events[] }` across 12 approved category files | Loaded and atomically validated by the Autoload-free `EventDataRegistry`; production pools/Events are currently empty. |
 
 Filename case matters in the current repository: both `relationship_npc.json` and `RelationshipNPC.json` exist and have different roles/statuses.
+
+## Static Event Definitions — Phase 1
+
+The implemented category files are `relationship`, `education`, `job_offer`, `career`, `household`, `lifestyle`, `family_agency`, `age_lifecycle`, `business`, `health`, `finance`, and `general`. Their filenames must match `category`, and the root accepts exactly:
+
+```text
+{
+  schema_version: 1,
+  category: String,
+  pools: PoolDefinition[],
+  events: EventDefinition[]
+}
+```
+
+Pool IDs and Event IDs are global registry keys. A pool is:
+
+```text
+{
+  pool_id: String,
+  selection_mode: "weighted_one" | "weighted_multiple" | "all_eligible",
+  max_events?: positive int | null
+}
+```
+
+`weighted_multiple` requires `max_events`; `weighted_one` may only use `1`. An Event may join a pool through its optional `pool_id` or a calendar/manual trigger `pool_id`.
+
+The Phase 1 Event definition contract implemented by the validator is:
+
+```text
+{
+  event_id: String,                 # globally unique
+  category: String,                 # must match the owning file
+  domain: String,
+  subtype: String,
+  enabled: bool,
+  rarity: common | uncommon | rare | epic | legendary,
+  weight: positive number,
+  priority: int,
+  exclusive_group: String | null,
+  pool_id?: String | null,
+
+  trigger: TriggerDefinition,
+  participants: { participant_name: ParticipantDefinition },
+  requirements: RequirementGroup,
+  repeat: { mode: RepeatMode },
+  cooldown: { scope, unit, value } | null,
+  behavior: { blocking: bool, pause_game: bool },
+  content: { title: String, description: String, subtitle?: String | null },
+  presentation: {
+    template: String,
+    art_path?: res:// path | null,
+    header_icon?: res:// path | null
+  },
+  cost?: { currency: money | diamonds, amount: non-negative number } | null,
+  choices: ChoiceDefinition[],
+  default_resolution?: ResolutionDefinition | null,
+  metadata?: Dictionary
+}
+```
+
+`presentation` contains only a template identifier and optional existing resources. Scene geometry/style fields are rejected. Phase 1 validates the template identifier's required String shape; template scene routing does not exist until the approved UI phase.
+
+Supported triggers are `system`, `calendar`, `manual`, `chain`, and `scheduled`. Calendar definitions contain exactly one of a positive `cadence { unit: day|week|month|year, interval }`, `exact_date`, or `date_window { start, end }`. Date points are `YYYY-MM-DD` or `{ month, day, year? }`; omitting `year` represents an annual date/window. Manual definitions require `source` and `mode: direct|pool`; pool mode requires a valid pool reference.
+
+Participant types are `character`, `character_group`, `relationship_npc`, `house`, `business`, and `context`. Sources are `trigger`, `player_selected`, `relation`, `relationship_npc`, `primary_house`, `owned_business`, and `context`. Relation definitions name an existing participant in `from` and use `spouse`, `child`, `parent`, or `family_member`. Player-selected character groups use positive `min`/`max`, `min <= max`, optional recursive requirements, and optional `selection_ui { title, description, show_ineligible, show_relevant_stats? }`.
+
+Requirement groups recursively contain `all`, `any`, and/or `none` arrays. Leaf requirements use `{ type, target?, operator, value, ... }`. The implemented whitelist covers every family in `EVENT_SYSTEM_SPEC.md`: Character/stat/flag/lifecycle, family structure, career/job/job-tag, education, relationship, Lifestyle/items, economy, House/status/perk, family Business, Event story memory, entitlement, and world/date. Valid operators are restricted by value domain. Canonical stat names are `happiness`, `health`, `logic`, `attractiveness`, `social`, `confidence`, `discipline`, and `creativity`. Statically resolvable IDs/names are checked against existing authoritative JSON catalogs. `choice_made` and `outcome_reached` use `{ event_id, choice_id|outcome_id }` and are checked against the referenced Event definition.
+
+Repeat modes are `once`, `once_per_character`, `once_per_character_pair`, `once_per_family`, `once_per_house`, `once_per_business`, and `repeatable`. Cooldowns use scopes `event`, `character`, `character_pair`, `family`, `house`, or `business`, calendar units `day`, `week`, `month`, or `year`, and a positive integer value. Every `family_agency` definition requires `scope: event` and at least `60` months or `5` years; arbitrary day/week conversions do not satisfy this calendar rule.
+
+Choices have a per-Event unique `choice_id`, title, optional description/icon/requirements/cost, and required resolution. Resolution modes are:
+
+- `deterministic`: `effects[]`;
+- `weighted`: non-empty unique `outcomes[]` with positive `weight`, optional requirement-based numeric `add_weight` modifiers, and `effects[]`;
+- `score_check`: non-empty weighted numeric `sources[]`, numeric `threshold`, and unique `success`/`failure` outcome blocks with effects.
+
+The effect whitelist is `stat_change`, `stat_set`, `add_flag`, `remove_flag`; `relationship_start`, `relationship_change`, `relationship_status_change`, `relationship_end`; `money_change`, `diamond_change`; `job_assign`, `job_remove`, `job_change`, `career_progress`; `education_enroll`, `education_change`, `education_complete`; `add_item`, `remove_item`, `damage_item`, `equip_item`, `unequip_item`; `house_assignment`, `remove_from_house`; `business_effect`, `business_upgrade`, `business_role_change`; and `queue_event`, `schedule_event`, `cancel_scheduled_event`. Each effect validates its participant/context target and statically available data/Event references. Executable code, scripts, callables, raw methods, and signal paths are forbidden.
+
+These are static definition schemas only. No `EventInstance`, queue, history, runtime cooldown, scheduled-state, evaluator result, EffectResult, save field, or Event UI schema is implemented in Phase 1.
 
 ## Character Records
 
