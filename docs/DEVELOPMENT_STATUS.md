@@ -8,7 +8,7 @@
 - Engine configuration: Godot 4.7
 - Startup scene: `Scenes/MainMenu/MainMenu.tscn`
 
-This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, property modal, House, and Event System Phase 1 validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
+This status is derived only from files present in the inspected working tree. The working tree already contained user changes and untracked assets; unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, property modal, House, and Event System Phase 1–2 validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
 
 ## Status Definitions
 
@@ -44,6 +44,7 @@ This status is derived only from files present in the inspected working tree. Th
 | Authored Map and runtime infrastructure | `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites inside a `6200 x 4200` rectangular MapWorld. All 68 authored interactive parents use explicit MapProperty metadata: 52 family businesses, 10 houses, and 6 land plots. Authored-existing visual mode reuses each original Sprite2D and adds only tag/interaction children. Business, House, and Land property selection is exclusively through the floating Property Tag; all building footprint collisions remain non-pickable. The fixed-zoom camera supports desktop mouse and one-finger touch drag; wheel zoom remains disabled. TileSets, artwork, and all 68 interactive Sprite2D position/scale/texture records remain unchanged. |
 | Family Tree / Map navigation | Main owns the persistent Family Tree, lazily created and reused Map, and one shared Main HUD. Screen changes now explicitly isolate visibility, processing, CanvasLayer state, and the active Camera2D: only the active screen camera remains enabled/current. Date/Money/Diamond and navigation do not duplicate, while Family Tree time controls remain Family Tree-only. |
 | Event System Phase 1 static data foundation | All 12 approved empty category files exist under `Resources/Json/Events/`. Autoload-free `EventDataRegistry` and `EventDataValidator` provide safe JSON loading, atomic global/category/pool lookup publication, source/Event/path diagnostics, complete Phase 1 static schema/reference/effect/graph validation, Family Agency per-Event cooldown enforcement, and optional `Job.event_tags` validation. No production Event content was authored. |
+| Event System Phase 2 runtime eligibility backend | Autoload-free runtime services now provide indexed definition lookup, immutable-in-practice Event instances, recursive live requirement evaluation with structured failure reasons, authoritative manager-backed queries for all 47 approved requirement types, participant candidate resolution/revalidation, direct and pool-based manual discovery, and non-mutating availability states. Explicit query-provider boundaries keep history, entitlement, cooldown, and completion state neutral until their approved later phases. No trigger dispatcher, weighted selection, queue, scheduler, resolution/effect execution, persistence, adapter, or UI was added. |
 
 ## Partial
 
@@ -53,7 +54,7 @@ This status is derived only from files present in the inspected working tree. Th
 | Education player flow | Backend emits education and major-selection events, but no player-facing education choice scene or signal consumer was found outside tests/autosave hooks. |
 | Career player flow | Backend emits job offers, but no player-facing offer scene or signal consumer was found outside tests/autosave hooks. |
 | Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
-| Event System | Phase 1 static definition infrastructure is implemented. Event runtime instances, live requirement evaluation, participant resolution, manual discovery, triggers/selection, queue/pause behavior, repeat/cooldown state, scheduling, resolution/effect execution, history, save/load integration, adapters, and Event UI are not implemented. |
+| Event System | Phase 1 static definition infrastructure and Phase 2 runtime instances, live requirements, participant resolution/revalidation, availability reporting, and manual direct/pool discovery are implemented. Phase 3+ remains absent: trigger dispatch and weighted automatic selection, queue/pause behavior, runtime repeat/cooldown/completion state, scheduling, resolution/outcome/effect execution, history persistence, save/load integration, adapters, and Event UI. |
 | Settings | Settings values and setter methods exist in `GameManager`, and menu/HUD settings visuals exist, but no settings screen or connected editing flow was found. |
 | Building visuals | Manually placed building and road artwork exists in `UI/Map.tscn`. Gameplay wiring does not recreate or reposition authored Sprite2D visuals; the before/after interactive Sprite2D position/scale/texture manifest remains identical. |
 | Land construction flow | House ownership and ready-made purchase are implemented. The approved 2×2/4×4 Land purchase-to-construction selection flow remains deferred; House backend already exposes the shared 1.40 new-construction cost for that later integration. |
@@ -74,7 +75,7 @@ This status is derived only from files present in the inspected working tree. Th
 
 ## Test Inventory
 
-The repository contains 45 `.tscn` test scenes covering:
+The repository contains 46 `.tscn` test scenes covering:
 
 - business manager, economy, modal integration, family and Worker NPC assignment;
 - Worker NPC generation, slot rules, and retirement;
@@ -86,6 +87,7 @@ The repository contains 45 `.tscn` test scenes covering:
 - Character Card data binding, GDD Lifestyle star thresholds, item-slot signal routing, and Family Tree modal integration;
 - Item List / Shop slot isolation, Accessory conceptual filters, card pricing/presentation, durability derivation, interaction context, modal behavior, scroll/expand behavior, and rendered reference comparison.
 - Event Phase 1 production-category loading; valid schema representation; malformed roots; duplicate IDs; pools/triggers/calendar dates; participants; every requirement family and canonical stat/reference checks; repeat/cooldown and Family Agency limits; presentation/costs; all resolution/effect families; Event-flow references/cycles; and optional Job event tags.
+- Event Phase 2 recursive live requirements and all operators; all 47 approved runtime requirement types; participant sources, cardinality, duplicate prevention, and revalidation; manual direct/pool discovery; availability states and readable reasons; minimal Event-instance creation; and proof that discovery/activation does not mutate gameplay state.
 
 Fresh Character portrait/genetics migration validation on 2026-08-25:
 
@@ -234,5 +236,16 @@ Fresh Event System Phase 1 static-data validation on 2026-09-01:
 - `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. Coverage includes all requested valid/invalid categories and proves every approved trigger, repeat, cooldown scope/unit, requirement family (with Job tags separately fixture-validated), resolution mode, and effect family can be represented statically. Calendar validation rejects structurally valid-looking but impossible annual and ISO dates, and optional Event metadata is type-checked.
 - Godot 4.7.1 headless editor project/script scan exited 0 without parser or missing-resource errors. The Windows certificate-store and restricted editor-settings warnings remain environment-only and pre-existing.
 - The real project startup scene completed a 120-frame headless smoke with exit code 0 and no project parser, missing-resource, or runtime errors. Focused shared-data regressions passed for `CareerManagerTest` 14/14, `BusinessManagerTest` 25/25, and `ItemManagerTest` 189/189. `HouseManagerTest` reproduced 53/55 twice, with the existing `Caregiver follows adult-count plus Baby/Child rule` and `Full role contribution applies from five occupants` failures; no House implementation/data was changed in this phase. Event System Phase 2 was not started.
+
+Fresh Event System Phase 2 runtime eligibility validation on 2026-09-01:
+
+- Canonical Google Docs GDD v3.6 Section 14 and D-147–D-153, `EVENT_SYSTEM_SPEC.md`, `EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`, current managers, Phase 1 Event infrastructure, and applicable project documentation were read before implementation. No conflict or newer confirmed Event decision was found.
+- `EventDataRegistry` now indexes enabled definitions by ID, domain, category, pool, and manual source. `EventInstance`, `RequirementEvaluator`, `EventRuntimeQueryProvider`, `EventParticipantResolver`, and `EventRuntimeService` implement only the approved Phase 2 runtime model, live eligibility, candidate resolution, direct/pool manual discovery, and activation-time revalidation. History, entitlement, cooldown, and completion checks use explicit read-only provider boundaries with neutral defaults until their later approved phases.
+- All 47 approved requirement types route to authoritative manager data. Lifestyle uses the exact equipped-item backend score; House requirements use `HouseManager`; family businesses remain family-owned; optional Job tags are checked only when present and are never inferred; absent Item flags safely evaluate false; comparisons reject incompatible runtime types instead of coercing them.
+- Participant resolution covers trigger Character, player-selected Character, spouse/child/parent/family member, existing Relationship NPC, primary House, owned Business, and explicit context entities. Minimum/maximum cardinality, duplicate prevention, entity eligibility, and activation-time revalidation produce structured, readable reasons.
+- `Tests/EventRuntimePhase2Test.tscn`: 112 passed / 0 failed. `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. Focused shared-manager regressions passed: `FamilyCreationTest` 5/5, `ParentModelTest` 3/3, `FamilyCandidateTest` 7/7, `NewGameCharacterSelectionTest` 18/18 with real `user://` writes, `CareerManagerTest` 14/14, `CareerManagerOfferTest` 6/6, `EducationManagerTest` 17/17, `RelationshipNPCManagerTest` 5/5, `RelationshipDivorceRemarriageTest` 8/8, `ItemManagerTest` 189/189, and `BusinessManagerTest` 25/25.
+- `HouseManagerTest` reproduced 53/55 with exactly the same pre-existing `Caregiver follows adult-count plus Baby/Child rule` and `Full role contribution applies from five occupants` failures recorded during Phase 1; Phase 2 did not modify House code or data.
+- Godot 4.7.1 headless editor/project scan and the real `Scenes/MainMenu/MainMenu.tscn` startup path both exited 0 without project parser, missing-resource, or runtime errors. The restricted environment still emitted only its pre-existing Windows certificate-store/editor-settings warnings.
+- No production Event content, Job tag assignment, gameplay value, trigger dispatcher, weighted automatic selection, queue/pause runtime, scheduler, cooldown/repeat persistence, resolution/outcome/effect execution, save field, adapter, UI, or Autoload was added. Discovery and activation are read-only with respect to gameplay state. Phase 3 was not started.
 
 After code or data changes, update this file. Also update `ARCHITECTURE.md` for responsibility/dependency changes, `DATA_SCHEMA.md` for schema/save changes, and `PENDING_DECISIONS.md` for confirmed decisions not yet synchronized to the canonical GDD.

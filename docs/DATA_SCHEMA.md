@@ -105,7 +105,59 @@ Choices have a per-Event unique `choice_id`, title, optional description/icon/re
 
 The effect whitelist is `stat_change`, `stat_set`, `add_flag`, `remove_flag`; `relationship_start`, `relationship_change`, `relationship_status_change`, `relationship_end`; `money_change`, `diamond_change`; `job_assign`, `job_remove`, `job_change`, `career_progress`; `education_enroll`, `education_change`, `education_complete`; `add_item`, `remove_item`, `damage_item`, `equip_item`, `unequip_item`; `house_assignment`, `remove_from_house`; `business_effect`, `business_upgrade`, `business_role_change`; and `queue_event`, `schedule_event`, `cancel_scheduled_event`. Each effect validates its participant/context target and statically available data/Event references. Executable code, scripts, callables, raw methods, and signal paths are forbidden.
 
-These are static definition schemas only. No `EventInstance`, queue, history, runtime cooldown, scheduled-state, evaluator result, EffectResult, save field, or Event UI schema is implemented in Phase 1.
+These are static definition schemas. Phase 2 adds the runtime query structures below without changing the production JSON roots.
+
+## Event Runtime Query Structures — Phase 2
+
+`EventInstance` is session-local and is not part of the save snapshot:
+
+```text
+{
+  instance_id: String,              # evt_00000001
+  event_id: String,                 # lookup key into EventDataRegistry
+  definition_version: int,
+  trigger_type: String,
+  created_date: YYYY-MM-DD,
+  status: String,                   # Phase 2 activation uses active
+  participants: Dictionary,         # character IDs, Character-ID arrays, House/Business IDs
+  context: Dictionary,
+  source_instance_id: String | null
+}
+```
+
+The instance never stores duplicated title, description, art, or presentation data. Runtime IDs increment deterministically within the current service session and are not persisted in Phase 2.
+
+Requirement evaluation returns:
+
+```text
+{
+  eligible: bool,
+  failure_reasons: [{
+    code: String,
+    message: String,                # player-readable
+    requirement_type?: String,
+    target?: String,
+    operator?: String,
+    expected_display?: String
+  }]
+}
+```
+
+Participant resolution returns resolved IDs/context plus `pending_selections`, `failure_reasons`, and `candidate_groups`. A Character-group candidate is:
+
+```text
+{
+  character_id: int,
+  eligible: bool,
+  failure_reasons: Array
+}
+```
+
+Group results also retain the definition's minimum, maximum, and non-visual `selection_ui` content metadata. No UI geometry is included.
+
+Manual discovery returns one availability entry per matching definition. `status` is `available`, `locked_requirements`, `locked_cooldown`, `locked_cost`, `completed_non_repeatable`, `requires_participants`, or `disabled`. Each entry includes Event ID, structured failure reasons, resolved participants/context, pending selections/candidates, and registry-backed content/presentation/definition data. Pool discovery sets `weighted_selection_performed: false`; weighted selection is not a Phase 2 structure.
+
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts, not stored data. Their neutral defaults report no history, entitlement, cooldown, or completed non-repeatable state. Phase 2 tests replace them with controlled providers. No Event field is added to save version 5.
 
 ## Character Records
 

@@ -2,7 +2,7 @@
 
 ## Scope and Evidence
 
-This document describes the repository state inspected through 2026-09-01 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1 static-data integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
+This document describes the repository state inspected through 2026-09-01 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1–2 integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
 
 The working tree already contained modified and untracked project assets before these support documents were added. Those files were inspected as current repository state and were not changed by this documentation task.
 
@@ -27,7 +27,7 @@ The working tree already contained modified and untracked project assets before 
 | `UI/ItemListShop/` | Reusable Accessory/Outfit/Vehicle Item List bottom sheet, display-only item cards, information panel, filter bar, and filename/path-based Accessory category classifier. |
 | `Scripts/FamilyTree/` | Family-tree layout, rendering, character nodes, link nodes, and camera behavior. |
 | `Scripts/Map/` | Authored Map screen integration, explicit screen/camera activation, fixed rectangular camera input, an editor-only boundary guide, and reusable property/tag helpers. |
-| `Scripts/Events/` | Autoload-free static Event definition registry/loader and validator. No Event runtime lifecycle is implemented here. |
+| `Scripts/Events/` | Autoload-free Event definition registry/validator plus the Phase 2 read-only requirement, participant, availability, manual-discovery, provider-boundary, and EventInstance primitives. |
 | `UI/Map/` | Reusable floating property-tag scene used by map properties. |
 | `Scripts/UI/Business/` | Business modal, manager-to-UI adapter, and worker-flow connector. |
 | `UI/Business/WorkerSelection/` | Worker source selection and candidate assignment flow. |
@@ -36,7 +36,7 @@ The working tree already contained modified and untracked project assets before 
 | `Data/Saves/` | Present but empty in the inspected tree; runtime saves use `user://saves` instead. |
 | `Themes/` | Business modal, Character Card, and Item List / Shop theme resources. |
 
-Several directories under `Scenes/` and `Scripts/` remain empty, including building/manager-oriented placeholders. `Scripts/Events/` now contains only Phase 1 static definition infrastructure; there is still no Event scene/UI or gameplay manager.
+Several directories under `Scenes/` and `Scripts/` remain empty, including building/manager-oriented placeholders. There is still no Event scene/UI, Event Autoload, or Phase 3 orchestration manager.
 
 ## Static Event Data Boundary
 
@@ -44,7 +44,21 @@ Several directories under `Scenes/` and `Scripts/` remain empty, including build
 
 `EventDataValidator` owns Phase 1 static checks: root/category/schema integrity; pools; all five trigger families and calendar date forms; participant declarations and selection metadata; recursive requirements and operator/value/reference compatibility; repeat/cooldown and the Family Agency per-Event 60-calendar-month rule; presentation resource references and scene-owned style rejection; costs, choices, deterministic/weighted/score-check resolutions; the approved effect whitelist; Event-flow references; and statically detectable queue/schedule cycles. It indexes authoritative IDs from the existing Job, School, Major, Flag, Item, Business Type, House, Household Status, and Household Perk JSON definitions. Optional `Job.json.event_tags` is validated when present and remains valid when absent.
 
-This layer does not evaluate live requirements, resolve runtime participants, select/queue Events, track history/cooldowns, schedule work, execute effects, mutate gameplay state, save Event state, or own UI. No `EventManager` exists or is registered in `project.godot`; those responsibilities remain Phase 2 and later.
+The registry additionally builds read-only runtime indexes by domain and manual source and can filter enabled definitions while preserving the Phase 1 atomic-load behavior. It remains the only Event-definition database.
+
+## Event Runtime Eligibility Boundary — Phase 2
+
+The Phase 2 runtime is explicitly constructed and Autoload-free. `EventRuntimeService` composes the existing `EventDataRegistry`, `EventRuntimeQueryProvider`, `RequirementEvaluator`, `EventParticipantResolver`, and replaceable availability/history/entitlement query providers. It exposes definition/category/domain/manual-source/pool access, direct and pool manual discovery, structured availability, and final activation-time revalidation. Manual pool discovery returns eligible definitions and never performs weighted/random selection.
+
+`EventRuntimeQueryProvider` reads current authoritative state from `CharacterManager`, `CareerManager`, `EducationManager`, `RelationshipNpcManager`, `ItemManager`, `GameManager`, `HouseManager`, `BusinessManager`, and `TimeManager`; it does not copy their mutable state. `RequirementEvaluator` is the one shared recursive `all`/`any`/`none` engine for every approved requirement type and operator. Its result contains an eligibility boolean plus structured, player-readable failure reasons. Exact Lifestyle checks call `ItemManager.get_lifestyle_score`; House status/perks and Business state use their owning managers.
+
+`EventParticipantResolver` resolves trigger, player-selected, relationship, existing Relationship NPC, primary-House, owned-family-Business, and provided-context sources. Player-selected groups receive candidate eligibility/reasons, min/max and duplicate enforcement, and confirmation-time revalidation. Resolved runtime participants are IDs; family Businesses remain family-owned contexts.
+
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are neutral replaceable contracts in this phase. They store no production history, entitlements, cooldowns, or repeat state. Later authoritative systems can replace them without changing requirement/discovery consumers.
+
+`EventInstance` stores only runtime identity, definition link/version, trigger, created date, status, resolved participant IDs/context, and optional source-instance ID. Instance IDs use the session-local deterministic `evt_00000001` format. Display copy remains in `EventDataRegistry`.
+
+Phase 2 is read-only toward gameplay. It does not dispatch system/calendar/chain/scheduled triggers, select weighted pools, create an Event queue, pause time, start cooldowns, write repeat/history state, resolve outcomes, execute effects, mutate domain managers, persist Event state, or own UI. No Event Autoload was added to `project.godot`; those responsibilities remain Phase 3 and later.
 
 ## Autoload Managers
 

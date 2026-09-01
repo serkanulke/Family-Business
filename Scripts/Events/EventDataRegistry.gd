@@ -26,6 +26,8 @@ var pools_by_id: Dictionary = {}
 var events_by_id: Dictionary = {}
 var events_by_category: Dictionary = {}
 var events_by_pool: Dictionary = {}
+var events_by_domain: Dictionary = {}
+var events_by_manual_source: Dictionary = {}
 var is_valid := false
 
 
@@ -174,14 +176,21 @@ func load_from_json_sources(
 	events_by_id = validator.validated_events_by_id.duplicate(true)
 	events_by_category = validator.validated_events_by_category.duplicate(true)
 	events_by_pool = validator.validated_events_by_pool.duplicate(true)
+	_build_runtime_indexes()
 	is_valid = true
 	return true
 
 
-func get_event(event_id: String) -> Dictionary:
+func get_event(event_id: String, enabled_only: bool = false) -> Dictionary:
 	if not is_valid:
 		return {}
-	return events_by_id.get(event_id, {})
+	var event_value = events_by_id.get(event_id, {})
+	if typeof(event_value) != TYPE_DICTIONARY:
+		return {}
+	var event: Dictionary = event_value
+	if enabled_only and not bool(event.get("enabled", false)):
+		return {}
+	return event.duplicate(true)
 
 
 func get_pool(pool_id: String) -> Dictionary:
@@ -190,16 +199,40 @@ func get_pool(pool_id: String) -> Dictionary:
 	return pools_by_id.get(pool_id, {})
 
 
-func get_events_for_category(category: String) -> Array:
+func get_events_for_category(category: String, enabled_only: bool = false) -> Array:
 	if not is_valid:
 		return []
-	return events_by_category.get(category, []).duplicate()
+	return _filter_enabled(events_by_category.get(category, []), enabled_only)
 
 
-func get_events_for_pool(pool_id: String) -> Array:
+func get_events_for_pool(pool_id: String, enabled_only: bool = false) -> Array:
 	if not is_valid:
 		return []
-	return events_by_pool.get(pool_id, []).duplicate()
+	return _filter_enabled(events_by_pool.get(pool_id, []), enabled_only)
+
+
+func get_events_for_domain(domain: String, enabled_only: bool = false) -> Array:
+	if not is_valid:
+		return []
+	return _filter_enabled(events_by_domain.get(domain, []), enabled_only)
+
+
+func get_events_for_manual_source(source: String, enabled_only: bool = false) -> Array:
+	if not is_valid:
+		return []
+	return _filter_enabled(events_by_manual_source.get(source, []), enabled_only)
+
+
+func get_content(event_id: String) -> Dictionary:
+	var event := get_event(event_id)
+	var value = event.get("content", {})
+	return (value as Dictionary).duplicate(true) if typeof(value) == TYPE_DICTIONARY else {}
+
+
+func get_presentation(event_id: String) -> Dictionary:
+	var event := get_event(event_id)
+	var value = event.get("presentation", {})
+	return (value as Dictionary).duplicate(true) if typeof(value) == TYPE_DICTIONARY else {}
 
 
 func get_diagnostics() -> Array[Dictionary]:
@@ -235,6 +268,48 @@ func _clear_indexes() -> void:
 	events_by_id.clear()
 	events_by_category.clear()
 	events_by_pool.clear()
+	events_by_domain.clear()
+	events_by_manual_source.clear()
+
+
+func _build_runtime_indexes() -> void:
+	events_by_domain.clear()
+	events_by_manual_source.clear()
+	for event_value in events_by_id.values():
+		if typeof(event_value) != TYPE_DICTIONARY:
+			continue
+		var event: Dictionary = event_value
+		var domain := String(event.get("domain", ""))
+		if not domain.is_empty():
+			if not events_by_domain.has(domain):
+				events_by_domain[domain] = []
+			events_by_domain[domain].append(event)
+		var trigger_value = event.get("trigger", {})
+		if typeof(trigger_value) != TYPE_DICTIONARY:
+			continue
+		var trigger: Dictionary = trigger_value
+		if String(trigger.get("type", "")) != "manual":
+			continue
+		var source := String(trigger.get("source", ""))
+		if source.is_empty():
+			continue
+		if not events_by_manual_source.has(source):
+			events_by_manual_source[source] = []
+		events_by_manual_source[source].append(event)
+
+
+func _filter_enabled(values, enabled_only: bool) -> Array:
+	var result: Array = []
+	if typeof(values) != TYPE_ARRAY:
+		return result
+	for value in values:
+		if typeof(value) != TYPE_DICTIONARY:
+			continue
+		var event: Dictionary = value
+		if enabled_only and not bool(event.get("enabled", false)):
+			continue
+		result.append(event.duplicate(true))
+	return result
 
 
 func _make_diagnostic(
