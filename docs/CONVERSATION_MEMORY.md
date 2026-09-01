@@ -23,6 +23,8 @@ When sources appear to conflict, identify the conflict before changing implement
 - Keep systems as simple as the confirmed design permits; do not add unnecessary complexity.
 - Do not invent gameplay decisions that are absent from the canonical GDD or a confirmed pending decision.
 - Preserve the current manager/autoload and JSON-driven architecture unless a documented reason requires a change.
+- Large systems must be implemented in bounded, documented phases so Work tasks remain reviewable, but the complete approved system scope must remain tracked until finished. A phase is not complete if agreed parts of that phase are intentionally omitted as an MVP shortcut.
+- Event System work follows `docs/EVENT_SYSTEM_SPEC.md` and `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`; backend, integration, and UI phases must not be collapsed into one oversized task unless the user explicitly requests it.
 
 ## Important Historical Distinctions
 
@@ -37,6 +39,17 @@ When sources appear to conflict, identify the conflict before changing implement
 - Family businesses belong to the family, not to an individual character.
 - Do not confuse family-owned businesses with external companies used by the playable-character career system.
 
+### Event System
+
+- The approved Event design is category-based under `Resources/Json/Events/`, not one monolithic `event.json`.
+- Event `category`, gameplay `domain`, `trigger`, and `presentation.template` are separate concepts.
+- Trigger cadence is authored in Event data; EventManager does not hardcode category-wide frequency.
+- Story history preserves choices/outcomes/context for later eligibility.
+- Lifestyle and Family Agency are manual Event flows.
+- Family Agency cooldown is per Event/option, never global, and every Agency Event uses at least a 60-month cooldown.
+- Paid Event experiences may be entitlement-gated and launched from Family Agency. Player-selected Event groups use a dedicated selection modal/bottom sheet rather than Family Tree multi-select.
+- Applied Event effects must produce player-facing feedback using the actual applied result.
+
 ## Recurring Misunderstandings to Avoid
 
 - Do not treat `CONVERSATION_MEMORY.md` as more authoritative than the GDD.
@@ -44,6 +57,7 @@ When sources appear to conflict, identify the conflict before changing implement
 - Do not treat `PENDING_DECISIONS.md` as a place for unconfirmed ideas or unresolved questions.
 - Do not assume an asset or JSON file means a system is implemented; verify that code or scenes actually consume it.
 - Do not assume a backend signal has a player-facing flow; verify that a scene or script consumes it.
+- Do not declare the Event System implemented because one sample Event opens; use the full implementation plan and completion audit.
 
 ## Memory Maintenance
 

@@ -39,6 +39,18 @@ When no direct visual reference is supplied for a required UI element, inspect t
 - Do not confuse Worker NPCs managed by `NPCManager` with Relationship NPCs managed by `RelationshipNpcManager`.
 - Treat family businesses as family-owned systems. Do not model them as property of an individual character unless the canonical GDD is explicitly changed.
 
+## Large-System Implementation Phasing
+
+For large, cross-cutting systems, especially the Event System, do not combine data architecture, backend lifecycle, integrations, UI, and category content into one oversized task unless the user explicitly requests that scope.
+
+- Use approved project documentation as the contract before starting each phase.
+- For Event System work, read GDD Section 14 plus `docs/EVENT_SYSTEM_SPEC.md` and `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`.
+- Finish the complete approved scope of the current phase, including tests and required documentation updates. Do not replace the phase with a small demo, MVP shortcut, or placeholder implementation and call it complete.
+- Do not silently forget remaining approved scope. The implementation plan remains the checklist until the final completion audit passes.
+- Stop at the defined phase boundary, report exact completed/remaining work and test results, and wait for the next user instruction before starting the next phase.
+- Do not mix unrelated UI/category implementation into a backend/data phase.
+- The overall system may be marked implemented only after every required phase and final audit are complete.
+
 ## Documentation Maintenance
 
 After any implementation or behavior change:
