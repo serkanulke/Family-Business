@@ -492,8 +492,8 @@ func is_role_important(house_instance_id: String, role_id: String) -> bool:
 		if not has_required_stage:
 			return false
 	var full_population_trigger := int(rule.get("important_from_total_occupants", 0))
-	if full_population_trigger > 0 and total_occupants >= full_population_trigger:
-		return true
+	if full_population_trigger > 0 and total_occupants < full_population_trigger:
+		return false
 	var min_total := int(rule.get("min_total_occupants", 0))
 	if min_total > 0 and total_occupants < min_total:
 		return false

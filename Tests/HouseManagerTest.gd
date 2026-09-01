@@ -158,13 +158,24 @@ func _test_performance_and_importance() -> void:
 	_assert(not HouseManager.is_role_important("house_0001", "housekeeper"), "Housekeeper is not important at two occupants")
 	var housekeeper := _character(3, "adult", 90); HouseManager.assign_character_to_role("house_0001", "housekeeper", 3)
 	_assert(HouseManager.is_role_important("house_0001", "housekeeper"), "Housekeeper becomes important at three occupants")
-	var fourth := _character(4, "adult"); HouseManager.assign_character_as_resident("house_0001", 4)
+	var caregiver := _character(4, "adult", 50); HouseManager.assign_character_to_role("house_0001", "caregiver", 4)
 	_assert(not HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver stays inactive without Baby or Child")
 	var baby := _character(5, "baby"); HouseManager.assign_character_as_resident("house_0001", 5)
 	_assert(HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver follows adult-count plus Baby/Child rule")
-	_reset(); _character(1, "adult", 50); _house_with_head(); _character(2, "adult", 100); HouseManager.assign_character_to_role("house_0001", "cook", 2)
+
+	_reset(); _character(1, "adult", 50); var adult_rule_house := _house_with_head(); adult_rule_house["level"] = 2
+	_character(2, "adult", 50); HouseManager.assign_character_to_role("house_0001", "cook", 2)
+	_character(3, "adult", 50); HouseManager.assign_character_to_role("house_0001", "housekeeper", 3)
+	_character(4, "teen", 50); HouseManager.assign_character_as_resident("house_0001", 4)
+	_character(5, "baby", 50); HouseManager.assign_character_as_resident("house_0001", 5)
+	_assert(not HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver still requires four adult-stage occupants at five total occupants")
+
+	_reset(); _character(1, "adult", 50); var scoring_house := _house_with_head(); scoring_house["level"] = 2
+	_character(2, "adult", 100); HouseManager.assign_character_to_role("house_0001", "cook", 2)
 	_assert(is_equal_approx(HouseManager.get_household_score("house_0001"), 56.0), "Secondary important role uses 50 percent before five occupants")
-	for id in range(3, 6): _character(id, "adult", 50); HouseManager.assign_character_as_resident("house_0001", id)
+	for id in range(3, 6):
+		_character(id, "adult", 50)
+		HouseManager.assign_character_as_resident("house_0001", id)
 	_assert(is_equal_approx(HouseManager.get_household_score("house_0001"), 52.0), "Full role contribution applies from five occupants")
 
 
