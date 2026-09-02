@@ -17,7 +17,7 @@ signal current_save_changed(
 	save_id: int
 )
 
-const SAVE_VERSION := 5
+const SAVE_VERSION := 6
 const MIN_SUPPORTED_SAVE_VERSION := 2
 const DEFAULT_SAVE_DIRECTORY := "user://saves"
 const SAVE_FILE_PREFIX := "save_"
@@ -323,7 +323,8 @@ func create_save_snapshot() -> Dictionary:
 			"is_education_pause_active": EducationManager.is_education_pause_active,
 			"should_resume_time_after_education_events": EducationManager.should_resume_time_after_education_events
 		},
-		"item_manager": ItemManager.create_save_state()
+		"item_manager": ItemManager.create_save_state(),
+		"event_system": EventManager.export_runtime_state()
 	}
 
 
@@ -334,6 +335,12 @@ func apply_save_snapshot(
 		save_data
 	):
 		return false
+
+	# Release any Event-owned pause from the currently running game before
+	# restoring the saved TimeManager state. Event state is restored last,
+	# after every authoritative domain referenced by participant/context IDs.
+	EventManager.reset_runtime_state()
+	var save_version := int(save_data.get("save_version", -1))
 
 	var game_state := _get_dictionary(
 		save_data,
@@ -504,6 +511,13 @@ func apply_save_snapshot(
 		)
 
 	if CharacterManager.has_method(
+		"normalize_character_flag_ids"
+	):
+		CharacterManager.call(
+			"normalize_character_flag_ids"
+		)
+
+	if CharacterManager.has_method(
 		"normalize_character_parent_links"
 	):
 		CharacterManager.call(
@@ -665,6 +679,17 @@ func apply_save_snapshot(
 	# Version 2 saves predate the item backend. Version 3 used one global shop
 	# stock array. ItemManager migrates both shapes into the slot-specific model.
 	ItemManager.restore_save_state(item_state)
+
+	if save_version < 6:
+		# Production v2-v5 saves predate Event persistence and therefore have no
+		# truthful history, queue, cooldown, schedule, or temporary-flag state.
+		EventManager.reset_runtime_state()
+	elif typeof(save_data.get("event_system", null)) != TYPE_DICTIONARY:
+		push_warning("Save data has no valid event_system section; Event runtime was reset safely.")
+		EventManager.reset_runtime_state()
+	elif not EventManager.import_runtime_state(save_data["event_system"]):
+		push_warning("Event runtime state was rejected and reset safely: " + EventManager.last_import_error)
+		EventManager.reset_runtime_state()
 
 	return true
 
@@ -918,6 +943,26 @@ func _connect_autosave_signals() -> void:
 	_connect_signal_for_autosave(
 		ItemManager,
 		"equipment_changed"
+	)
+	_connect_signal_for_autosave(
+		EventManager,
+		"queue_changed"
+	)
+	_connect_signal_for_autosave(
+		EventManager,
+		"event_completed"
+	)
+	_connect_signal_for_autosave(
+		EventManager,
+		"event_cancelled"
+	)
+	_connect_signal_for_autosave(
+		EventManager,
+		"event_expired"
+	)
+	_connect_signal_for_autosave(
+		EventManager,
+		"scheduled_event_changed"
 	)
 
 

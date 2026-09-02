@@ -111,11 +111,11 @@ D-155 removes `damage_item`: normal Item durability remains derived from `purcha
 
 D-156 removes generic relationship effects and pair-state requirements. `relationship_marry` and `relationship_divorce` carry `primary` and `target` participant references and delegate to the existing Relationship manager operations. D-157 removes generic career assignment/progression, education change/completion, House assignment, and Business staffing effects. The remaining Career effects carry only a target Character, except positive-integer `salary_increase.amount`; active offer data remains manager-owned.
 
-These are static definition schemas. Phase 2–4A add the runtime structures below without changing the production JSON roots.
+These are static definition schemas. Phase 2–4 add the runtime structures below without changing the production JSON roots.
 
-## Event Runtime Query Structures — Phases 2 and 4A
+## Event Runtime Query Structures — Phases 2 and 4
 
-`EventInstance` remains outside save version 5 in Phase 4A:
+`EventInstance` is persisted only as runtime data inside save version 6 `event_system`:
 
 ```text
 {
@@ -136,7 +136,7 @@ These are static definition schemas. Phase 2–4A add the runtime structures bel
 }
 ```
 
-The instance never stores duplicated title, description, art, or presentation data. Runtime IDs increment deterministically within the current service session. Phase 3 exports the next counter in a serializable runtime snapshot, but does not connect that snapshot to `SaveManager`.
+The instance never stores duplicated title, description, art, or presentation data. Runtime IDs increment deterministically and the next counter persists with Event state, so loading never reallocates a restored identity or restarts at `evt_00000001`.
 
 Requirement evaluation returns:
 
@@ -168,7 +168,7 @@ Group results also retain the definition's minimum, maximum, and non-visual `sel
 
 Manual discovery returns one availability entry per matching definition. `status` is `available`, `locked_requirements`, `locked_cooldown`, `locked_cost`, `completed_non_repeatable`, `requires_participants`, or `disabled`. Each entry includes Event ID, structured failure reasons, resolved participants/context, pending selections/candidates, and registry-backed content/presentation/definition data. The Phase 2 discovery call remains non-selecting; Phase 3 `EventManager.invoke_manual_pool` performs the pool selection and queueing step after discovery eligibility.
 
-`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts. Entitlement remains neutral by default. `EventManager` supplies `EventStoryHistory` and the session-local repeat/cooldown provider. No Event field is added to save version 5.
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts. Entitlement remains neutral by default. `EventManager` supplies `EventStoryHistory` and the persistent repeat/cooldown provider.
 
 ## Event Orchestration Runtime Structures — Phase 3
 
@@ -229,13 +229,51 @@ Cooldowns are also committed only on completion:
 
 Character-pair keys are numerically normalized. The `available_date` is calculated with Gregorian day/week/month/year arithmetic; months and years preserve the original day when possible and clamp to the target month end otherwise.
 
-## Event Resolution Runtime Structures — Phase 4A
+## Event Resolution and Persistence Runtime Structures — Phase 4
 
 Every successful gameplay effect produces `{ success, effect_type, effect_index, target/context identifiers as applicable, requested/applied/before/after values as applicable, display: { mode, text, icon_path } }`. A preflight failure returns a structured failed result and commits no Event/choice cost, prior effect, completed history, repeat record, or cooldown.
 
 Story history is an array of terminal `EventInstance` dictionaries. It preserves instance/Event IDs, lifecycle dates/status, participant/context bindings, choice/outcome IDs, EffectResults, and source-chain ID. It answers `event_seen`, `event_completed`, `event_not_completed`, `choice_made`, and `outcome_reached` using requested participant/context bindings.
 
-`EventManager.export_runtime_state()` and `import_runtime_state()` symmetrically cover active/queued/scheduled instances; story history; repeat/cooldown and temporary-flag records; deterministic Event/schedule/queue counters; outcome/pool RNG state; occurrence, calendar, selection, queue-order, and duplicate-rebuild data; and blocking pause ownership. Import reconstructs runtime instances without replaying effects. This remains session/in-memory integration only: there is no `SaveManager` field or save-version change until Phase 4B.
+`EventManager.export_runtime_state()` and `import_runtime_state()` symmetrically cover active/queued/scheduled instances; story history; repeat/cooldown and temporary-flag records; deterministic Event/schedule/queue counters; outcome/pool RNG state; occurrence, calendar, selection, queue-order, and duplicate-rebuild data; and blocking pause ownership. Import reconstructs runtime instances without replaying effects.
+
+The complete version 6 Event payload is:
+
+```text
+event_system: {
+  active_event: EventInstance | {},
+  queued_events: EventInstance[],
+  scheduled_events: ScheduledEvent[],
+  history: EventInstance[],
+  repeat_runtime_state: RepeatRecord[],
+  cooldowns: CooldownRecord[],
+  effect_runtime_state: {
+    temporary_flags: [{
+      character_id,
+      flag_id,
+      expires_date,
+      source_instance_id,
+      baseline_present
+    }]
+  },
+  next_event_instance_number: int,
+  next_scheduled_event_number: int,
+  occurrence_by_instance: Dictionary,
+  processed_selection_occurrences: String[],
+  pool_random_state: { seed: decimal String, state: decimal String },
+  resolution_random_state: { seed: decimal String, state: decimal String },
+  queue_order_by_instance: Dictionary,
+  next_queue_order: int,
+  calendar_occurrence_keys: String[],
+  pause_runtime_state: {
+    captured: bool,
+    pre_event_was_paused: bool,
+    pre_event_speed: float
+  }
+}
+```
+
+The decimal RNG strings preserve full 64-bit values through JSON parsing. The importer validates JSON-compatible primitives/keys and required structures before mutation. Missing definitions for restored active/queued instances reject and reset the Event subsection; no substitute definition is selected. Restored scheduled entries remain subject to normal due-time definition/enabled/participant/requirement/repeat/cooldown/affordability revalidation. Event restore runs after the authoritative domain managers and reconnects only through stable IDs.
 
 ## Character Records
 
@@ -420,12 +458,12 @@ Role occupants and resident IDs share one capacity and are normalized to one ass
 
 `HouseholdPerks.json` currently defines `artistic`, matched by any of the existing `musician` (`1002`) or `painter` (`1003`) flags. UI reads display labels while future event code can query canonical perk IDs.
 
-## Save Snapshot Version 5
+## Save Snapshot Version 6
 
 `SaveManager` writes JSON files named `save_<id>.json` under `user://saves`. The snapshot root is:
 
 ```text
-save_version: 5
+save_version: 6
 metadata: { family_name, wealth, population, owned_businesses, game_date }
 game_manager: {
   lifespan_setting,
@@ -475,9 +513,26 @@ item_manager: {
   monthly_stock_target_per_slot,
   next_instance_number
 }
+event_system: {                       # exact structure documented above
+  active_event, queued_events, scheduled_events,
+  history, repeat_runtime_state, cooldowns,
+  effect_runtime_state,
+  next_event_instance_number,
+  next_scheduled_event_number,
+  occurrence_by_instance,
+  processed_selection_occurrences,
+  pool_random_state,
+  resolution_random_state,
+  queue_order_by_instance,
+  next_queue_order,
+  calendar_occurrence_keys,
+  pause_runtime_state
+}
 ```
 
-The loader requires the House section for version 5. Versions 2–4 remain supported; when House state is absent, the lowest-ID living playable family Character becomes Head of Household in deterministic `house_01`. Version 2 keeps its empty item-state migration, and Version 3 global `monthly_stock_ids` are still distributed into canonical slot arrays.
+The loader requires the House section for versions 5–6. Versions 2–5 remain supported; when House state is absent in versions 2–4, the lowest-ID living playable family Character becomes Head of Household in deterministic `house_01`. Version 2 keeps its empty item-state migration, and Version 3 global `monthly_stock_ids` are still distributed into canonical slot arrays. Versions 2–5 predate Event persistence and restore a clean Event runtime with counters reset safely and no invented history, cooldowns, repeats, schedules, queue, or temporary grants.
+
+For version 6, authoritative game/domain state loads first and `event_system` imports last. A missing, wrong-type, or defensively rejected Event payload logs a warning and resets only Event-owned state; it does not replay effects or invalidate the otherwise supported save. Numeric Character `flag_ids` are normalized back to integers after JSON parsing so temporary-grant expiration can remove the exact Event-owned flag without disturbing a pre-existing permanent grant.
 
 ## Identifier and Relationship Conventions
 

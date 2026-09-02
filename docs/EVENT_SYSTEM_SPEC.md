@@ -878,25 +878,35 @@ Validation includes at least:
 
 Development diagnostics identify the source category file and `event_id` so content errors can be corrected directly.
 
-## 19. Save/Load Target
+## 19. Save/Load Contract
 
-The currently implemented save format remains whatever `docs/DATA_SCHEMA.md` reports until EventManager is implemented.
-
-When EventManager state is integrated, SaveManager must version/migrate the save schema and preserve at least:
+Save version 6 stores the single Event-owned runtime payload under `event_system`. Static definitions remain in Event JSON and are never copied into saves:
 
 ```text
-event_manager: {
+event_system: {
   active_event,
   queued_events,
   scheduled_events,
   history,
+  repeat_runtime_state,
   cooldowns,
+  effect_runtime_state,
   next_event_instance_number,
-  next_scheduled_event_number
+  next_scheduled_event_number,
+  occurrence_by_instance,
+  processed_selection_occurrences,
+  pool_random_state,
+  resolution_random_state,
+  queue_order_by_instance,
+  next_queue_order,
+  calendar_occurrence_keys,
+  pause_runtime_state
 }
 ```
 
-Loading must not replay already-applied effects, reset cooldowns, reroll persisted scheduled context, or lose story history.
+Event import runs after authoritative Character, House, Business, Item, and other domain state exists. It restores metadata/runtime state only: loading never replays already-applied effects, resets cooldowns, rerolls persisted context, allocates replacement IDs, or loses story history. Version 2–5 saves have no truthful Event history and therefore migrate to a clean empty Event runtime. A missing or rejected version 6 Event subsection also resets Event state safely with a diagnostic without executing effects or discarding otherwise accepted gameplay state.
+
+Active and queued instances require their saved static definition to still exist; a missing definition rejects the Event subsection and never substitutes another Event. A disabled definition remains bound to the restored instance under the existing runtime contract. Scheduled entries retain their identity and are revalidated through the normal due path; missing/disabled/ineligible scheduled Events expire there. Event lifecycle autosaves are deferred until the current synchronous call stack completes, so saves observe coherent pre- or post-resolution states rather than a partially applied effect chain.
 
 ## 20. Complete Processing Pipeline
 

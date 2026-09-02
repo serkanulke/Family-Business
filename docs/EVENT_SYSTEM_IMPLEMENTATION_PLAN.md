@@ -93,7 +93,7 @@ Completion test: eligible Events reach the correct queue at the correct time and
 
 Scope is state mutation and persistence. This phase completes the Event backend core.
 
-Implementation boundary: Phase 4A (resolution/effects/history plus symmetric in-memory runtime export/import) is complete in the current working tree. Phase 4B (`SaveManager` schema-version integration, migration, and disk round-trip verification) remains required and was intentionally not started in the Phase 4A task.
+Implementation boundary: Phase 4A (resolution/effects/history plus symmetric runtime export/import) and Phase 4B (`SaveManager` version 6 integration, migration, restore integrity, and disk round-trip verification) are complete in the current working tree. Phase 4 is complete; Phase 5 remains separate and has not started.
 
 Deliverables:
 
@@ -107,9 +107,9 @@ Deliverables:
 - [x] Implement complete story history records with instance, participant/context, choice, outcome, effects/results, dates, and chain source.
 - [x] Implement queue/schedule/cancel Event effects.
 - [x] Implement symmetric in-memory runtime export/import and reset without effect replay.
-- Integrate EventManager mutable state into SaveManager with a new save-schema version and backwards migration.
-- Prove that load does not replay effects, reset cooldowns, reroll scheduled context, or lose history.
-- Add comprehensive backend and save/load regression tests.
+- [x] Integrate EventManager mutable state into SaveManager with a new save-schema version and backwards migration.
+- [x] Prove that load does not replay effects, reset cooldowns, reroll scheduled context, or lose history.
+- [x] Add comprehensive backend and save/load regression tests.
 
 Completion test: backend Event lifecycle is complete end-to-end without requiring a visual Event screen; tests can trigger, choose/resolve, mutate state, report real results, save, reload, and continue chains correctly.
 

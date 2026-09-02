@@ -1200,6 +1200,29 @@ func normalize_character_ids() -> void:
 		)
 
 
+func normalize_character_flag_ids() -> void:
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+		var flag_values = character.get("flag_ids", [])
+		if typeof(flag_values) != TYPE_ARRAY:
+			character["flag_ids"] = []
+			continue
+
+		var normalized_flags: Array = []
+		for flag_value in flag_values:
+			var normalized_flag = (
+				int(flag_value)
+				if typeof(flag_value) in [TYPE_INT, TYPE_FLOAT]
+				else flag_value
+			)
+			if normalized_flag not in normalized_flags:
+				normalized_flags.append(normalized_flag)
+		character["flag_ids"] = normalized_flags
+
+
 func normalize_character_parent_links() -> void:
 	for character_value in characters:
 		if typeof(

@@ -19,6 +19,7 @@ var calendar_evaluator: EventCalendarTriggerEvaluator
 var story_history: EventStoryHistory
 var resolution_resolver: EventResolutionResolver
 var effect_resolver: EventEffectResolver
+var last_import_error: String = ""
 
 var active_event: EventInstance = null
 var queued_events: Array[EventInstance] = []
@@ -390,10 +391,13 @@ func export_runtime_state() -> Dictionary:
 
 
 func import_runtime_state(value) -> bool:
+	last_import_error = ""
 	if typeof(value) != TYPE_DICTIONARY:
+		last_import_error = "Event runtime root must be a Dictionary."
 		return false
 	var state: Dictionary = value
-	if typeof(state.get("queued_events", null)) != TYPE_ARRAY or typeof(state.get("scheduled_events", null)) != TYPE_ARRAY or typeof(state.get("history", null)) != TYPE_ARRAY:
+	last_import_error = _runtime_state_validation_error(state)
+	if not last_import_error.is_empty():
 		return false
 	_restore_time_state_if_owned()
 	active_event = null
@@ -401,26 +405,17 @@ func import_runtime_state(value) -> bool:
 	var active_value = state.get("active_event", {})
 	if typeof(active_value) == TYPE_DICTIONARY and not active_value.is_empty():
 		active_event = EventInstance.from_dictionary(active_value)
-		if active_event.instance_id.is_empty() or active_event.event_id.is_empty() or registry.get_event(active_event.event_id).is_empty():
-			active_event = null
-			return false
 	for member in state["queued_events"]:
-		if typeof(member) != TYPE_DICTIONARY:
-			return false
 		var instance := EventInstance.from_dictionary(member)
-		if instance.instance_id.is_empty() or registry.get_event(instance.event_id).is_empty():
-			return false
 		queued_events.append(instance)
 	scheduled_events.clear()
 	for record_value in state["scheduled_events"]:
-		if typeof(record_value) != TYPE_DICTIONARY:
-			return false
 		scheduled_events.append((record_value as Dictionary).duplicate(true))
-	if not story_history.import_state(state["history"]): return false
-	if not state_provider.import_state({"completed_repeat_records": state.get("repeat_runtime_state", []), "cooldowns": state.get("cooldowns", [])}): return false
-	if not effect_resolver.import_state(state.get("effect_runtime_state", {"temporary_flags": []})): return false
-	if not pool_selector.import_state(state.get("pool_random_state", {})): return false
-	if not resolution_resolver.import_state(state.get("resolution_random_state", {})): return false
+	if not story_history.import_state(state["history"]): return _import_dependency_failed("Story history rejected its validated state.")
+	if not state_provider.import_state({"completed_repeat_records": state["repeat_runtime_state"], "cooldowns": state["cooldowns"]}): return _import_dependency_failed("Repeat/cooldown state was rejected.")
+	if not effect_resolver.import_state(state["effect_runtime_state"]): return _import_dependency_failed("Temporary flag state was rejected.")
+	if not pool_selector.import_state(state["pool_random_state"]): return _import_dependency_failed("Pool RNG state was rejected.")
+	if not resolution_resolver.import_state(state["resolution_random_state"]): return _import_dependency_failed("Resolution RNG state was rejected.")
 	runtime_service.reset_instance_counter(int(state.get("next_event_instance_number", 1)))
 	_next_scheduled_event_number = maxi(1, int(state.get("next_scheduled_event_number", 1)))
 	_next_queue_order = maxi(1, int(state.get("next_queue_order", 1)))
@@ -441,6 +436,125 @@ func import_runtime_state(value) -> bool:
 		_capture_and_pause_time()
 	_emit_queue_state()
 	return true
+
+
+func _runtime_state_validation_error(state: Dictionary) -> String:
+	if not _is_json_compatible(state):
+		return "Event runtime contains a non-JSON-compatible value or Dictionary key."
+	var required_types := {
+		"active_event": TYPE_DICTIONARY,
+		"queued_events": TYPE_ARRAY,
+		"scheduled_events": TYPE_ARRAY,
+		"history": TYPE_ARRAY,
+		"repeat_runtime_state": TYPE_ARRAY,
+		"cooldowns": TYPE_ARRAY,
+		"effect_runtime_state": TYPE_DICTIONARY,
+		"pool_random_state": TYPE_DICTIONARY,
+		"resolution_random_state": TYPE_DICTIONARY,
+		"occurrence_by_instance": TYPE_DICTIONARY,
+		"processed_selection_occurrences": TYPE_ARRAY,
+		"queue_order_by_instance": TYPE_DICTIONARY,
+		"calendar_occurrence_keys": TYPE_ARRAY,
+		"pause_runtime_state": TYPE_DICTIONARY,
+	}
+	for key in required_types:
+		if typeof(state.get(key, null)) != int(required_types[key]):
+			return "Event runtime field '%s' has the wrong type." % key
+	for key in ["next_event_instance_number", "next_scheduled_event_number", "next_queue_order"]:
+		if not _is_positive_integer(state.get(key, null)):
+			return "Event runtime counter '%s' must be a positive integer." % key
+	for key in ["processed_selection_occurrences", "calendar_occurrence_keys"]:
+		for member in state[key]:
+			if typeof(member) != TYPE_STRING:
+				return "Event runtime ledger '%s' must contain only String keys." % key
+	var active_value: Dictionary = state["active_event"]
+	if not active_value.is_empty():
+		var error := _instance_validation_error(active_value, "active")
+		if not error.is_empty(): return error
+	for member in state["queued_events"]:
+		if typeof(member) != TYPE_DICTIONARY: return "Queued Event entries must be Dictionaries."
+		var error := _instance_validation_error(member, "queued")
+		if not error.is_empty(): return error
+	for record in state["scheduled_events"]:
+		if typeof(record) != TYPE_DICTIONARY: return "Scheduled Event entries must be Dictionaries."
+		if String(record.get("scheduled_event_id", "")).is_empty() or String(record.get("event_id", "")).is_empty() or not bool(GameCalendar.parse_iso_date(String(record.get("due_date", ""))).get("valid", false)):
+			return "A scheduled Event record has invalid identity or due_date."
+		if String(record.get("status", "")) not in ["scheduled", "queued", "cancelled", "expired"] or typeof(record.get("participants", null)) != TYPE_DICTIONARY or typeof(record.get("context", null)) != TYPE_DICTIONARY or typeof(record.get("failure_reasons", null)) != TYPE_ARRAY:
+			return "A scheduled Event record has an invalid lifecycle structure."
+	for key in ["history", "repeat_runtime_state", "cooldowns"]:
+		for member in state[key]:
+			if typeof(member) != TYPE_DICTIONARY:
+				return "Event runtime array '%s' must contain only Dictionaries." % key
+	var effect_state: Dictionary = state["effect_runtime_state"]
+	if typeof(effect_state.get("temporary_flags", null)) != TYPE_ARRAY:
+		return "Temporary Event flag state must be an Array."
+	for member in effect_state["temporary_flags"]:
+		if typeof(member) != TYPE_DICTIONARY: return "Temporary Event flag entries must be Dictionaries."
+	for key in ["pool_random_state", "resolution_random_state"]:
+		var random_state: Dictionary = state[key]
+		if not _is_integer_value(random_state.get("seed", null)) or not _is_integer_value(random_state.get("state", null)):
+			return "Event RNG field '%s' has invalid seed/state values." % key
+	var pause_state: Dictionary = state["pause_runtime_state"]
+	if typeof(pause_state.get("captured", null)) != TYPE_BOOL or typeof(pause_state.get("pre_event_was_paused", null)) != TYPE_BOOL or typeof(pause_state.get("pre_event_speed", null)) not in [TYPE_INT, TYPE_FLOAT]:
+		return "Event pause ownership state is malformed."
+	return ""
+
+
+func _instance_validation_error(value: Dictionary, expected_status: String) -> String:
+	var event_id := String(value.get("event_id", ""))
+	if String(value.get("instance_id", "")).is_empty() or event_id.is_empty():
+		return "A restored %s Event has no stable identity." % expected_status
+	if registry.get_event(event_id).is_empty():
+		return "A restored %s Event references missing definition '%s'." % [expected_status, event_id]
+	if String(value.get("status", "")) != expected_status:
+		return "A restored Event has status '%s' where '%s' was required." % [String(value.get("status", "")), expected_status]
+	if not _is_positive_integer(value.get("definition_version", null)) or typeof(value.get("trigger_type", null)) != TYPE_STRING or not bool(GameCalendar.parse_iso_date(String(value.get("created_date", ""))).get("valid", false)):
+		return "A restored %s Event has invalid definition/lifecycle metadata." % expected_status
+	if typeof(value.get("participants", null)) != TYPE_DICTIONARY or typeof(value.get("context", null)) != TYPE_DICTIONARY or typeof(value.get("effect_results", null)) != TYPE_ARRAY:
+		return "A restored %s Event has invalid participant/context/result data." % expected_status
+	return ""
+
+
+func _is_positive_integer(value) -> bool:
+	if typeof(value) == TYPE_INT:
+		return int(value) >= 1
+	if typeof(value) == TYPE_FLOAT:
+		return is_finite(float(value)) and is_equal_approx(float(value), floor(float(value))) and int(value) >= 1
+	return false
+
+
+func _is_integer_value(value) -> bool:
+	if typeof(value) == TYPE_INT:
+		return true
+	if typeof(value) == TYPE_FLOAT:
+		return is_finite(float(value)) and is_equal_approx(float(value), floor(float(value)))
+	if typeof(value) == TYPE_STRING:
+		var text := String(value)
+		if text.begins_with("-"): text = text.substr(1)
+		return not text.is_empty() and text.is_valid_int()
+	return false
+
+
+func _is_json_compatible(value) -> bool:
+	match typeof(value):
+		TYPE_NIL, TYPE_BOOL, TYPE_INT, TYPE_STRING:
+			return true
+		TYPE_FLOAT:
+			return is_finite(float(value))
+		TYPE_ARRAY:
+			for member in value:
+				if not _is_json_compatible(member): return false
+			return true
+		TYPE_DICTIONARY:
+			for key in value:
+				if typeof(key) != TYPE_STRING or not _is_json_compatible(value[key]): return false
+			return true
+	return false
+
+
+func _import_dependency_failed(message: String) -> bool:
+	last_import_error = message
+	return false
 
 
 func _select_and_queue(events: Array, runtime_context: Dictionary, occurrence: Dictionary, forced_pool_id: String = "") -> Dictionary:

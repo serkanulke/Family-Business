@@ -25,15 +25,30 @@ func resolve(resolution: Dictionary, participants: Dictionary, context: Dictiona
 
 
 func export_state() -> Dictionary:
-	return {"seed": random.seed, "state": random.state}
+	# Preserve the complete 64-bit RNG stream through JSON save files.
+	return {"seed": str(random.seed), "state": str(random.state)}
 
 
 func import_state(value) -> bool:
 	if typeof(value) != TYPE_DICTIONARY:
 		return false
-	random.seed = int(value.get("seed", 0))
-	random.state = int(value.get("state", random.seed))
+	if not _is_integer_value(value.get("seed", null)) or not _is_integer_value(value.get("state", null)):
+		return false
+	random.seed = int(value["seed"])
+	random.state = int(value["state"])
 	return true
+
+
+func _is_integer_value(value) -> bool:
+	if typeof(value) == TYPE_INT:
+		return true
+	if typeof(value) == TYPE_FLOAT:
+		return is_finite(float(value)) and is_equal_approx(float(value), floor(float(value)))
+	if typeof(value) == TYPE_STRING:
+		var text := String(value)
+		if text.begins_with("-"): text = text.substr(1)
+		return not text.is_empty() and text.is_valid_int()
+	return false
 
 
 func _resolve_weighted(resolution: Dictionary, participants: Dictionary, context: Dictionary) -> Dictionary:

@@ -163,7 +163,7 @@ func _test_monthly_shop_and_purchase() -> void:
 		await _test_real_sheet_binding(_test_character(9901, "Item Test A"), slot)
 
 	var save_snapshot := SaveManager.create_save_snapshot()
-	_assert_equal(int(save_snapshot.get("save_version", 0)), 5, "Save snapshot uses House + slot-stock schema version 5")
+	_assert_equal(int(save_snapshot.get("save_version", 0)), 6, "Save snapshot uses Event persistence schema version 6")
 	_assert_true(typeof(save_snapshot.get("item_manager", null)) == TYPE_DICTIONARY, "Save contains ItemManager state")
 	ItemManager.monthly_stock_by_slot = {}
 	ItemManager.monthly_stock_month_key = -1
