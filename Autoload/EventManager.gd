@@ -828,8 +828,10 @@ func _connect_runtime_adapters() -> void:
 	_connect_if_needed(HouseManager.house_upgraded, _on_house_upgraded)
 	_connect_if_needed(BusinessManager.family_business_created, _on_business_created)
 	_connect_if_needed(BusinessManager.family_business_upgraded, _on_business_upgraded)
-	_connect_if_needed(BusinessManager.family_business_slot_changed, _on_business_character_slot_changed)
-	_connect_if_needed(BusinessManager.family_business_npc_slot_changed, _on_business_npc_slot_changed)
+	_connect_if_needed(
+		BusinessManager.family_business_role_transitioned,
+		_on_business_role_transitioned
+	)
 
 
 func _connect_if_needed(source_signal: Signal, callable: Callable) -> void:
@@ -1017,17 +1019,153 @@ func _on_house_upgraded(house_instance_id: String, new_level: int, _upgrade_cost
 	dispatch_system_trigger("house_upgraded", {"context": {"house_instance_id": house_instance_id, "new_level": new_level}}, "house_upgraded:%s:%d" % [house_instance_id, new_level], "HouseManager")
 
 
-func _on_business_created(business_instance_id: String, business_type_id: String, plot_id: String, _purchase_cost: int) -> void:
-	dispatch_system_trigger("business_purchased", {"context": {"business_instance_id": business_instance_id, "business_type_id": business_type_id, "plot_id": plot_id}}, "business_purchased:%s" % business_instance_id, "BusinessManager")
+func _on_business_created(
+	business_instance_id: String,
+	business_type_id: String,
+	plot_id: String,
+	purchase_cost: int
+) -> void:
+	dispatch_system_trigger(
+		"business_purchased",
+		{
+			"context": {
+				"business_instance_id": business_instance_id,
+				"business_type_id": business_type_id,
+				"plot_id": plot_id,
+				"purchase_cost": purchase_cost,
+				"new_level": 1
+			}
+		},
+		"business_purchased:%s" % business_instance_id,
+		"BusinessManager"
+	)
 
 
-func _on_business_upgraded(business_instance_id: String, new_level: int, _upgrade_cost: int) -> void:
-	dispatch_system_trigger("business_upgraded", {"context": {"business_instance_id": business_instance_id, "new_level": new_level}}, "business_upgraded:%s:%d" % [business_instance_id, new_level], "BusinessManager")
+func _on_business_upgraded(
+	business_instance_id: String,
+	new_level: int,
+	upgrade_cost: int
+) -> void:
+	var business := BusinessManager.get_business_by_instance_id(
+		business_instance_id
+	)
+	dispatch_system_trigger(
+		"business_upgraded",
+		{
+			"context": {
+				"business_instance_id": business_instance_id,
+				"business_type_id": String(
+					business.get(
+						"business_type_id",
+						""
+					)
+				),
+				"new_level": new_level,
+				"upgrade_cost": upgrade_cost
+			}
+		},
+		"business_upgraded:%s:%d"
+		% [
+			business_instance_id,
+			new_level
+		],
+		"BusinessManager"
+	)
 
 
-func _on_business_character_slot_changed(business_instance_id: String, slot_id: String, character_id: int) -> void:
-	dispatch_system_trigger("business_role_changed", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id} if character_id > 0 else {}, "context": {"business_instance_id": business_instance_id, "slot_id": slot_id, "character_id": character_id}}, "business_role_changed:%s:%s:%d:%s" % [business_instance_id, slot_id, character_id, _current_date()], "BusinessManager")
+func _on_business_role_transitioned(
+	business_instance_id: String,
+	slot_id: String,
+	previous_occupant: Dictionary,
+	new_occupant: Dictionary,
+	reason: String
+) -> void:
+	var previous_source_type := String(
+		previous_occupant.get(
+			"source_type",
+			""
+		)
+	)
+	var source_type := String(
+		new_occupant.get(
+			"source_type",
+			""
+		)
+	)
+	var previous_id = previous_occupant.get(
+		"id",
+		null
+	)
+	var occupant_id = new_occupant.get(
+		"id",
+		null
+	)
 
+	var previous_character_id := (
+		int(previous_id)
+		if previous_source_type == "family"
+		and previous_id != null
+		else 0
+	)
+	var character_id := (
+		int(occupant_id)
+		if source_type == "family"
+		and occupant_id != null
+		else 0
+	)
+	var previous_npc_id := (
+		String(previous_id)
+		if previous_source_type == "npc"
+		and previous_id != null
+		else ""
+	)
+	var npc_id := (
+		String(occupant_id)
+		if source_type == "npc"
+		and occupant_id != null
+		else ""
+	)
 
-func _on_business_npc_slot_changed(business_instance_id: String, slot_id: String, npc_id: String) -> void:
-	dispatch_system_trigger("business_role_changed", {"context": {"business_instance_id": business_instance_id, "slot_id": slot_id, "npc_id": npc_id}}, "business_role_changed:%s:%s:%s:%s" % [business_instance_id, slot_id, npc_id, _current_date()], "BusinessManager")
+	var context := {
+		"business_instance_id": business_instance_id,
+		"slot_id": slot_id,
+		"reason": reason,
+		"previous_source_type": previous_source_type,
+		"previous_character_id": previous_character_id,
+		"previous_npc_id": previous_npc_id,
+		"source_type": source_type,
+		"character_id": character_id,
+		"npc_id": npc_id
+	}
+	var runtime_context := {
+		"context": context
+	}
+	var primary_character_id := (
+		character_id
+		if character_id > 0
+		else previous_character_id
+	)
+	if primary_character_id > 0:
+		runtime_context["trigger_character_id"] = (
+			primary_character_id
+		)
+		runtime_context["trigger_participants"] = {
+			"primary": primary_character_id
+		}
+
+	dispatch_system_trigger(
+		"business_role_changed",
+		runtime_context,
+		"business_role_changed:%s:%s:%s:%s:%s:%s:%s:%s"
+		% [
+			business_instance_id,
+			slot_id,
+			previous_source_type,
+			str(previous_id),
+			source_type,
+			str(occupant_id),
+			reason,
+			_current_date()
+		],
+		"BusinessManager"
+	)
