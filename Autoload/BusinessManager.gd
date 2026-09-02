@@ -940,6 +940,21 @@ func upgrade_business(
 	return true
 
 
+func get_business_upgrade_cost(business_instance_id: String) -> int:
+	var business := get_business_by_instance_id(business_instance_id)
+	if business.is_empty():
+		return 0
+	var business_type_id := str(business.get("business_type_id", ""))
+	var business_type := get_business_type_by_id(business_type_id)
+	var current_level := int(business.get("level", 1))
+	if business_type.is_empty() or current_level >= int(business_type.get("max_level", 1)):
+		return 0
+	var next_level := get_level_definition(business_type_id, current_level + 1)
+	if next_level.is_empty() or typeof(next_level.get("slot_ids", null)) != TYPE_ARRAY or typeof(business.get("slots", null)) != TYPE_ARRAY:
+		return 0
+	return maxi(int(next_level.get("cost", 0)), 0)
+
+
 func get_business_slot_gross(
 	business_instance_id: String,
 	slot_id: String

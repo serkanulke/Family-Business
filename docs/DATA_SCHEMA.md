@@ -93,7 +93,7 @@ Supported triggers are `system`, `calendar`, `manual`, `chain`, and `scheduled`.
 
 Participant types are `character`, `character_group`, `relationship_npc`, `house`, `business`, and `context`. Sources are `trigger`, `player_selected`, `relation`, `relationship_npc`, `primary_house`, `owned_business`, and `context`. Relation definitions name an existing participant in `from` and use `spouse`, `child`, `parent`, or `family_member`. Player-selected character groups use positive `min`/`max`, `min <= max`, optional recursive requirements, and optional `selection_ui { title, description, show_ineligible, show_relevant_stats? }`.
 
-Requirement groups recursively contain `all`, `any`, and/or `none` arrays. Leaf requirements use `{ type, target?, operator, value, ... }`. The implemented whitelist covers every family in `EVENT_SYSTEM_SPEC.md`: Character/stat/flag/lifecycle, family structure, career/job/job-tag, education, relationship, Lifestyle/items, economy, House/status/perk, family Business, Event story memory, entitlement, and world/date. Valid operators are restricted by value domain. Canonical stat names are `happiness`, `health`, `logic`, `attractiveness`, `social`, `confidence`, `discipline`, and `creativity`. Statically resolvable IDs/names are checked against existing authoritative JSON catalogs. `choice_made` and `outcome_reached` use `{ event_id, choice_id|outcome_id }` and are checked against the referenced Event definition.
+Requirement groups recursively contain `all`, `any`, and/or `none` arrays. Leaf requirements use `{ type, target?, operator, value, ... }`. The implemented whitelist covers Character/stat/flag/lifecycle, family structure, employment/Job/Job-tag, concrete education state, Lifestyle/items, economy, House/status/perk, family Business, Event story memory, entitlement, and world/date. `career_level`, `education_level`, `relationship_exists`, `relationship_status`, and `relationship_level` are unsupported under D-156/D-157. Existing spouse links use `has_spouse`; Relationship candidates remain runtime participants/context. Valid operators are restricted by value domain. Canonical stat names are `happiness`, `health`, `logic`, `attractiveness`, `social`, `confidence`, `discipline`, and `creativity`. Statically resolvable IDs/names are checked against existing authoritative JSON catalogs. `choice_made` and `outcome_reached` use `{ event_id, choice_id|outcome_id }` and are checked against the referenced Event definition.
 
 Repeat modes are `once`, `once_per_character`, `once_per_character_pair`, `once_per_family`, `once_per_house`, `once_per_business`, and `repeatable`. Cooldowns use scopes `event`, `character`, `character_pair`, `family`, `house`, or `business`, calendar units `day`, `week`, `month`, or `year`, and a positive integer value. Every `family_agency` definition requires `scope: event` and at least `60` months or `5` years; arbitrary day/week conversions do not satisfy this calendar rule.
 
@@ -103,13 +103,19 @@ Choices have a per-Event unique `choice_id`, title, optional description/icon/re
 - `weighted`: non-empty unique `outcomes[]` with positive `weight`, optional requirement-based numeric `add_weight` modifiers, and `effects[]`;
 - `score_check`: non-empty weighted numeric `sources[]`, numeric `threshold`, and unique `success`/`failure` outcome blocks with effects.
 
-The effect whitelist is `stat_change`, `stat_set`, `add_flag`, `remove_flag`; `relationship_start`, `relationship_change`, `relationship_status_change`, `relationship_end`; `money_change`, `diamond_change`; `job_assign`, `job_remove`, `job_change`, `career_progress`; `education_enroll`, `education_change`, `education_complete`; `add_item`, `remove_item`, `damage_item`, `equip_item`, `unequip_item`; `house_assignment`, `remove_from_house`; `business_effect`, `business_upgrade`, `business_role_change`; and `queue_event`, `schedule_event`, `cancel_scheduled_event`. Each effect validates its participant/context target and statically available data/Event references. Executable code, scripts, callables, raw methods, and signal paths are forbidden.
+The effect whitelist is `stat_change`, `stat_set`, `add_flag`, `remove_flag`; `relationship_marry`, `relationship_divorce`; `money_change`, `diamond_change`; `accept_job_offer`, `reject_job_offer`, `job_remove`, `salary_increase`; `education_enroll`; `add_item`, `remove_item`, `equip_item`, `unequip_item`; `remove_from_house`; `business_upgrade`; and `queue_event`, `schedule_event`, `cancel_scheduled_event`. Each effect validates its participant/context target and statically available data/Event references. `salary_increase.amount` is a positive integer; `education_enroll.school_id` is a canonical School reference. Executable code, scripts, callables, raw methods, and signal paths are forbidden. D-154/D-157 remove generic Business mutations and staffing changes; future Business-specific mutations require separately approved authoritative behavior.
 
-These are static definition schemas. Phase 2–3 add the runtime structures below without changing the production JSON roots.
+An effect may optionally define `feedback: { mode: auto|custom, text?: String, icon_path?: String|null }`. `custom` requires non-empty player-facing text. Runtime `EffectResult.display` never exposes a technical flag ID; auto feedback reports actual applied values after canonical clamp/validation.
 
-## Event Runtime Query Structures — Phase 2
+D-155 removes `damage_item`: normal Item durability remains derived from `purchase_date + durability_months = expiration_date`, while Family Heirlooms remain non-expiring. Static Item effects store catalog `item_id` and a target Character, never a runtime `instance_id`. At runtime, `equip_item` excludes instances equipped by another Character; `unequip_item` can affect only the target's matching equipped instance; and `remove_item` prefers that target-equipped match before an unequipped match. Eligible duplicate instances use nearest `expiration_date`, then oldest `purchase_date`, then ascending `instance_id`, with non-expiring instances after expiring ones. Another Character's equipped instance is never transferred or removed implicitly.
 
-`EventInstance` is session-local and is not part of save version 5:
+D-156 removes generic relationship effects and pair-state requirements. `relationship_marry` and `relationship_divorce` carry `primary` and `target` participant references and delegate to the existing Relationship manager operations. D-157 removes generic career assignment/progression, education change/completion, House assignment, and Business staffing effects. The remaining Career effects carry only a target Character, except positive-integer `salary_increase.amount`; active offer data remains manager-owned.
+
+These are static definition schemas. Phase 2–4A add the runtime structures below without changing the production JSON roots.
+
+## Event Runtime Query Structures — Phases 2 and 4A
+
+`EventInstance` remains outside save version 5 in Phase 4A:
 
 ```text
 {
@@ -123,6 +129,9 @@ These are static definition schemas. Phase 2–3 add the runtime structures belo
   status: queued | active | completed | cancelled | expired,
   participants: Dictionary,         # character IDs, Character-ID arrays, House/Business IDs
   context: Dictionary,
+  choice_id: String | null,
+  outcome_id: String | null,
+  effect_results: EffectResult[],
   source_instance_id: String | null
 }
 ```
@@ -159,7 +168,7 @@ Group results also retain the definition's minimum, maximum, and non-visual `sel
 
 Manual discovery returns one availability entry per matching definition. `status` is `available`, `locked_requirements`, `locked_cooldown`, `locked_cost`, `completed_non_repeatable`, `requires_participants`, or `disabled`. Each entry includes Event ID, structured failure reasons, resolved participants/context, pending selections/candidates, and registry-backed content/presentation/definition data. The Phase 2 discovery call remains non-selecting; Phase 3 `EventManager.invoke_manual_pool` performs the pool selection and queueing step after discovery eligibility.
 
-`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts. History and entitlement remain neutral by default. `EventManager` supplies a Phase 3 availability provider that owns the session-local repeat/cooldown records below. No Event field is added to save version 5.
+`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` are query contracts. Entitlement remains neutral by default. `EventManager` supplies `EventStoryHistory` and the session-local repeat/cooldown provider. No Event field is added to save version 5.
 
 ## Event Orchestration Runtime Structures — Phase 3
 
@@ -220,7 +229,13 @@ Cooldowns are also committed only on completion:
 
 Character-pair keys are numerically normalized. The `available_date` is calculated with Gregorian day/week/month/year arithmetic; months and years preserve the original day when possible and clamp to the target month end otherwise.
 
-`EventManager.export_runtime_state()` combines queue state, scheduled records, repeat records, cooldowns, next Event/schedule counters, per-instance occurrence context, and processed selection-occurrence keys into JSON-compatible dictionaries/arrays. This is a Phase 4-ready serialization boundary only: there is no Phase 3 import, story-history schema, replay logic, `SaveManager` field, or save-version change.
+## Event Resolution Runtime Structures — Phase 4A
+
+Every successful gameplay effect produces `{ success, effect_type, effect_index, target/context identifiers as applicable, requested/applied/before/after values as applicable, display: { mode, text, icon_path } }`. A preflight failure returns a structured failed result and commits no Event/choice cost, prior effect, completed history, repeat record, or cooldown.
+
+Story history is an array of terminal `EventInstance` dictionaries. It preserves instance/Event IDs, lifecycle dates/status, participant/context bindings, choice/outcome IDs, EffectResults, and source-chain ID. It answers `event_seen`, `event_completed`, `event_not_completed`, `choice_made`, and `outcome_reached` using requested participant/context bindings.
+
+`EventManager.export_runtime_state()` and `import_runtime_state()` symmetrically cover active/queued/scheduled instances; story history; repeat/cooldown and temporary-flag records; deterministic Event/schedule/queue counters; outcome/pool RNG state; occurrence, calendar, selection, queue-order, and duplicate-rebuild data; and blocking pause ownership. Import reconstructs runtime instances without replaying effects. This remains session/in-memory integration only: there is no `SaveManager` field or save-version change until Phase 4B.
 
 ## Character Records
 

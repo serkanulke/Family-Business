@@ -1100,6 +1100,52 @@ func reject_job_offer(
 
 	return true
 
+func remove_external_job(
+	character_id: int
+) -> bool:
+	var character := get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return false
+
+	if character.get("job_id", null) == null:
+		return false
+
+	character["job_id"] = null
+	character["company_id"] = null
+	character["salary"] = 0
+	character["unemployment_start_date"] = TimeManager.get_iso_date_string()
+	character["job_offer_cooldown_until"] = null
+	active_job_offers.erase(character_id)
+
+	return true
+
+func increase_external_salary(
+	character_id: int,
+	amount: int
+) -> bool:
+	if amount <= 0:
+		return false
+
+	var character := get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return false
+
+	if (
+		character.get("job_id", null) == null
+		or String(character.get("company_id", "")).is_empty()
+	):
+		return false
+
+	character["salary"] = int(character.get("salary", 0)) + amount
+
+	return true
+
 func assign_company_for_existing_job(
 	character: Dictionary
 ) -> bool:

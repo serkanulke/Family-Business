@@ -4,7 +4,7 @@
 
 This plan prevents the Event System from becoming one oversized Work task and prevents approved scope from being forgotten between tasks. The system is implemented in bounded phases, but it is **not** considered complete until every phase marked REQUIRED below is finished, integrated, documented, and tested.
 
-Canonical gameplay decisions are in the Google Docs GDD Section 14 / D-147–D-153. Detailed technical target is `docs/EVENT_SYSTEM_SPEC.md`.
+Canonical gameplay decisions are in the Google Docs GDD Section 14 / D-147–D-158. Detailed technical target is `docs/EVENT_SYSTEM_SPEC.md`; D-154–D-158 replace the earlier generic effect/requirement contract with manager-aligned operations.
 
 ## Working Rule
 
@@ -93,17 +93,20 @@ Completion test: eligible Events reach the correct queue at the correct time and
 
 Scope is state mutation and persistence. This phase completes the Event backend core.
 
+Implementation boundary: Phase 4A (resolution/effects/history plus symmetric in-memory runtime export/import) is complete in the current working tree. Phase 4B (`SaveManager` schema-version integration, migration, and disk round-trip verification) remains required and was intentionally not started in the Phase 4A task.
+
 Deliverables:
 
-- Implement deterministic, weighted, and score_check resolution.
-- Implement weighted outcome modifiers.
-- Implement the complete whitelist effect dispatcher from the spec.
-- Delegate authoritative changes to existing managers; do not duplicate School/Character/Relationship/Business/Item rules.
-- Implement temporary/permanent Event-added flag duration behavior without silently resolving unrelated open flag-taxonomy decisions.
-- Implement actual applied EffectResult generation for every gameplay effect, including clamp-aware stat feedback.
-- Implement auto/custom player-facing feedback payloads while hiding internal flag IDs.
-- Implement complete story history records with instance, participant/context, choice, outcome, effects/results, dates, and chain source.
-- Implement queue/schedule/cancel Event effects.
+- [x] Implement deterministic, weighted, and score_check resolution.
+- [x] Implement weighted outcome modifiers.
+- [x] Implement the complete whitelist effect dispatcher from the spec.
+- [x] Delegate authoritative changes to existing managers; do not duplicate School/Character/Relationship/Business/Item rules.
+- [x] Implement temporary/permanent Event-added flag duration behavior without silently resolving unrelated open flag-taxonomy decisions.
+- [x] Implement actual applied EffectResult generation for every gameplay effect, including clamp-aware stat feedback.
+- [x] Implement auto/custom player-facing feedback payloads while hiding internal flag IDs.
+- [x] Implement complete story history records with instance, participant/context, choice, outcome, effects/results, dates, and chain source.
+- [x] Implement queue/schedule/cancel Event effects.
+- [x] Implement symmetric in-memory runtime export/import and reset without effect replay.
 - Integrate EventManager mutable state into SaveManager with a new save-schema version and backwards migration.
 - Prove that load does not replay effects, reset cooldowns, reroll scheduled context, or lose history.
 - Add comprehensive backend and save/load regression tests.

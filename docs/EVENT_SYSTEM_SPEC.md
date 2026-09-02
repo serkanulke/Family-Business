@@ -353,26 +353,22 @@ family_member_count
 employment_status
 job
 job_tag
-career_level
 ```
+
+There is no Career Level requirement. External career eligibility uses the implemented employment, Job, and deliberately authored Job-tag state.
 
 ### Education
 
 ```text
-education_level
 education_stage
 school
 school_type
 major
 ```
 
-### Relationship
+There is no numeric Education Level requirement.
 
-```text
-relationship_exists
-relationship_status
-relationship_level
-```
+Generic pair-level Relationship requirements are not supported. Existing spouse/family links use `has_spouse` and the participant/context model; Relationship-candidate context is resolved as a participant rather than an invented relationship meter or status requirement.
 
 ### Lifestyle / Items
 
@@ -580,11 +576,11 @@ remove_flag
 ### Relationship
 
 ```text
-relationship_start
-relationship_change
-relationship_status_change
-relationship_end
+relationship_marry
+relationship_divorce
 ```
+
+`relationship_marry` delegates to `RelationshipNpcManager.make_candidate_family_member`; `relationship_divorce` delegates to `RelationshipNpcManager.divorce_characters`. The generic start/change/status/end operations do not exist. Pre-marriage narrative progression uses Event participants, choices, outcomes, history, chains, and scheduling without pair-level persistent state.
 
 ### Economy
 
@@ -596,46 +592,50 @@ diamond_change
 ### Career
 
 ```text
-job_assign
+accept_job_offer
+reject_job_offer
 job_remove
-job_change
-career_progress
+salary_increase
 ```
+
+Offer acceptance/rejection delegates to `CareerManager`'s active-offer flow and never authors a Job, company, or salary. `job_remove` clears external employment only. `salary_increase` requires a positive integer amount and changes only the current external salary while preserving Job and company. There is no Career Level or generic progression state.
 
 ### Education
 
 ```text
 education_enroll
-education_change
-education_complete
 ```
+
+Enrollment delegates to the current `EducationManager` event/enrollment flow. School transfer/change, dropout, Event-driven instant graduation, and Education Level are not supported; graduation remains calendar-owned by `EducationManager`.
 
 ### Items
 
 ```text
 add_item
 remove_item
-damage_item
 equip_item
 unequip_item
 ```
 
-The existence of an effect type does not authorize a new gameplay rule that conflicts with canonical Item durability/ownership rules.
+Under D-155, static Event definitions identify Items by catalog `item_id` plus the target Character; save-specific `ItemInstance.instance_id` values never appear in Event JSON. `add_item` creates a new instance through `ItemManager`, with the normal calendar-expiration rules and permanent Family Heirloom behavior. There is no `damage_item` effect because Item durability has no separate damage-point mechanic.
+
+`equip_item` may select only a matching family-owned instance that is not equipped by another Character. `unequip_item` affects only a matching instance equipped by the target Character. `remove_item` first prefers the target Character's matching equipped instance, otherwise an unequipped matching instance; it never takes or removes an instance equipped by another Character. Multiple eligible instances are resolved deterministically by nearest `expiration_date`, then oldest `purchase_date`, then ascending `instance_id`, with non-expiring instances ordered after expiring instances. If no eligible instance exists, the effect fails with an `EffectResult`.
 
 ### House
 
 ```text
-house_assignment
 remove_from_house
 ```
+
+House assignment remains a valid read-only requirement, but is not an Event effect. Events never automatically relocate a Character or assign a House role.
 
 ### Family Business
 
 ```text
-business_effect
 business_upgrade
-business_role_change
 ```
+
+There is no generic `business_effect` or `business_role_change`. Under D-154/D-157, family-business staffing remains player-controlled; `business_upgrade` is the only current Business-specific Event mutation. Any future mutation requires a separately named and approved payload, authoritative `BusinessManager` operation, validation contract, and `EffectResult` behavior.
 
 ### Event flow
 
@@ -653,8 +653,10 @@ EventManager must not duplicate another manager's gameplay rules. Examples:
 
 - `education_enroll` delegates to EducationManager; `School.json` remains authoritative for school cost and `stat_bonus`.
 - Character stat clamping remains CharacterManager/domain logic.
-- Relationship creation/state changes use the relationship/Character backend rather than writing ad-hoc fields in EventManager.
-- Business ownership/level/role effects delegate to BusinessManager.
+- Relationship marriage/divorce uses `RelationshipNpcManager`; Event code never writes partner/family-entry/divorce state directly.
+- External career effects delegate to `CareerManager` and never mutate family-business staffing.
+- House removal delegates to `HouseManager`; Event code does not assign Houses.
+- Business upgrades delegate to `BusinessManager`; Event code never assigns or removes workers.
 - Item ownership/equipment/durability remains ItemManager-owned.
 
 ## 11. Player-Facing Effect Results
@@ -684,6 +686,8 @@ Feedback modes:
 auto
 custom
 ```
+
+Static effects may use `feedback: { mode: "auto" | "custom", text?: String, icon_path?: String | null }`. Custom feedback requires non-empty player-facing text. The runtime stores only the resolved display payload in `EffectResult`; it does not copy internal flag IDs into player-facing text.
 
 Internal technical flag IDs are not exposed to players. Hidden/story flags use appropriate custom narrative feedback when the effect must be communicated.
 

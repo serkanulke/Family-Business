@@ -16,6 +16,9 @@ var runtime_service: EventRuntimeService
 var state_provider: EventAvailabilityStateProvider
 var pool_selector: EventPoolSelector
 var calendar_evaluator: EventCalendarTriggerEvaluator
+var story_history: EventStoryHistory
+var resolution_resolver: EventResolutionResolver
+var effect_resolver: EventEffectResolver
 
 var active_event: EventInstance = null
 var queued_events: Array[EventInstance] = []
@@ -49,9 +52,14 @@ func configure_runtime(
 ) -> void:
 	_restore_time_state_if_owned()
 	registry = p_registry
+	story_history = EventStoryHistory.new()
+	var resolved_query_provider := query_provider if query_provider != null else EventRuntimeQueryProvider.new()
+	resolved_query_provider.history_provider = story_history
 	state_provider = EventAvailabilityStateProvider.new(Callable(self, "_current_date"))
-	runtime_service = EventRuntimeService.new(registry, query_provider, state_provider)
+	runtime_service = EventRuntimeService.new(registry, resolved_query_provider, state_provider)
 	pool_selector = EventPoolSelector.new(random_seed)
+	resolution_resolver = EventResolutionResolver.new(resolved_query_provider, random_seed)
+	effect_resolver = EventEffectResolver.new(registry)
 	calendar_evaluator = EventCalendarTriggerEvaluator.new(calendar_anchor_date)
 	reset_runtime_state()
 
@@ -70,6 +78,10 @@ func reset_runtime_state() -> void:
 	_processed_selection_occurrences.clear()
 	if state_provider != null:
 		state_provider.reset()
+	if story_history != null:
+		story_history.reset()
+	if effect_resolver != null:
+		effect_resolver.reset()
 	if runtime_service != null:
 		runtime_service.reset_instance_counter()
 	_emit_queue_state()
@@ -159,6 +171,32 @@ func activate_chain(
 	var occurrence := _make_occurrence("chain", event_id, runtime_context, occurrence_key, "event_flow")
 	var instance := _queue_available_event(event, availability, occurrence, source_instance_id)
 	return {"queued": instance != null, "instance": instance, "availability": availability}
+
+
+func can_activate_chain(
+	event_id: String,
+	participants: Dictionary = {},
+	context: Dictionary = {},
+	occurrence_key: String = ""
+) -> Dictionary:
+	var event := registry.get_event(event_id)
+	if event.is_empty() or String(event.get("trigger", {}).get("type", "")) != "chain":
+		return {"available": false, "reason": "not_chain_event"}
+	var availability := runtime_service.get_resolved_availability(event_id, participants, context)
+	if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+		return {"available": false, "reason": "unavailable", "availability": availability}
+	var occurrence := _make_occurrence("chain", event_id, {"context": context}, occurrence_key, "event_flow")
+	var duplicate_key := _duplicate_key(
+		event_id,
+		availability.get("participants", {}),
+		availability.get("context", {}),
+		String(occurrence.get("occurrence_id", ""))
+	)
+	return {
+		"available": not _deduplication_keys.has(duplicate_key),
+		"reason": "duplicate" if _deduplication_keys.has(duplicate_key) else "available",
+		"availability": availability
+	}
 
 
 func schedule_event(
@@ -265,6 +303,57 @@ func complete_active_event() -> bool:
 	return _finish_active_event("completed")
 
 
+func resolve_active_event(choice_id: String = "") -> Dictionary:
+	if active_event == null:
+		return _resolution_failure("no_active_event", "There is no active Event to resolve.")
+	var event := registry.get_event(active_event.event_id)
+	if event.is_empty():
+		return _resolution_failure("definition_missing", "The active Event definition is unavailable.")
+	var availability := runtime_service.get_resolved_availability(active_event.event_id, active_event.participants, active_event.context)
+	if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+		return {"resolved": false, "failure_reasons": availability.get("failure_reasons", []).duplicate(true), "effect_results": []}
+	var choice: Dictionary = {}
+	var choices_value = event.get("choices", [])
+	if typeof(choices_value) == TYPE_ARRAY and not choices_value.is_empty():
+		for value in choices_value:
+			if typeof(value) == TYPE_DICTIONARY and String(value.get("choice_id", "")) == choice_id:
+				choice = value
+				break
+		if choice.is_empty():
+			return _resolution_failure("choice_unavailable", "The selected Event choice is unavailable.")
+		var choice_requirements := runtime_service.requirement_evaluator.evaluate(choice.get("requirements", {"all": []}), active_event.participants, active_event.context)
+		if not bool(choice_requirements.get("eligible", false)):
+			return {"resolved": false, "failure_reasons": choice_requirements.get("failure_reasons", []).duplicate(true), "effect_results": []}
+	elif not choice_id.is_empty():
+		return _resolution_failure("choice_unavailable", "This Event does not accept a choice.")
+	var resolution_value = choice.get("resolution", null) if not choice.is_empty() else event.get("default_resolution", null)
+	if typeof(resolution_value) != TYPE_DICTIONARY:
+		return _resolution_failure("resolution_unavailable", "The Event resolution is unavailable.")
+	var money_cost := _cost_amount(event.get("cost", null), "money") + _cost_amount(choice.get("cost", null), "money")
+	var diamond_cost := _cost_amount(event.get("cost", null), "diamonds") + _cost_amount(choice.get("cost", null), "diamonds")
+	if GameManager.family_money < money_cost or GameManager.diamonds < diamond_cost:
+		return _resolution_failure("locked_cost", "The family cannot currently afford this Event choice.")
+	var outcome := resolution_resolver.resolve(resolution_value, active_event.participants, active_event.context)
+	if not bool(outcome.get("valid", false)):
+		return {"resolved": false, "failure_reasons": outcome.get("failure_reasons", []).duplicate(true), "effect_results": []}
+	var effects: Array = outcome.get("effects", [])
+	var preflight := effect_resolver.preflight(effects, active_event.participants, active_event.context, GameManager.family_money - money_cost, GameManager.diamonds - diamond_cost)
+	if not bool(preflight.get("valid", false)):
+		return {"resolved": false, "failure_reasons": preflight.get("failure_reasons", []).duplicate(true), "effect_results": preflight.get("failure_reasons", []).duplicate(true)}
+	GameManager.set_family_money(GameManager.family_money - money_cost)
+	GameManager.set_diamonds(GameManager.diamonds - diamond_cost)
+	var applied := effect_resolver.apply(preflight.get("plans", []), active_event.instance_id)
+	if not bool(applied.get("success", false)):
+		return {"resolved": false, "failure_reasons": applied.get("failure_reasons", []).duplicate(true), "effect_results": applied.get("effect_results", []).duplicate(true)}
+	var finished_instance := active_event
+	finished_instance.choice_id = choice_id if not choice.is_empty() else null
+	finished_instance.outcome_id = outcome.get("outcome_id", null)
+	finished_instance.effect_results = applied.get("effect_results", []).duplicate(true)
+	if not _finish_active_event("completed"):
+		return _resolution_failure("completion_failed", "The Event could not be completed.")
+	return {"resolved": true, "instance": finished_instance.to_dictionary(), "choice_id": finished_instance.choice_id, "outcome_id": finished_instance.outcome_id, "effect_results": finished_instance.effect_results.duplicate(true), "resolution_details": outcome.get("details", {}).duplicate(true)}
+
+
 func cancel_active_event() -> bool:
 	return _finish_active_event("cancelled")
 
@@ -289,7 +378,69 @@ func export_runtime_state() -> Dictionary:
 	state["next_scheduled_event_number"] = _next_scheduled_event_number
 	state["occurrence_by_instance"] = _occurrence_by_instance.duplicate(true)
 	state["processed_selection_occurrences"] = _processed_selection_occurrences.keys()
+	state["history"] = story_history.export_state()
+	state["effect_runtime_state"] = effect_resolver.export_state()
+	state["pool_random_state"] = pool_selector.export_state()
+	state["resolution_random_state"] = resolution_resolver.export_state()
+	state["queue_order_by_instance"] = _queue_order_by_instance.duplicate(true)
+	state["next_queue_order"] = _next_queue_order
+	state["calendar_occurrence_keys"] = _calendar_occurrence_keys.keys()
+	state["pause_runtime_state"] = {"captured": _pause_state_captured, "pre_event_was_paused": _pre_event_was_paused, "pre_event_speed": _pre_event_speed}
 	return state
+
+
+func import_runtime_state(value) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	var state: Dictionary = value
+	if typeof(state.get("queued_events", null)) != TYPE_ARRAY or typeof(state.get("scheduled_events", null)) != TYPE_ARRAY or typeof(state.get("history", null)) != TYPE_ARRAY:
+		return false
+	_restore_time_state_if_owned()
+	active_event = null
+	queued_events.clear()
+	var active_value = state.get("active_event", {})
+	if typeof(active_value) == TYPE_DICTIONARY and not active_value.is_empty():
+		active_event = EventInstance.from_dictionary(active_value)
+		if active_event.instance_id.is_empty() or active_event.event_id.is_empty() or registry.get_event(active_event.event_id).is_empty():
+			active_event = null
+			return false
+	for member in state["queued_events"]:
+		if typeof(member) != TYPE_DICTIONARY:
+			return false
+		var instance := EventInstance.from_dictionary(member)
+		if instance.instance_id.is_empty() or registry.get_event(instance.event_id).is_empty():
+			return false
+		queued_events.append(instance)
+	scheduled_events.clear()
+	for record_value in state["scheduled_events"]:
+		if typeof(record_value) != TYPE_DICTIONARY:
+			return false
+		scheduled_events.append((record_value as Dictionary).duplicate(true))
+	if not story_history.import_state(state["history"]): return false
+	if not state_provider.import_state({"completed_repeat_records": state.get("repeat_runtime_state", []), "cooldowns": state.get("cooldowns", [])}): return false
+	if not effect_resolver.import_state(state.get("effect_runtime_state", {"temporary_flags": []})): return false
+	if not pool_selector.import_state(state.get("pool_random_state", {})): return false
+	if not resolution_resolver.import_state(state.get("resolution_random_state", {})): return false
+	runtime_service.reset_instance_counter(int(state.get("next_event_instance_number", 1)))
+	_next_scheduled_event_number = maxi(1, int(state.get("next_scheduled_event_number", 1)))
+	_next_queue_order = maxi(1, int(state.get("next_queue_order", 1)))
+	_queue_order_by_instance = state.get("queue_order_by_instance", {}).duplicate(true) if typeof(state.get("queue_order_by_instance", null)) == TYPE_DICTIONARY else {}
+	_occurrence_by_instance = state.get("occurrence_by_instance", {}).duplicate(true) if typeof(state.get("occurrence_by_instance", null)) == TYPE_DICTIONARY else {}
+	_processed_selection_occurrences.clear()
+	for key in state.get("processed_selection_occurrences", []): _processed_selection_occurrences[String(key)] = true
+	_calendar_occurrence_keys.clear()
+	for key in state.get("calendar_occurrence_keys", []): _calendar_occurrence_keys[String(key)] = true
+	_rebuild_runtime_indexes()
+	var pause_value = state.get("pause_runtime_state", {})
+	if typeof(pause_value) == TYPE_DICTIONARY and bool(pause_value.get("captured", false)):
+		_pause_state_captured = true
+		_pre_event_was_paused = bool(pause_value.get("pre_event_was_paused", true))
+		_pre_event_speed = float(pause_value.get("pre_event_speed", 1.0))
+		TimeManager.pause()
+	elif active_event != null and bool(registry.get_event(active_event.event_id).get("behavior", {}).get("blocking", false)):
+		_capture_and_pause_time()
+	_emit_queue_state()
+	return true
 
 
 func _select_and_queue(events: Array, runtime_context: Dictionary, occurrence: Dictionary, forced_pool_id: String = "") -> Dictionary:
@@ -411,6 +562,8 @@ func _finish_active_event(status: String) -> bool:
 			event_expired.emit(finished.to_dictionary(), [])
 		_:
 			return false
+	if story_history != null:
+		story_history.append_instance(finished)
 	active_event = null
 	_activate_next_event()
 	_maybe_restore_time_state()
@@ -517,6 +670,28 @@ func _current_date() -> String:
 	return TimeManager.get_iso_date_string()
 
 
+func _cost_amount(value, currency: String) -> int:
+	if typeof(value) != TYPE_DICTIONARY or String(value.get("currency", "")) != currency:
+		return 0
+	return maxi(0, int(value.get("amount", 0)))
+
+
+func _resolution_failure(code: String, message: String) -> Dictionary:
+	return {"resolved": false, "failure_reasons": [{"code": code, "message": message}], "effect_results": []}
+
+
+func _rebuild_runtime_indexes() -> void:
+	_deduplication_keys.clear()
+	var instances: Array[EventInstance] = queued_events.duplicate()
+	if active_event != null:
+		instances.append(active_event)
+	for instance in instances:
+		var occurrence: Dictionary = _occurrence_by_instance.get(instance.instance_id, {})
+		var occurrence_id := String(occurrence.get("occurrence_id", "imported:%s" % instance.instance_id))
+		_deduplication_keys[_duplicate_key(instance.event_id, instance.participants, instance.context, occurrence_id)] = true
+	queued_events.sort_custom(Callable(self, "_queue_before"))
+
+
 func _connect_runtime_adapters() -> void:
 	_connect_if_needed(TimeManager.date_changed, _on_date_changed)
 	_connect_if_needed(GameManager.new_game_starting, _on_new_game_starting)
@@ -542,6 +717,8 @@ func _on_new_game_starting() -> void:
 
 
 func _on_date_changed(_date_text: String) -> void:
+	if effect_resolver != null:
+		effect_resolver.process_temporary_flags(_current_date())
 	process_calendar_date(_current_date())
 	process_scheduled_due(_current_date())
 

@@ -11,6 +11,7 @@ var relationship_manager: Node
 
 var original_characters: Array = []
 var original_businesses: Array = []
+var original_houses: Array = []
 var original_time: Dictionary = {}
 var original_settings: Dictionary = {}
 
@@ -29,8 +30,10 @@ func _ready() -> void:
 	print("========================================")
 
 	_test_divorce_clears_marriage_and_removes_external_spouse()
+	_test_divorce_removes_external_spouse_house_resident()
 	_test_child_parent_ids_survive_divorce()
 	_test_divorce_releases_family_business_slot()
+	_test_divorce_removes_external_spouse_house_role_only()
 	_test_one_year_cooldown_blocks_immediate_return()
 	_test_cooldown_completion_allows_returning_candidate()
 	_test_remarriage_reuses_same_character_id()
@@ -67,6 +70,9 @@ func _backup_runtime_state() -> void:
 	)
 
 	original_businesses = BusinessManager.businesses.duplicate(
+		true
+	)
+	original_houses = HouseManager.houses.duplicate(
 		true
 	)
 
@@ -162,6 +168,20 @@ func _prepare_test_runtime() -> void:
 			]
 		}
 	]
+
+	HouseManager.houses = [{
+		"house_instance_id": "relationship_house",
+		"house_definition_id": "family_house",
+		"property_id": "relationship_house_plot",
+		"level": 1,
+		"role_assignments": {
+			"head_of_household": 1,
+			"cook": null,
+			"housekeeper": null,
+			"caregiver": null
+		},
+		"resident_character_ids": [2, 3]
+	}]
 
 
 func _make_character(
@@ -268,6 +288,20 @@ func _test_child_parent_ids_survive_divorce() -> void:
 	)
 
 
+func _test_divorce_removes_external_spouse_house_resident() -> void:
+	var former_spouse_assignment := HouseManager.get_character_assignment(2)
+	var remaining_spouse_assignment := HouseManager.get_character_assignment(1)
+	var child_assignment := HouseManager.get_character_assignment(3)
+
+	_assert_true(
+		former_spouse_assignment.is_empty()
+		and String(remaining_spouse_assignment.get("house_instance_id", "")) == "relationship_house"
+		and String(remaining_spouse_assignment.get("assignment_type", "")) == "role"
+		and String(child_assignment.get("house_instance_id", "")) == "relationship_house",
+		"D-158 removes only the departing resident spouse from the House"
+	)
+
+
 func _test_divorce_releases_family_business_slot() -> void:
 	var slot := BusinessManager.get_slot(
 		"business_test",
@@ -281,6 +315,44 @@ func _test_divorce_releases_family_business_slot() -> void:
 			null
 		) == null,
 		"Departing external spouse is removed from family-business slot"
+	)
+
+
+func _test_divorce_removes_external_spouse_house_role_only() -> void:
+	var family_spouse := _make_character(7, "female", "1970-01-01", true, null, 8, [])
+	var external_spouse := _make_character(8, "male", "1969-01-01", true, "relationship_npc", 7, [])
+	external_spouse["relationship_status"] = "married"
+	var unrelated_resident := _make_character(9, "female", "1975-01-01", true, null, null, [])
+	CharacterManager.characters.append(family_spouse)
+	CharacterManager.characters.append(external_spouse)
+	CharacterManager.characters.append(unrelated_resident)
+	HouseManager.houses.append({
+		"house_instance_id": "relationship_role_house",
+		"house_definition_id": "family_house",
+		"property_id": "relationship_role_house_plot",
+		"level": 1,
+		"role_assignments": {
+			"head_of_household": 8,
+			"cook": null,
+			"housekeeper": null,
+			"caregiver": null
+		},
+		"resident_character_ids": [7, 9]
+	})
+
+	var divorced: bool = relationship_manager.divorce_characters(7, 8)
+	var house := HouseManager.get_house_by_instance_id("relationship_role_house")
+	var roles: Dictionary = house.get("role_assignments", {})
+	var residents: Array = house.get("resident_character_ids", [])
+
+	_assert_true(
+		divorced
+		and roles.get("head_of_household", -1) == null
+		and residents.has(7)
+		and residents.has(9)
+		and residents.size() == 2
+		and HouseManager.get_character_assignment(8).is_empty(),
+		"D-158 clears a departing spouse House role without removing unrelated occupants"
 	)
 
 
@@ -493,6 +565,7 @@ func _assert_true(
 func _restore_runtime_state() -> void:
 	CharacterManager.characters = original_characters
 	BusinessManager.businesses = original_businesses
+	HouseManager.houses = original_houses
 
 	TimeManager.current_year = int(
 		original_time.get(

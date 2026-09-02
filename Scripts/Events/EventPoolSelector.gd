@@ -13,6 +13,18 @@ func set_seed(seed: int) -> void:
 	random.seed = seed
 
 
+func export_state() -> Dictionary:
+	return {"seed": random.seed, "state": random.state}
+
+
+func import_state(value) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	random.seed = int(value.get("seed", 0))
+	random.state = int(value.get("state", random.seed))
+	return true
+
+
 func select(pool: Dictionary, eligible_events: Array) -> Array:
 	var mode := String(pool.get("selection_mode", ""))
 	var candidates := _dictionary_events(eligible_events)

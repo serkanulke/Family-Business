@@ -813,6 +813,21 @@ func make_candidate_family_member(
 	return true
 
 
+func can_make_candidate_family_member(candidate_id: int, partner_id: int) -> bool:
+	var candidate := CharacterManager.get_character_by_id(candidate_id)
+	var partner := CharacterManager.get_character_by_id(partner_id)
+	if candidate.is_empty() or partner.is_empty():
+		return false
+	if String(candidate.get("character_type", "")) != "relationship_npc" or int(candidate.get("linked_character_id", 0)) != partner_id:
+		return false
+	if candidate.get("partner_id", null) != null or partner.get("partner_id", null) != null:
+		return false
+	if candidate.get("relationship_cooldown_until", null) != null:
+		if not GameManager.allow_ex_spouse_remarriage or not _is_relationship_cooldown_finished(candidate):
+			return false
+	return is_marriage_allowed_by_settings(candidate, partner)
+
+
 func divorce_characters(
 	first_character_id: int,
 	second_character_id: int
@@ -866,6 +881,9 @@ func _handle_character_after_divorce(
 	)
 
 	_remove_departing_spouse_from_family_business(
+		character_id
+	)
+	HouseManager.remove_character_from_house(
 		character_id
 	)
 

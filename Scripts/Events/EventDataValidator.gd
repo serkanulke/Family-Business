@@ -51,9 +51,8 @@ const REQUIREMENT_TYPES: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
 	"family_member_count", "employment_status", "job", "job_tag",
-	"career_level", "education_level", "education_stage", "school",
-	"school_type", "major", "relationship_exists", "relationship_status",
-	"relationship_level", "lifestyle_score", "equipped_item", "item_type",
+	"education_stage", "school", "school_type", "major", "lifestyle_score",
+	"equipped_item", "item_type",
 	"item_rarity", "item_flag", "money", "diamonds", "house_assignment",
 	"house_level", "household_status", "household_perk", "business_owned",
 	"business_type", "business_level", "business_role", "event_seen",
@@ -65,20 +64,18 @@ const OPERATORS: Array[String] = [
 	"contains", "not_contains"
 ]
 const NUMERIC_REQUIREMENTS: Array[String] = [
-	"stat", "age", "family_member_count", "career_level",
-	"education_level", "relationship_level", "lifestyle_score", "money",
+	"stat", "age", "family_member_count", "lifestyle_score", "money",
 	"diamonds", "house_level", "business_level", "year", "month"
 ]
 const BOOLEAN_REQUIREMENTS: Array[String] = [
 	"is_alive", "is_family_member", "has_child", "has_parent", "has_spouse",
-	"relationship_exists", "business_owned"
+	"business_owned"
 ]
 const TARGETED_REQUIREMENTS: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
-	"employment_status", "job", "job_tag", "career_level",
-	"education_level", "education_stage", "school", "school_type", "major",
-	"relationship_exists", "relationship_status", "relationship_level",
+	"employment_status", "job", "job_tag", "education_stage", "school",
+	"school_type", "major",
 	"lifestyle_score", "equipped_item", "item_type", "item_rarity",
 	"item_flag", "house_assignment", "house_level", "business_type",
 	"business_level", "business_role"
@@ -88,17 +85,14 @@ const RESOLUTION_MODES: Array[String] = [
 ]
 const SCORE_SOURCES: Array[String] = [
 	"stat", "age", "lifestyle_score", "money", "diamonds",
-	"house_level", "business_level", "relationship_level", "career_level"
+	"house_level", "business_level"
 ]
 const EFFECT_TYPES: Array[String] = [
 	"stat_change", "stat_set", "add_flag", "remove_flag",
-	"relationship_start", "relationship_change",
-	"relationship_status_change", "relationship_end", "money_change",
-	"diamond_change", "job_assign", "job_remove", "job_change",
-	"career_progress", "education_enroll", "education_change",
-	"education_complete", "add_item", "remove_item", "damage_item",
-	"equip_item", "unequip_item", "house_assignment", "remove_from_house",
-	"business_effect", "business_upgrade", "business_role_change",
+	"relationship_marry", "relationship_divorce", "money_change",
+	"diamond_change", "accept_job_offer", "reject_job_offer", "job_remove",
+	"salary_increase", "education_enroll", "add_item", "remove_item",
+	"equip_item", "unequip_item", "remove_from_house", "business_upgrade",
 	"queue_event", "schedule_event", "cancel_scheduled_event"
 ]
 const FORBIDDEN_EXECUTABLE_KEYS: Array[String] = [
@@ -1109,7 +1103,29 @@ func _validate_effects(source: String, event_id: String, path: String, value, pa
 				_add(source, event_id, effect_path + ".type", "Unsupported effect type '%s'." % effect_type)
 			continue
 		_validate_effect_shape(source, event_id, effect_path, effect_type, effect, participant_names)
+		_validate_effect_feedback(source, event_id, effect_path + ".feedback", effect.get("feedback", null))
+		if effect_type in ["add_flag", "remove_flag"] and typeof(effect.get("feedback", null)) == TYPE_DICTIONARY:
+			var feedback: Dictionary = effect["feedback"]
+			var flag_value = effect.get("flag_id", "")
+			var flag_id_text := str(int(flag_value)) if typeof(flag_value) in [TYPE_INT, TYPE_FLOAT] else str(flag_value)
+			if String(feedback.get("mode", "auto")) == "custom" and String(feedback.get("text", "")).contains(flag_id_text):
+				_add(source, event_id, effect_path + ".feedback.text", "Player-facing flag feedback must not expose the internal flag_id.")
 		_validate_no_executable_keys(source, event_id, effect_path, effect)
+
+
+func _validate_effect_feedback(source: String, event_id: String, path: String, value) -> void:
+	if value == null:
+		return
+	if typeof(value) != TYPE_DICTIONARY:
+		_add(source, event_id, path, "feedback must be a Dictionary or null.")
+		return
+	var mode := String(value.get("mode", "auto"))
+	if mode not in ["auto", "custom"]:
+		_add(source, event_id, path + ".mode", "feedback mode must be auto or custom.")
+	if mode == "custom" and String(value.get("text", "")).strip_edges().is_empty():
+		_add(source, event_id, path + ".text", "custom feedback requires player-facing text.")
+	if value.has("icon_path") and value["icon_path"] != null and typeof(value["icon_path"]) != TYPE_STRING:
+		_add(source, event_id, path + ".icon_path", "feedback icon_path must be a String or null.")
 
 
 func _validate_effect_shape(source: String, event_id: String, path: String, effect_type: String, effect: Dictionary, participant_names: Dictionary) -> void:
@@ -1127,54 +1143,32 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 			_validate_flag_reference(source, event_id, path + ".flag_id", effect.get("flag_id", null))
 			if effect_type == "add_flag" and effect.has("duration") and effect["duration"] != null:
 				_validate_duration(source, event_id, path + ".duration", effect["duration"])
-		"relationship_start", "relationship_change", "relationship_status_change", "relationship_end":
+		"relationship_marry", "relationship_divorce":
 			_validate_effect_target(source, event_id, path, effect, "primary", participant_names)
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			if effect_type == "relationship_change":
-				_require_number(source, event_id, path + ".amount", effect.get("amount", null))
-			elif effect_type == "relationship_status_change":
-				_required_string(source, event_id, path + ".status", effect.get("status", null))
 		"money_change", "diamond_change":
 			_require_number(source, event_id, path + ".amount", effect.get("amount", null))
-		"job_assign", "job_change":
+		"accept_job_offer", "reject_job_offer", "job_remove":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			_validate_reference(source, event_id, path + ".job_id", effect.get("job_id", null), _job_ids, "job_id")
-		"job_remove", "career_progress":
+		"salary_increase":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			if effect_type == "career_progress":
-				_require_number(source, event_id, path + ".amount", effect.get("amount", null))
-		"education_enroll", "education_change":
+			var salary_amount = effect.get("amount", null)
+			if (
+				not _is_number(salary_amount)
+				or float(salary_amount) <= 0.0
+				or not is_equal_approx(float(salary_amount), floor(float(salary_amount)))
+			):
+				_add(source, event_id, path + ".amount", "salary_increase amount must be a positive integer.")
+		"education_enroll":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_reference(source, event_id, path + ".school_id", effect.get("school_id", null), _school_ids, "school_id")
-			if effect.has("major_id") and effect["major_id"] != null:
-				_validate_reference(source, event_id, path + ".major_id", effect["major_id"], _major_ids, "major_id")
-		"education_complete":
-			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-		"add_item", "remove_item", "damage_item", "equip_item", "unequip_item":
+		"add_item", "remove_item", "equip_item", "unequip_item":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_reference(source, event_id, path + ".item_id", effect.get("item_id", null), _item_ids, "item id")
-			if effect_type == "damage_item":
-				_require_number(source, event_id, path + ".amount", effect.get("amount", null))
-		"house_assignment":
-			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			_validate_effect_target(source, event_id, path, effect, "house", participant_names)
-			if effect.has("house_definition_id"):
-				_validate_reference(source, event_id, path + ".house_definition_id", effect["house_definition_id"], _house_definition_ids, "house_definition_id")
 		"remove_from_house":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-		"business_effect":
-			_validate_effect_target(source, event_id, path, effect, "business", participant_names)
-			_required_string(source, event_id, path + ".effect", effect.get("effect", null))
-			if effect.has("business_type_id"):
-				_validate_reference(source, event_id, path + ".business_type_id", effect["business_type_id"], _business_type_ids, "business_type_id")
 		"business_upgrade":
 			_validate_effect_target(source, event_id, path, effect, "business", participant_names)
-			if effect.has("business_type_id"):
-				_validate_reference(source, event_id, path + ".business_type_id", effect["business_type_id"], _business_type_ids, "business_type_id")
-		"business_role_change":
-			_validate_effect_target(source, event_id, path, effect, "business", participant_names)
-			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			_required_string(source, event_id, path + ".role_id", effect.get("role_id", null))
 			if effect.has("business_type_id"):
 				_validate_reference(source, event_id, path + ".business_type_id", effect["business_type_id"], _business_type_ids, "business_type_id")
 		"queue_event":

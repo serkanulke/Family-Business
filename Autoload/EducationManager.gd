@@ -915,6 +915,29 @@ func enroll_character_in_school(
 
 	return true
 
+
+func can_enroll_character_in_school(character_id: int, school_id: int) -> bool:
+	var character := CharacterManager.get_character_by_id(character_id)
+	if character.is_empty() or not bool(character.get("is_alive", true)) or not bool(character.get("is_player_family", false)):
+		return false
+	var school := get_school_by_id(school_id)
+	if school.is_empty():
+		return false
+	var expected_stage := get_expected_education_stage_for_age(CharacterManager.get_character_age(character))
+	if expected_stage.is_empty() or String(school.get("education_stage", "")) != expected_stage:
+		return false
+	var expected_event_type: String = {
+		"primary_school": "school_enrollment",
+		"middle_school": "school_transition",
+		"high_school": "school_transition",
+		"university": "university_choice",
+	}.get(expected_stage, "")
+	return (
+		not String(expected_event_type).is_empty()
+		and is_current_education_event(character_id, String(expected_event_type), expected_stage)
+		and GameManager.can_afford(int(school.get("base_cost", 0)))
+	)
+
 func graduate_current_school(
 	character: Dictionary,
 	expected_stage: String

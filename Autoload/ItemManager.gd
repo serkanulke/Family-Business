@@ -265,6 +265,49 @@ func purchase_item(item_id: String) -> Dictionary:
 	return instance.duplicate(true)
 
 
+func create_item_instance(item_id: String) -> Dictionary:
+	var definition := get_item_definition(item_id)
+	if definition.is_empty():
+		return {}
+	var instance_id := "item_%06d" % next_item_instance_number
+	next_item_instance_number += 1
+	var purchase_date := TimeManager.get_iso_date_string()
+	var instance := {
+		"instance_id": instance_id,
+		"item_id": item_id,
+		"purchase_date": purchase_date,
+	}
+	if not bool(definition.get("is_heirloom", false)):
+		instance["expiration_date"] = _add_months_to_date(
+			purchase_date,
+			int(definition.get("durability_months", 0))
+		)
+	family_inventory.append(instance)
+	inventory_changed.emit()
+	return instance.duplicate(true)
+
+
+func get_inventory_item_instance(instance_id: String) -> Dictionary:
+	var instance := _get_inventory_instance(instance_id)
+	return instance.duplicate(true) if not instance.is_empty() else {}
+
+
+func get_item_equipped_owner(instance_id: String) -> int:
+	return _find_equipped_owner(instance_id)
+
+
+func remove_item_instance(instance_id: String) -> bool:
+	if instance_id.is_empty() or _find_equipped_owner(instance_id) > 0:
+		return false
+	for index in family_inventory.size():
+		var value = family_inventory[index]
+		if typeof(value) == TYPE_DICTIONARY and str(value.get("instance_id", "")) == instance_id:
+			family_inventory.remove_at(index)
+			inventory_changed.emit()
+			return true
+	return false
+
+
 func equip_item(character_id: int, instance_id: String, slot: String) -> bool:
 	var normalized_slot := _normalize_slot(slot)
 	if character_id <= 0 or normalized_slot.is_empty():

@@ -36,6 +36,8 @@ func _run_all_tests() -> void:
     _test_employed_accepts_better_offer()
     _test_tampered_offer_rejected()
     _test_existing_job_gets_valid_company()
+    _test_remove_external_job_preserves_family_business_assignment()
+    _test_increase_external_salary_preserves_job_and_company()
 
 func _save_state() -> void:
     saved_characters = CharacterManager.characters.duplicate(true)
@@ -222,6 +224,62 @@ func _test_existing_job_gets_valid_company() -> void:
         and int(c["job_id"]) == 2076
         and int(c["salary"]) == 5600,
         "Existing job receives valid company without changing job or salary"
+    )
+
+func _test_remove_external_job_preserves_family_business_assignment() -> void:
+    _reset_world()
+    var c := _make_graduate()
+    c["job_id"] = 2076
+    c["company_id"] = "central_city_administration"
+    c["salary"] = 5600
+    CareerManager.active_job_offers[1] = {
+        "job_id": 2077,
+        "company_id": "central_city_administration",
+        "salary": 6000
+    }
+    var original_businesses := BusinessManager.businesses.duplicate(true)
+    BusinessManager.businesses = [{
+        "business_instance_id": "career_helper_business",
+        "slots": [{
+            "slot_id": "slot_1",
+            "assigned_character_id": 1,
+            "assigned_npc_id": null
+        }]
+    }]
+    var removed := CareerManager.remove_external_job(1)
+    var assignment := BusinessManager.get_character_assignment(1)
+    _assert_true(
+        removed
+        and c.get("job_id", 1) == null
+        and c.get("company_id", "x") == null
+        and int(c.get("salary", -1)) == 0
+        and String(c.get("unemployment_start_date", "")) == "1985-01-26"
+        and c.get("job_offer_cooldown_until", "x") == null
+        and CareerManager.get_active_job_offer(1).is_empty()
+        and String(assignment.get("business_instance_id", "")) == "career_helper_business",
+        "External job removal clears only career state and preserves family-business assignment"
+    )
+    BusinessManager.businesses = original_businesses
+
+func _test_increase_external_salary_preserves_job_and_company() -> void:
+    _reset_world()
+    var c := _make_graduate()
+    c["job_id"] = 2076
+    c["company_id"] = "central_city_administration"
+    c["salary"] = 5600
+    var increased := CareerManager.increase_external_salary(1, 400)
+    var rejected_zero := not CareerManager.increase_external_salary(1, 0)
+    c["job_id"] = null
+    var rejected_unemployed := not CareerManager.increase_external_salary(1, 400)
+    c["job_id"] = 2076
+    _assert_true(
+        increased
+        and rejected_zero
+        and rejected_unemployed
+        and int(c.get("job_id", -1)) == 2076
+        and String(c.get("company_id", "")) == "central_city_administration"
+        and int(c.get("salary", 0)) == 6000,
+        "Salary increase changes only current external salary"
     )
 
 func _on_job_offer_requested(

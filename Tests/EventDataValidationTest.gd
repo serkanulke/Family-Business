@@ -398,6 +398,23 @@ func _test_requirement_validation() -> void:
 		"Unsupported requirement type"
 	)
 
+	for removed_type in [
+		"career_level", "education_level", "relationship_exists",
+		"relationship_status", "relationship_level"
+	]:
+		var removed := _base_event("removed_requirement_%s" % removed_type, "general")
+		removed["requirements"] = {"all": [{
+			"type": removed_type,
+			"target": "primary",
+			"operator": "==",
+			"value": 0
+		}]}
+		_expect_invalid_event(
+			removed,
+			"D-156/D-157 rejects removed requirement %s" % removed_type,
+			"Unsupported requirement type"
+		)
+
 	var recursive := _base_event("bad_recursive", "general")
 	recursive["requirements"] = {"all": {"type": "age"}}
 	_expect_invalid_event(
@@ -555,11 +572,71 @@ func _test_effect_validation() -> void:
 
 	var reference := _base_event("bad_effect_reference", "general")
 	reference["choices"][0]["resolution"]["effects"] = [{
-		"type": "job_assign",
+		"type": "education_enroll",
 		"target": "primary",
-		"job_id": 999999
+		"school_id": 999999
 	}]
-	_expect_invalid_event(reference, "Invalid effect data reference is rejected", "Unknown job_id reference")
+	_expect_invalid_event(reference, "Invalid effect data reference is rejected", "Unknown school_id reference")
+
+	var bad_feedback_mode := _base_event("bad_effect_feedback_mode", "general")
+	bad_feedback_mode["choices"][0]["resolution"]["effects"] = [{"type":"money_change","amount":1,"feedback":{"mode":"silent"}}]
+	_expect_invalid_event(bad_feedback_mode, "Unsupported effect feedback mode is rejected", "feedback mode must be auto or custom")
+
+	var missing_custom_text := _base_event("missing_custom_feedback_text", "general")
+	missing_custom_text["choices"][0]["resolution"]["effects"] = [{"type":"money_change","amount":1,"feedback":{"mode":"custom","text":""}}]
+	_expect_invalid_event(missing_custom_text, "Custom effect feedback requires player-facing text", "custom feedback requires player-facing text")
+
+	var valid_custom_feedback := _base_event("valid_custom_feedback", "general")
+	valid_custom_feedback["choices"][0]["resolution"]["effects"] = [{"type":"add_flag","target":"primary","flag_id":1001,"feedback":{"mode":"custom","text":"A story state changed.","icon_path":null}}]
+	var feedback_registry := _registry_for("general", [valid_custom_feedback])
+	_assert_true(feedback_registry.is_valid, "Valid custom effect feedback is accepted", feedback_registry.get_diagnostic_text())
+
+	var leaking_flag_feedback := _base_event("leaking_flag_feedback", "general")
+	leaking_flag_feedback["choices"][0]["resolution"]["effects"] = [{"type":"add_flag","target":"primary","flag_id":1001,"feedback":{"mode":"custom","text":"Flag 1001 gained."}}]
+	_expect_invalid_event(leaking_flag_feedback, "Custom feedback cannot expose an internal flag ID", "must not expose the internal flag_id")
+
+	var generic_business := _base_event("unsupported_generic_business_effect", "business")
+	generic_business["participants"]["business"] = {"type": "business", "source": "owned_business"}
+	generic_business["choices"][0]["resolution"]["effects"] = [{
+		"type": "business_effect",
+		"business": "business",
+		"effect": "approved_domain_operation"
+	}]
+	_expect_invalid_event(
+		generic_business,
+		"D-154 rejects the removed generic business_effect",
+		"Unsupported effect type",
+		"business"
+	)
+
+	var damage_item := _base_event("unsupported_damage_item_effect", "general")
+	damage_item["choices"][0]["resolution"]["effects"] = [{
+		"type": "damage_item",
+		"target": "primary",
+		"item_id": ITEM_ID,
+		"amount": 1
+	}]
+	_expect_invalid_event(
+		damage_item,
+		"D-155 rejects the removed damage_item effect",
+		"Unsupported effect type"
+	)
+
+	for removed_effect_type in [
+		"relationship_start", "relationship_change",
+		"relationship_status_change", "relationship_end", "job_assign",
+		"job_change", "career_progress", "education_change",
+		"education_complete", "house_assignment", "business_role_change"
+	]:
+		var removed_effect := _base_event("removed_effect_%s" % removed_effect_type, "general")
+		removed_effect["choices"][0]["resolution"]["effects"] = [{
+			"type": removed_effect_type
+		}]
+		_expect_invalid_event(
+			removed_effect,
+			"D-156/D-157 rejects removed effect %s" % removed_effect_type,
+			"Unsupported effect type"
+		)
 
 
 func _test_event_flow_references_and_cycles() -> void:
@@ -720,15 +797,10 @@ func _test_all_requirement_constructs() -> void:
 		{"type": "family_member_count", "operator": ">=", "value": 2},
 		{"type": "employment_status", "target": "primary", "operator": "==", "value": "employed"},
 		{"type": "job", "target": "primary", "operator": "==", "value": 1001},
-		{"type": "career_level", "target": "primary", "operator": ">=", "value": 1},
-		{"type": "education_level", "target": "primary", "operator": ">=", "value": 1},
 		{"type": "education_stage", "target": "primary", "operator": "==", "value": "university"},
 		{"type": "school", "target": "primary", "operator": "==", "value": 1001},
 		{"type": "school_type", "target": "primary", "operator": "==", "value": "public"},
 		{"type": "major", "target": "primary", "operator": "==", "value": 5001},
-		{"type": "relationship_exists", "target": "primary", "operator": "==", "value": true},
-		{"type": "relationship_status", "target": "primary", "operator": "==", "value": "married"},
-		{"type": "relationship_level", "target": "primary", "operator": ">=", "value": 50},
 		{"type": "lifestyle_score", "target": "primary", "operator": ">=", "value": 60},
 		{"type": "equipped_item", "target": "primary", "operator": "==", "value": ITEM_ID},
 		{"type": "item_type", "target": "primary", "operator": "==", "value": "accessory"},
@@ -768,29 +840,21 @@ func _all_valid_effects() -> Array:
 		{"type": "stat_set", "target": "primary", "stat": "happiness", "value": 80},
 		{"type": "add_flag", "target": "primary", "flag_id": 1001, "duration": {"unit": "month", "value": 1}},
 		{"type": "remove_flag", "target": "primary", "flag_id": 1001},
-		{"type": "relationship_start", "primary": "primary", "target": "target"},
-		{"type": "relationship_change", "primary": "primary", "target": "target", "amount": 5},
-		{"type": "relationship_status_change", "primary": "primary", "target": "target", "status": "married"},
-		{"type": "relationship_end", "primary": "primary", "target": "target"},
+		{"type": "relationship_marry", "primary": "primary", "target": "target"},
+		{"type": "relationship_divorce", "primary": "primary", "target": "target"},
 		{"type": "money_change", "amount": 100},
 		{"type": "diamond_change", "amount": 1},
-		{"type": "job_assign", "target": "primary", "job_id": 1001},
+		{"type": "accept_job_offer", "target": "primary"},
+		{"type": "reject_job_offer", "target": "primary"},
 		{"type": "job_remove", "target": "primary"},
-		{"type": "job_change", "target": "primary", "job_id": 1001},
-		{"type": "career_progress", "target": "primary", "amount": 1},
+		{"type": "salary_increase", "target": "primary", "amount": 100},
 		{"type": "education_enroll", "target": "primary", "school_id": 1001},
-		{"type": "education_change", "target": "primary", "school_id": 1001},
-		{"type": "education_complete", "target": "primary"},
 		{"type": "add_item", "target": "primary", "item_id": ITEM_ID},
 		{"type": "remove_item", "target": "primary", "item_id": ITEM_ID},
-		{"type": "damage_item", "target": "primary", "item_id": ITEM_ID, "amount": 1},
 		{"type": "equip_item", "target": "primary", "item_id": ITEM_ID},
 		{"type": "unequip_item", "target": "primary", "item_id": ITEM_ID},
-		{"type": "house_assignment", "target": "primary", "house": "house"},
 		{"type": "remove_from_house", "target": "primary"},
-		{"type": "business_effect", "business": "business", "effect": "approved_domain_operation"},
 		{"type": "business_upgrade", "business": "business"},
-		{"type": "business_role_change", "business": "business", "target": "primary", "role_id": "manager"},
 		{"type": "queue_event", "event_id": "follow_up"},
 		{"type": "schedule_event", "event_id": "follow_up", "delay": {"unit": "month", "value": 1}, "inherit_context": true},
 		{"type": "cancel_scheduled_event", "event_id": "follow_up"}

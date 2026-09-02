@@ -2120,6 +2120,36 @@ func apply_stats_to_character(
 		)
 
 
+func set_character_stat(character_id: int, stat_name: String, value: int) -> Dictionary:
+	if stat_name not in CHARACTER_STAT_NAMES:
+		return {}
+	var character := get_character_by_id(character_id)
+	if character.is_empty():
+		return {}
+	var before := int(character.get(stat_name, 0))
+	var after := clampi(value, 0, 100)
+	character[stat_name] = after
+	return {"before": before, "after": after, "applied_amount": after - before}
+
+
+func set_character_flag(character_id: int, flag_id: Variant, enabled: bool) -> bool:
+	if flag_id == null or str(flag_id).is_empty():
+		return false
+	var normalized_flag_id = int(flag_id) if typeof(flag_id) in [TYPE_INT, TYPE_FLOAT] else flag_id
+	var character := get_character_by_id(character_id)
+	if character.is_empty():
+		return false
+	var flags_value = character.get("flag_ids", [])
+	var flags: Array = flags_value.duplicate() if typeof(flags_value) == TYPE_ARRAY else []
+	if enabled:
+		if normalized_flag_id not in flags:
+			flags.append(normalized_flag_id)
+	else:
+		flags.erase(normalized_flag_id)
+	character["flag_ids"] = flags
+	return true
+
+
 func parent_has_max_stat(
 	parent: Dictionary,
 	stat_name: String

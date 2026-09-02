@@ -85,7 +85,7 @@ func _setup_runtime_state() -> void:
 	GameManager.family_money = 50000
 	GameManager.diamonds = 10
 	CharacterManager.jobs.append({
-		"job_id": 9901, "job_name": "Gallery Artist", "career_level": 3,
+		"job_id": 9901, "job_name": "Gallery Artist",
 		"event_tags": ["artist", "visual_art"]
 	})
 	CharacterManager.characters = [
@@ -101,8 +101,6 @@ func _setup_runtime_state() -> void:
 	CharacterManager.characters[0]["parent_ids"] = [3]
 	CharacterManager.characters[0]["children_ids"] = [4]
 	CharacterManager.characters[0]["relationship_status"] = "married"
-	CharacterManager.characters[0]["relationship_level"] = 75
-	CharacterManager.characters[0]["education_level"] = 4
 	CharacterManager.characters[0]["education_stage"] = "university"
 	CharacterManager.characters[0]["school_id"] = 4001
 	CharacterManager.characters[0]["major_id"] = 5001
@@ -200,15 +198,10 @@ func _test_every_requirement_type() -> void:
 		{"type":"employment_status","target":"primary","operator":"==","value":"employed"},
 		{"type":"job","target":"primary","operator":"==","value":9901},
 		{"type":"job_tag","target":"primary","operator":"==","value":"artist"},
-		{"type":"career_level","target":"primary","operator":">=","value":3},
-		{"type":"education_level","target":"primary","operator":">=","value":4},
 		{"type":"education_stage","target":"primary","operator":"==","value":"university"},
 		{"type":"school","target":"primary","operator":"==","value":4001},
 		{"type":"school_type","target":"primary","operator":"==","value":"public"},
 		{"type":"major","target":"primary","operator":"==","value":5001},
-		{"type":"relationship_exists","target":"primary","operator":"==","value":true},
-		{"type":"relationship_status","target":"primary","operator":"==","value":"married"},
-		{"type":"relationship_level","target":"primary","operator":">=","value":75},
 		{"type":"lifestyle_score","target":"primary","operator":">=","value":59},
 		{"type":"equipped_item","target":"primary","operator":"==","value":"item_accessory"},
 		{"type":"item_type","target":"primary","operator":"==","value":"accessory"},

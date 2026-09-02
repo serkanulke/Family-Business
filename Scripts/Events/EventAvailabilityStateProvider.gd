@@ -114,6 +114,24 @@ func export_state() -> Dictionary:
 	return {"completed_repeat_records": completed_repeat_records.duplicate(true), "cooldowns": cooldown_records.duplicate(true)}
 
 
+func import_state(value) -> bool:
+	if typeof(value) != TYPE_DICTIONARY:
+		return false
+	var repeat_value = value.get("completed_repeat_records", value.get("repeat_runtime_state", null))
+	var cooldown_value = value.get("cooldowns", null)
+	if typeof(repeat_value) != TYPE_ARRAY or typeof(cooldown_value) != TYPE_ARRAY:
+		return false
+	completed_repeat_records.clear()
+	for member in repeat_value:
+		if typeof(member) != TYPE_DICTIONARY: return false
+		completed_repeat_records.append((member as Dictionary).duplicate(true))
+	cooldown_records.clear()
+	for member in cooldown_value:
+		if typeof(member) != TYPE_DICTIONARY: return false
+		cooldown_records.append((member as Dictionary).duplicate(true))
+	return true
+
+
 func _character_ids(event: Dictionary, participants: Dictionary) -> Array[int]:
 	var ids: Array[int] = []
 	var definitions = event.get("participants", {})

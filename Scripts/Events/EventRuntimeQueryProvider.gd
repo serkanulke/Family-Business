@@ -185,12 +185,6 @@ func get_requirement_value(
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = _job_tags(character)
 			match_mode = "membership"
-		"career_level":
-			if character.is_empty(): return _invalid("Character target is unavailable.")
-			actual = character.get("career_level", _job_for_character(character).get("career_level", 0))
-		"education_level":
-			if character.is_empty(): return _invalid("Character target is unavailable.")
-			actual = character.get("education_level", 0)
 		"education_stage":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = _education_stage(character)
@@ -203,15 +197,6 @@ func get_requirement_value(
 		"major":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = character.get("major_id", null)
-		"relationship_exists":
-			if character.is_empty(): return _invalid("Character target is unavailable.")
-			actual = character.get("partner_id", null) != null
-		"relationship_status":
-			if character.is_empty(): return _invalid("Character target is unavailable.")
-			actual = character.get("relationship_status", "married" if character.get("partner_id", null) != null else "single")
-		"relationship_level":
-			if character.is_empty(): return _invalid("Character target is unavailable.")
-			actual = character.get("relationship_level", null)
 		"lifestyle_score":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = ItemManager.get_lifestyle_score(int(character.get("character_id", 0)))
@@ -292,9 +277,8 @@ func get_requirement_label(requirement: Dictionary) -> String:
 		return String(requirement.get("stat", "Stat")).replace("_", " ").capitalize()
 	var labels := {
 		"lifestyle_score": "Lifestyle", "family_member_count": "Family members",
-		"employment_status": "Employment", "career_level": "Career level",
-		"education_level": "Education level", "education_stage": "Education stage",
-		"relationship_level": "Relationship level", "money": "Money", "diamonds": "Diamonds",
+		"employment_status": "Employment", "education_stage": "Education stage",
+		"money": "Money", "diamonds": "Diamonds",
 		"house_assignment": "House assignment", "house_level": "House level",
 		"household_status": "Household Status", "household_perk": "Household Perk",
 		"business_owned": "Business ownership", "business_type": "Business type",
