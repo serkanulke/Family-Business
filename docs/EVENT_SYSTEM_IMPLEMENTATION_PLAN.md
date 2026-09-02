@@ -120,7 +120,7 @@ Scope is integrating already-existing gameplay systems into the common Event bac
 Recommended order and current boundary:
 
 1. [x] Education birthday/enrollment/major flow — Phase 5A backend semantic adapter complete; legacy Education interaction queue/pause contract intentionally retained until its later Event UI migration.
-2. [ ] External job offers — Phase 5B not started.
+2. [x] External job offers — Phase 5B backend semantic adapter complete; CareerManager offer generation/storage/acceptance/rejection remains authoritative and no presentation migration is included.
 3. [ ] Age/lifecycle/death/funeral trigger bridge.
 4. [ ] House/Unhoused/Household Status/Perk bridge.
 5. [ ] Family Business trigger/context bridge.
@@ -129,6 +129,8 @@ Recommended order and current boundary:
 8. [ ] Family Agency manual discovery/entitlement bridge.
 
 Phase 5A implements `education_stage_due`, `school_enrolled`, and `school_graduated` adapters around successful canonical EducationManager operations. It does not migrate the existing Education presentation flow, add production Event content, or complete Phase 5 as a whole. The canonical GDD/spec does not approve a separate `major_selected` or university-decline semantic trigger, so Phase 5A adds neither.
+
+Phase 5B implements `job_offer_requested`, `job_started`, `job_changed`, and `job_lost` adapters around the existing CareerManager active-offer and external-employment operations. It adds only narrow post-success acceptance/removal domain signals; offer eligibility, probability, cooldown, selection, validation, storage, acceptance/rejection, external removal, and salary increase remain CareerManager-owned. It does not add Job Offer/Event UI, production Event definitions, Job tags, rejection/salary semantic triggers, Career Level/XP/progression, or complete Phase 5 as a whole.
 
 Rules:
 

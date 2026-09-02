@@ -8,6 +8,23 @@ signal job_offer_requested(
 	salary: int
 )
 
+signal job_offer_accepted(
+	character_id: int,
+	previous_job_id,
+	previous_company_id,
+	previous_salary: int,
+	job_id: int,
+	company_id: String,
+	salary: int
+)
+
+signal external_job_removed(
+	character_id: int,
+	previous_job_id: int,
+	previous_company_id: String,
+	previous_salary: int
+)
+
 const COMPANY_DATA_PATH := "res://Resources/Json/Companies.json"
 const MIN_COMPANIES_PER_JOB := 5
 
@@ -1052,6 +1069,27 @@ func accept_job_offer(
 		)
 	)
 
+	var previous_job_id = character.get(
+		"job_id",
+		null
+	)
+
+	var previous_company_id = character.get(
+		"company_id",
+		null
+	)
+
+	var previous_salary := int(
+		character.get(
+			"salary",
+			0
+		)
+	)
+
+	if previous_job_id == null:
+		previous_company_id = null
+		previous_salary = 0
+
 	character["job_id"] = job_id
 	character["company_id"] = company_id
 	character["salary"] = salary
@@ -1076,6 +1114,16 @@ func accept_job_offer(
 		" | Company: ",
 		company_id,
 		" | Salary: ",
+		salary
+	)
+
+	job_offer_accepted.emit(
+		character_id,
+		previous_job_id,
+		previous_company_id,
+		previous_salary,
+		job_id,
+		company_id,
 		salary
 	)
 
@@ -1113,12 +1161,44 @@ func remove_external_job(
 	if character.get("job_id", null) == null:
 		return false
 
+	var previous_job_id := int(
+		character.get(
+			"job_id",
+			0
+		)
+	)
+
+	var previous_company_value = character.get(
+		"company_id",
+		null
+	)
+
+	var previous_company_id := (
+		String(previous_company_value)
+		if previous_company_value != null
+		else ""
+	)
+
+	var previous_salary := int(
+		character.get(
+			"salary",
+			0
+		)
+	)
+
 	character["job_id"] = null
 	character["company_id"] = null
 	character["salary"] = 0
 	character["unemployment_start_date"] = TimeManager.get_iso_date_string()
 	character["job_offer_cooldown_until"] = null
 	active_job_offers.erase(character_id)
+
+	external_job_removed.emit(
+		character_id,
+		previous_job_id,
+		previous_company_id,
+		previous_salary
+	)
 
 	return true
 
