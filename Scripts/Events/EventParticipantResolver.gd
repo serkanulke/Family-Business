@@ -38,7 +38,7 @@ func resolve(event: Dictionary, runtime_context: Dictionary = {}) -> Dictionary:
 				made_progress = true
 				continue
 			var definition: Dictionary = definition_value
-			var resolved := _resolve_participant(name, definition, participants, runtime_context, context)
+			var resolved := _resolve_participant(event, name, definition, participants, runtime_context, context)
 			if bool(resolved.get("deferred", false)):
 				continue
 			unresolved.erase(name_value)
@@ -66,7 +66,7 @@ func resolve(event: Dictionary, runtime_context: Dictionary = {}) -> Dictionary:
 			String(name_value)
 		))
 
-	_validate_resolved_participants(definitions, participants, context, failures)
+	_validate_resolved_participants(event, definitions, participants, context, failures)
 	return _resolution(failures.is_empty(), participants, context, pending, failures, candidate_groups)
 
 
@@ -105,11 +105,12 @@ func validate_existing(
 	if typeof(definitions_value) != TYPE_DICTIONARY:
 		return _resolution(false, participants, context, [], [_failure("invalid_participants", "Event participants are unavailable.")], {})
 	var failures: Array = []
-	_validate_resolved_participants(definitions_value, participants, context, failures)
+	_validate_resolved_participants(event, definitions_value, participants, context, failures)
 	return _resolution(failures.is_empty(), participants, context, [], failures, {})
 
 
 func _resolve_participant(
+	event: Dictionary,
 	name: String,
 	definition: Dictionary,
 	participants: Dictionary,
@@ -123,7 +124,12 @@ func _resolve_participant(
 		"trigger":
 			var trigger := _dictionary(runtime_context.get("trigger_participants", {}))
 			var value = trigger.get(name, runtime_context.get("trigger_character_id", null) if name == "primary" else null)
-			return _validate_resolved_value(participant_type, value, name)
+			return _validate_resolved_value(
+				participant_type,
+				value,
+				name,
+				_allows_dead_trigger_character(event, name, definition)
+			)
 		"player_selected":
 			if not selected.has(name):
 				return {"valid": true, "pending": true}
@@ -220,6 +226,7 @@ func _validate_group_selection(
 
 
 func _validate_resolved_participants(
+	event: Dictionary,
 	definitions: Dictionary,
 	participants: Dictionary,
 	context: Dictionary,
@@ -235,7 +242,11 @@ func _validate_resolved_participants(
 		var definition: Dictionary = definition_value
 		var participant_type := String(definition.get("type", ""))
 		var value = participants[name]
-		if not query_provider.entity_exists(participant_type, value):
+		if not query_provider.entity_exists(
+			participant_type,
+			value,
+			_allows_dead_trigger_character(event, name, definition)
+		):
 			failures.append(_failure("participant_invalid", "Participant '%s' is no longer available." % name, name))
 			continue
 		if definition.has("requirements"):
@@ -252,12 +263,37 @@ func _validate_resolved_participants(
 					failures.append_array(result.get("failure_reasons", []))
 
 
-func _validate_resolved_value(participant_type: String, value, name: String) -> Dictionary:
+func _validate_resolved_value(
+	participant_type: String,
+	value,
+	name: String,
+	include_dead_character: bool = false
+) -> Dictionary:
 	if value == null or (typeof(value) == TYPE_STRING and String(value).is_empty()):
 		return {"valid": false, "message": "Required participant '%s' was not supplied." % name}
-	if not query_provider.entity_exists(participant_type, value):
+	if not query_provider.entity_exists(
+		participant_type,
+		value,
+		include_dead_character
+	):
 		return {"valid": false, "message": "Participant '%s' is unavailable." % name}
 	return {"valid": true, "value": value}
+
+
+func _allows_dead_trigger_character(
+	event: Dictionary,
+	name: String,
+	definition: Dictionary
+) -> bool:
+	var trigger = event.get("trigger", {})
+	return (
+		typeof(trigger) == TYPE_DICTIONARY
+		and String(trigger.get("type", "")) == "system"
+		and String(trigger.get("event", "")) == "character_died"
+		and name == "primary"
+		and String(definition.get("type", "")) == "character"
+		and String(definition.get("source", "")) == "trigger"
+	)
 
 
 func _context_dictionary(runtime_context: Dictionary) -> Dictionary:

@@ -121,7 +121,7 @@ Recommended order and current boundary:
 
 1. [x] Education birthday/enrollment/major flow — Phase 5A backend semantic adapter complete; legacy Education interaction queue/pause contract intentionally retained until its later Event UI migration.
 2. [x] External job offers — Phase 5B backend semantic adapter complete; CareerManager offer generation/storage/acceptance/rejection remains authoritative and no presentation migration is included.
-3. [ ] Age/lifecycle/death/funeral trigger bridge.
+3. [x] Age/lifecycle/death/Funeral trigger contract — Phase 5C backend semantic adapter complete; future Funeral Event content uses `character_died` or an Event chain and no Funeral domain system/UI is added.
 4. [ ] House/Unhoused/Household Status/Perk bridge.
 5. [ ] Family Business trigger/context bridge.
 6. [ ] Relationship candidate/event bridge.
@@ -131,6 +131,8 @@ Recommended order and current boundary:
 Phase 5A implements `education_stage_due`, `school_enrolled`, and `school_graduated` adapters around successful canonical EducationManager operations. It does not migrate the existing Education presentation flow, add production Event content, or complete Phase 5 as a whole. The canonical GDD/spec does not approve a separate `major_selected` or university-decline semantic trigger, so Phase 5A adds neither.
 
 Phase 5B implements `job_offer_requested`, `job_started`, `job_changed`, and `job_lost` adapters around the existing CareerManager active-offer and external-employment operations. It adds only narrow post-success acceptance/removal domain signals; offer eligibility, probability, cooldown, selection, validation, storage, acceptance/rejection, external removal, and salary increase remain CareerManager-owned. It does not add Job Offer/Event UI, production Event definitions, Job tags, rejection/salary semantic triggers, Career Level/XP/progression, or complete Phase 5 as a whole.
+
+Phase 5C implements `age_reached`, `life_stage_changed`, and `retired` adapters around normal `CharacterManager` date transitions and verifies the existing `character_died`/`character_born` bridges. Age/life-stage/retirement/death calculations and mutations remain CharacterManager-owned. Canonical retirement now delegates existing Family Business slot removal to `BusinessManager` after pension/salary state is final. Load normalization applies that domain correction without lifecycle semantic replay. A `character_died` system Event may retain its already-dead primary trigger Character, while ordinary Character participant revalidation still requires a living Character. Phase 5C adds no persistent lifecycle markers, Funeral state/manager/UI, production Event content, or Phase 5D work.
 
 Rules:
 

@@ -98,11 +98,21 @@ func get_owned_business_ids() -> Array[String]:
 	return result
 
 
-func entity_exists(participant_type: String, value) -> bool:
+func entity_exists(
+	participant_type: String,
+	value,
+	include_dead_character: bool = false
+) -> bool:
 	match participant_type:
 		"character", "relationship_npc":
 			var character := get_character(int(value))
-			return not character.is_empty() and bool(character.get("is_alive", true))
+			return (
+				not character.is_empty()
+				and (
+					include_dead_character
+					or bool(character.get("is_alive", true))
+				)
+			)
 		"character_group":
 			if typeof(value) != TYPE_ARRAY:
 				return false

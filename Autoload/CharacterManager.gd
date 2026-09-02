@@ -11,6 +11,21 @@ signal character_born(
 	parent_two_id: int
 )
 
+signal age_reached(
+	character_id: int,
+	age: int
+)
+
+signal life_stage_changed(
+	character_id: int,
+	previous_stage: String,
+	new_stage: String
+)
+
+signal character_retired(
+	character_id: int
+)
+
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
 const MAJOR_DATA_PATH := "res://Resources/Json/Major.json"
 const JOB_DATA_PATH := "res://Resources/Json/Job.json"
@@ -115,6 +130,7 @@ var characters: Array = []
 var majors: Array = []
 var jobs: Array = []
 var next_character_id: int = 1
+var _suppress_lifecycle_semantics := false
 
 
 func _ready() -> void:
@@ -124,6 +140,9 @@ func _ready() -> void:
 
 	TimeManager.date_changed.connect(
 		_on_date_changed
+	)
+	GameManager.new_game_starting.connect(
+		_on_new_game_starting
 	)
 
 	update_all_life_stages()
@@ -947,9 +966,83 @@ func get_avatar_texture(
 func _on_date_changed(
 	_date_text: String
 ) -> void:
+	if _suppress_lifecycle_semantics:
+		return
+
+	var previous_states: Array[Dictionary] = []
+
+	for character_value in characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+		if not bool(character.get("is_alive", true)):
+			continue
+
+		previous_states.append({
+			"character": character,
+			"character_id": int(character.get("character_id", 0)),
+			"previous_stage": String(character.get("life_stage", "")),
+			"was_retired": bool(character.get("is_retired", false)),
+			"is_birthday": _is_character_birthday_today(character)
+		})
+
 	update_all_life_stages()
 	update_all_retirements()
+
+	for previous_state in previous_states:
+		var character: Dictionary = previous_state["character"]
+		var character_id := int(previous_state["character_id"])
+
+		if bool(previous_state["is_birthday"]):
+			var age := get_character_age(character)
+			if age >= 0:
+				age_reached.emit(
+					character_id,
+					age
+				)
+
+		var previous_stage := String(previous_state["previous_stage"])
+		var new_stage := String(character.get("life_stage", ""))
+		if previous_stage != new_stage:
+			life_stage_changed.emit(
+				character_id,
+				previous_stage,
+				new_stage
+			)
+
+		if (
+			not bool(previous_state["was_retired"])
+			and bool(character.get("is_retired", false))
+		):
+			character_retired.emit(
+				character_id
+			)
+
 	update_all_death_checks()
+
+
+func _on_new_game_starting() -> void:
+	_suppress_lifecycle_semantics = true
+
+
+func _is_character_birthday_today(
+	character: Dictionary
+) -> bool:
+	var date_parts := String(
+		character.get(
+			"birth_date",
+			""
+		)
+	).split("-")
+
+	if date_parts.size() != 3:
+		return false
+
+	return (
+		int(date_parts[1]) == TimeManager.current_month
+		and int(date_parts[2]) == TimeManager.current_day
+	)
 
 
 func update_all_life_stages() -> void:
@@ -1167,6 +1260,15 @@ func retire_character(
 
 	character["salary"] = 0
 	character["is_retired"] = true
+
+	BusinessManager.remove_character_from_any_slot(
+		int(
+			character.get(
+				"character_id",
+				0
+			)
+		)
+	)
 
 	print(
 		"Character retired: ",
@@ -2601,6 +2703,7 @@ func create_starting_character(
 func reset_characters_for_new_game() -> void:
 	characters.clear()
 	next_character_id = 1
+	_suppress_lifecycle_semantics = false
 
 	print(
 		"Characters reset for new game."

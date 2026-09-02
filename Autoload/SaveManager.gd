@@ -555,13 +555,6 @@ func apply_save_snapshot(
 			"update_all_life_stages"
 		)
 
-	if CharacterManager.has_method(
-		"update_all_retirements"
-	):
-		CharacterManager.call(
-			"update_all_retirements"
-		)
-
 	HouseManager.restore_save_state(house_state)
 
 	BusinessManager.businesses = _get_array(
@@ -577,6 +570,15 @@ func apply_save_snapshot(
 		),
 		1
 	)
+
+	# Retirement owns Family Business slot cleanup, so normalize it only after
+	# the saved Business roster has been restored.
+	if CharacterManager.has_method(
+		"update_all_retirements"
+	):
+		CharacterManager.call(
+			"update_all_retirements"
+		)
 
 	NPCManager.worker_npcs = _get_array(
 		npc_state,

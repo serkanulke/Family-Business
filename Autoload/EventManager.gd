@@ -811,6 +811,9 @@ func _connect_runtime_adapters() -> void:
 	_connect_if_needed(GameManager.new_game_starting, _on_new_game_starting)
 	_connect_if_needed(CharacterManager.character_born, _on_character_born)
 	_connect_if_needed(CharacterManager.character_died, _on_character_died)
+	_connect_if_needed(CharacterManager.age_reached, _on_character_age_reached)
+	_connect_if_needed(CharacterManager.life_stage_changed, _on_character_life_stage_changed)
+	_connect_if_needed(CharacterManager.character_retired, _on_character_retired)
 	_connect_if_needed(EducationManager.education_event_requested, _on_education_event_requested)
 	_connect_if_needed(EducationManager.major_selection_requested, _on_major_selection_requested)
 	_connect_if_needed(EducationManager.school_enrolled, _on_school_enrolled)
@@ -848,6 +851,18 @@ func _on_character_born(character_id: int, parent_one_id: int, parent_two_id: in
 
 func _on_character_died(character_id: int, death_date: String) -> void:
 	dispatch_system_trigger("character_died", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "death_date": death_date}}, "character_died:%d:%s" % [character_id, death_date], "CharacterManager")
+
+
+func _on_character_age_reached(character_id: int, age: int) -> void:
+	dispatch_system_trigger("age_reached", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "age": age}}, "age_reached:%d:%d:%s" % [character_id, age, _current_date()], "CharacterManager")
+
+
+func _on_character_life_stage_changed(character_id: int, previous_stage: String, new_stage: String) -> void:
+	dispatch_system_trigger("life_stage_changed", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "previous_stage": previous_stage, "life_stage": new_stage}}, "life_stage_changed:%d:%s:%s:%s" % [character_id, previous_stage, new_stage, _current_date()], "CharacterManager")
+
+
+func _on_character_retired(character_id: int) -> void:
+	dispatch_system_trigger("retired", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id}}, "retired:%d:%s" % [character_id, _current_date()], "CharacterManager")
 
 
 func _on_education_event_requested(character_id: int, event_type: String, education_stage: String) -> void:
