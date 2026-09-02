@@ -813,6 +813,8 @@ func _connect_runtime_adapters() -> void:
 	_connect_if_needed(CharacterManager.character_died, _on_character_died)
 	_connect_if_needed(EducationManager.education_event_requested, _on_education_event_requested)
 	_connect_if_needed(EducationManager.major_selection_requested, _on_major_selection_requested)
+	_connect_if_needed(EducationManager.school_enrolled, _on_school_enrolled)
+	_connect_if_needed(EducationManager.school_graduated, _on_school_graduated)
 	_connect_if_needed(HouseManager.house_state_changed, _on_house_state_changed)
 	_connect_if_needed(HouseManager.house_upgraded, _on_house_upgraded)
 	_connect_if_needed(BusinessManager.family_business_created, _on_business_created)
@@ -851,6 +853,26 @@ func _on_education_event_requested(character_id: int, event_type: String, educat
 
 func _on_major_selection_requested(character_id: int) -> void:
 	dispatch_system_trigger("education_stage_due", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "event_type": "major_selection", "education_stage": "university"}}, "education_stage_due:%d:major_selection:%s" % [character_id, _current_date()], "EducationManager")
+
+
+func _on_school_enrolled(character_id: int, school_id: int) -> void:
+	var school := EducationManager.get_school_by_id(school_id)
+	if school.is_empty():
+		return
+	var education_stage := String(school.get("education_stage", ""))
+	var school_type := String(school.get("school_type", ""))
+	dispatch_system_trigger("school_enrolled", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "school_id": school_id, "education_stage": education_stage, "school_type": school_type}}, "school_enrolled:%d:%d:%s" % [character_id, school_id, _current_date()], "EducationManager")
+
+
+func _on_school_graduated(character_id: int, school_id: int, graduation_date: String) -> void:
+	var school := EducationManager.get_school_by_id(school_id)
+	if school.is_empty():
+		return
+	var context := {"character_id": character_id, "school_id": school_id, "education_stage": String(school.get("education_stage", "")), "graduation_date": graduation_date}
+	var character := CharacterManager.get_character_by_id(character_id)
+	if not character.is_empty() and character.get("major_id", null) != null:
+		context["major_id"] = int(character.get("major_id", 0))
+	dispatch_system_trigger("school_graduated", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "school_graduated:%d:%d:%s" % [character_id, school_id, graduation_date], "EducationManager")
 
 
 func _on_house_state_changed(house_instance_id: String, reason: String) -> void:

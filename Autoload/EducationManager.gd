@@ -11,6 +11,17 @@ signal major_selection_requested(
 	character_id: int
 )
 
+signal school_enrolled(
+	character_id: int,
+	school_id: int
+)
+
+signal school_graduated(
+	character_id: int,
+	school_id: int,
+	graduation_date: String
+)
+
 const SCHOOL_DATA_PATH := "res://Resources/Json/School.json"
 const DEFAULT_SCHOOL_ICON_PATH := \
 	"res://Resources/Icons/Schools/default_school.svg"
@@ -904,6 +915,11 @@ func enroll_character_in_school(
 		}
 	)
 
+	school_enrolled.emit(
+		character_id,
+		school_id
+	)
+
 	print(
 		"Character enrolled in school: ",
 		character_id,
@@ -1000,6 +1016,12 @@ func graduate_current_school(
 		character,
 		"education_graduated",
 		graduation_log_data
+	)
+
+	school_graduated.emit(
+		int(character.get("character_id", 0)),
+		school_id,
+		graduation_date
 	)
 
 	print(

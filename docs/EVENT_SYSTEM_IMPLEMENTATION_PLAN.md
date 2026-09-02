@@ -117,16 +117,18 @@ Completion test: backend Event lifecycle is complete end-to-end without requirin
 
 Scope is integrating already-existing gameplay systems into the common Event backend, one domain at a time with regression protection.
 
-Recommended order:
+Recommended order and current boundary:
 
-1. Education birthday/enrollment/major flow.
-2. External job offers.
-3. Age/lifecycle/death/funeral trigger bridge.
-4. House/Unhoused/Household Status/Perk bridge.
-5. Family Business trigger/context bridge.
-6. Relationship candidate/event bridge.
-7. Lifestyle manual discovery bridge.
-8. Family Agency manual discovery/entitlement bridge.
+1. [x] Education birthday/enrollment/major flow — Phase 5A backend semantic adapter complete; legacy Education interaction queue/pause contract intentionally retained until its later Event UI migration.
+2. [ ] External job offers — Phase 5B not started.
+3. [ ] Age/lifecycle/death/funeral trigger bridge.
+4. [ ] House/Unhoused/Household Status/Perk bridge.
+5. [ ] Family Business trigger/context bridge.
+6. [ ] Relationship candidate/event bridge.
+7. [ ] Lifestyle manual discovery bridge.
+8. [ ] Family Agency manual discovery/entitlement bridge.
+
+Phase 5A implements `education_stage_due`, `school_enrolled`, and `school_graduated` adapters around successful canonical EducationManager operations. It does not migrate the existing Education presentation flow, add production Event content, or complete Phase 5 as a whole. The canonical GDD/spec does not approve a separate `major_selected` or university-decline semantic trigger, so Phase 5A adds neither.
 
 Rules:
 
