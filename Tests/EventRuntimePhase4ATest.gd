@@ -14,6 +14,7 @@ func _ready() -> void:
 	_setup()
 	_test_deterministic_cost_effect_history_and_cooldown()
 	_test_choice_revalidation_and_atomic_preflight()
+	_test_resolution_transaction_rollback()
 	_test_weighted_score_and_random_state()
 	_test_item_determinism_and_ownership_guards()
 	_test_domain_manager_delegation()
@@ -100,6 +101,55 @@ func _test_choice_revalidation_and_atomic_preflight() -> void:
 	var conflicting_result := EventManager.resolve_active_event("continue")
 	_assert(not conflicting_result.resolved and CharacterManager.characters[0].salary == 2000 and GameManager.family_money == 1000, "Conflicting authoritative mutations fail before any cost or domain change")
 	_assert(conflicting_result.effect_results.size() == 1 and conflicting_result.effect_results[0].code == "conflicting_effects", "Atomic conflict returns a structured failure result")
+	EventManager.cancel_active_event()
+
+
+func _test_resolution_transaction_rollback() -> void:
+	_setup()
+	var preflight_failure := _event("weighted_preflight_failure", [])
+	preflight_failure.choices[0].resolution = {"mode":"weighted","outcomes":[{"outcome_id":"blocked","weight":1.0,"effects":[{"type":"remove_item","target":"primary","item_id":ITEM_ID}]}]}
+	_configure([preflight_failure])
+	EventManager.activate_chain(preflight_failure.event_id, {"primary":1})
+	var preflight_rng_before := EventManager.resolution_resolver.export_state()
+	var preflight_result := EventManager.resolve_active_event("continue")
+	var preflight_rng_after := EventManager.resolution_resolver.export_state()
+	_assert(
+		not preflight_result.resolved
+		and preflight_rng_after.seed == preflight_rng_before.seed
+		and preflight_rng_after.state == preflight_rng_before.state,
+		"Failed weighted preflight restores the resolution RNG stream"
+	)
+	_assert(EventManager.active_event != null and EventManager.active_event.event_id == preflight_failure.event_id, "Failed weighted preflight leaves the active Event available for retry")
+	EventManager.cancel_active_event()
+
+	_setup()
+	var graduate: Dictionary = CharacterManager.characters[0]
+	graduate.merge({"birth_date":"1960-01-01","life_stage":"adult","health":100,"happiness":100,"logic":100,"attractiveness":100,"social":100,"confidence":100,"discipline":100,"creativity":100,"school_id":4001,"major_id":5014,"education_status":"graduated","graduation_date":"1982-01-01","unemployment_start_date":"1982-01-01","job_offer_cooldown_until":null,"is_retired":false}, true)
+	var offer_pool := CareerManager.get_unemployed_offer_pool(graduate)
+	var offer: Dictionary = offer_pool[0] if not offer_pool.is_empty() else {}
+	CareerManager.request_job_offer(graduate, offer)
+
+	var transaction_event := _event("weighted_apply_failure", [])
+	transaction_event.cost = {"currency":"money","amount":100}
+	transaction_event.choices[0].resolution = {"mode":"weighted","outcomes":[{"outcome_id":"attempt","weight":1.0,"effects":[{"type":"money_change","amount":50},{"type":"accept_job_offer","target":"primary"}]}]}
+	_configure([transaction_event])
+	GameManager.family_money = 1000
+	EventManager.activate_chain(transaction_event.event_id, {"primary":1})
+	var source_instance_id := EventManager.active_event.instance_id
+	var rng_before := EventManager.resolution_resolver.export_state()
+	var offer_before := CareerManager.get_active_job_offer(1).duplicate(true)
+	var invalidate_offer_on_money := func(new_amount: int) -> void:
+		if new_amount == 950:
+			CareerManager.active_job_offers.erase(1)
+	GameManager.family_money_changed.connect(invalidate_offer_on_money)
+	var result := EventManager.resolve_active_event("continue")
+	GameManager.family_money_changed.disconnect(invalidate_offer_on_money)
+	var rng_after := EventManager.resolution_resolver.export_state()
+
+	_assert(not result.resolved and result.effect_results.size() == 2 and result.effect_results[0].success and not result.effect_results[1].success, "Apply-time failure is reported after an earlier effect actually ran")
+	_assert(GameManager.family_money == 1000 and CareerManager.get_active_job_offer(1) == offer_before, "Apply-time rollback restores Event cost, economy mutation, and Career state")
+	_assert(EventManager.active_event != null and EventManager.active_event.instance_id == source_instance_id and EventManager.story_history.records.is_empty() and EventManager.state_provider.completed_repeat_records.is_empty(), "Apply-time rollback restores the original active Event with no completion state")
+	_assert(rng_after.seed == rng_before.seed and rng_after.state == rng_before.state, "Apply-time rollback restores the weighted resolution RNG stream")
 	EventManager.cancel_active_event()
 
 

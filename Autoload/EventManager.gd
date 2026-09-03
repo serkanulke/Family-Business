@@ -332,24 +332,49 @@ func resolve_active_event(choice_id: String = "") -> Dictionary:
 	var diamond_cost := _cost_amount(event.get("cost", null), "diamonds") + _cost_amount(choice.get("cost", null), "diamonds")
 	if GameManager.family_money < money_cost or GameManager.diamonds < diamond_cost:
 		return _resolution_failure("locked_cost", "The family cannot currently afford this Event choice.")
+
+	# A failed resolution must be a true no-op, including the weighted RNG stream.
+	var resolution_random_state := resolution_resolver.export_state()
 	var outcome := resolution_resolver.resolve(resolution_value, active_event.participants, active_event.context)
 	if not bool(outcome.get("valid", false)):
+		_restore_resolution_random_state(resolution_random_state)
 		return {"resolved": false, "failure_reasons": outcome.get("failure_reasons", []).duplicate(true), "effect_results": []}
 	var effects: Array = outcome.get("effects", [])
 	var preflight := effect_resolver.preflight(effects, active_event.participants, active_event.context, GameManager.family_money - money_cost, GameManager.diamonds - diamond_cost)
 	if not bool(preflight.get("valid", false)):
+		_restore_resolution_random_state(resolution_random_state)
 		return {"resolved": false, "failure_reasons": preflight.get("failure_reasons", []).duplicate(true), "effect_results": preflight.get("failure_reasons", []).duplicate(true)}
+
+	# Reuse the existing in-memory save snapshot as a small transaction boundary.
+	# This avoids adding per-manager rollback state for Event effects.
+	var transaction_snapshot := SaveManager.create_save_snapshot()
+	transaction_snapshot["event_system"]["resolution_random_state"] = resolution_random_state.duplicate(true)
+	var source_instance_id := active_event.instance_id
+
 	GameManager.set_family_money(GameManager.family_money - money_cost)
 	GameManager.set_diamonds(GameManager.diamonds - diamond_cost)
-	var applied := effect_resolver.apply(preflight.get("plans", []), active_event.instance_id)
+	var applied := effect_resolver.apply(preflight.get("plans", []), source_instance_id)
 	if not bool(applied.get("success", false)):
-		return {"resolved": false, "failure_reasons": applied.get("failure_reasons", []).duplicate(true), "effect_results": applied.get("effect_results", []).duplicate(true)}
+		var failure_reasons: Array = applied.get("failure_reasons", []).duplicate(true)
+		if not _restore_resolution_transaction(transaction_snapshot):
+			failure_reasons.append({"code": "rollback_failed", "message": "The failed Event resolution could not be rolled back."})
+		return {"resolved": false, "failure_reasons": failure_reasons, "effect_results": applied.get("effect_results", []).duplicate(true)}
+
+	if active_event == null or active_event.instance_id != source_instance_id:
+		var interrupted_reasons := [{"code": "resolution_interrupted", "message": "The active Event changed while its resolution was being applied."}]
+		if not _restore_resolution_transaction(transaction_snapshot):
+			interrupted_reasons.append({"code": "rollback_failed", "message": "The interrupted Event resolution could not be rolled back."})
+		return {"resolved": false, "failure_reasons": interrupted_reasons, "effect_results": applied.get("effect_results", []).duplicate(true)}
+
 	var finished_instance := active_event
 	finished_instance.choice_id = choice_id if not choice.is_empty() else null
 	finished_instance.outcome_id = outcome.get("outcome_id", null)
 	finished_instance.effect_results = applied.get("effect_results", []).duplicate(true)
 	if not _finish_active_event("completed"):
-		return _resolution_failure("completion_failed", "The Event could not be completed.")
+		var completion_reasons := [{"code": "completion_failed", "message": "The Event could not be completed."}]
+		if not _restore_resolution_transaction(transaction_snapshot):
+			completion_reasons.append({"code": "rollback_failed", "message": "The incomplete Event resolution could not be rolled back."})
+		return {"resolved": false, "failure_reasons": completion_reasons, "effect_results": applied.get("effect_results", []).duplicate(true)}
 	return {"resolved": true, "instance": finished_instance.to_dictionary(), "choice_id": finished_instance.choice_id, "outcome_id": finished_instance.outcome_id, "effect_results": finished_instance.effect_results.duplicate(true), "resolution_details": outcome.get("details", {}).duplicate(true)}
 
 
@@ -778,6 +803,18 @@ func _cost_amount(value, currency: String) -> int:
 	if typeof(value) != TYPE_DICTIONARY or String(value.get("currency", "")) != currency:
 		return 0
 	return maxi(0, int(value.get("amount", 0)))
+
+
+func _restore_resolution_random_state(state: Dictionary) -> void:
+	if not resolution_resolver.import_state(state):
+		push_error("Event resolution RNG rollback failed.")
+
+
+func _restore_resolution_transaction(snapshot: Dictionary) -> bool:
+	if SaveManager.apply_save_snapshot(snapshot):
+		return true
+	push_error("Event resolution transaction rollback failed.")
+	return false
 
 
 func _resolution_failure(code: String, message: String) -> Dictionary:
