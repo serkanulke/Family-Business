@@ -892,20 +892,66 @@ func _on_job_offer_accepted(
 	company_id: String,
 	salary: int
 ) -> void:
-	var context := {"character_id": character_id, "job_id": job_id, "company_id": company_id, "salary": salary}
-	if previous_job_id == null:
-		dispatch_system_trigger("job_started", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "job_started:%d:%d:%s:%s" % [character_id, job_id, company_id, _current_date()], "CareerManager")
-		return
-	context["previous_job_id"] = int(previous_job_id)
-	context["previous_company_id"] = String(previous_company_id)
-	context["previous_salary"] = previous_salary
-	dispatch_system_trigger("job_changed", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "job_changed:%d:%d:%s:%d:%s:%s" % [character_id, int(previous_job_id), String(previous_company_id), job_id, company_id, _current_date()], "CareerManager")
+	var context := {
+		"character_id": character_id,
+		"previous_job_id": previous_job_id,
+		"previous_company_id": previous_company_id,
+		"previous_salary": previous_salary,
+		"job_id": job_id,
+		"company_id": company_id,
+		"salary": salary
+	}
 
+	dispatch_system_trigger(
+		"job_offer_accepted",
+		{
+			"trigger_character_id": character_id,
+			"trigger_participants": {
+				"primary": character_id
+			},
+			"context": context
+		},
+		"job_offer_accepted:%d:%d:%s:%s"
+		% [
+			character_id,
+			job_id,
+			company_id,
+			_current_date()
+		],
+		"CareerManager"
+	)
 
-func _on_external_job_removed(character_id: int, previous_job_id: int, previous_company_id: String, previous_salary: int) -> void:
-	var context := {"character_id": character_id, "previous_job_id": previous_job_id, "previous_company_id": previous_company_id, "previous_salary": previous_salary}
-	dispatch_system_trigger("job_lost", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "job_lost:%d:%d:%s:%s" % [character_id, previous_job_id, previous_company_id, _current_date()], "CareerManager")
+func _on_external_job_removed(
+	character_id: int,
+	previous_job_id: int,
+	previous_company_id: String,
+	previous_salary: int
+) -> void:
+	var context := {
+		"character_id": character_id,
+		"previous_job_id": previous_job_id,
+		"previous_company_id": previous_company_id,
+		"previous_salary": previous_salary
+	}
 
+	dispatch_system_trigger(
+		"external_job_removed",
+		{
+			"trigger_character_id": character_id,
+			"trigger_participants": {
+				"primary": character_id
+			},
+			"context": context
+		},
+		"external_job_removed:%d:%d:%s:%s"
+		% [
+			character_id,
+			previous_job_id,
+			previous_company_id,
+			_current_date()
+		],
+		"CareerManager"
+	)
 
 func _on_house_upgraded(house_instance_id: String, new_level: int, _upgrade_cost: int) -> void:
 	dispatch_system_trigger("house_upgraded", {"context": {"house_instance_id": house_instance_id, "new_level": new_level}}, "house_upgraded:%s:%d" % [house_instance_id, new_level], "HouseManager")

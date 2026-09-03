@@ -21,11 +21,11 @@ func _ready() -> void:
 	_connect_capture_signals()
 
 	_test_offer_requested_and_duplicate_guard()
-	_test_unemployed_acceptance_dispatches_job_started()
-	_test_employed_acceptance_dispatches_job_changed()
+	_test_unemployed_acceptance_dispatches_canonical_signal()
+	_test_employed_acceptance_dispatches_canonical_signal()
 	_test_failed_acceptance_dispatches_nothing()
 	_test_rejection_remains_authoritative_without_semantic_trigger()
-	_test_external_job_removal_dispatches_job_lost()
+	_test_external_job_removal_dispatches_canonical_signal()
 	_test_failed_job_removal_dispatches_nothing()
 	_test_family_business_isolation()
 	_test_salary_increase_remains_narrow()
@@ -61,60 +61,61 @@ func _test_offer_requested_and_duplicate_guard() -> void:
 	EventManager.cancel_active_event()
 
 
-func _test_unemployed_acceptance_dispatches_job_started() -> void:
+func _test_unemployed_acceptance_dispatches_canonical_signal() -> void:
 	var character := _graduate()
-	_setup_world(character, [_system_event("phase5b_started", "job_started"), _system_event("phase5b_changed", "job_changed")])
+	_setup_world(character, [_system_event("phase5b_accepted", "job_offer_accepted")])
 	var offer := _first_unemployed_offer(character)
 	CareerManager.request_job_offer(character, offer)
 	_clear_captures()
+
 	var accepted := CareerManager.accept_job_offer(1)
-	var started := _semantic("job_started")
+	var occurrences := _semantic("job_offer_accepted")
+
 	_assert(accepted and character.job_id == offer.job_id and character.company_id == offer.company_id and character.salary == offer.salary, "Unemployed acceptance assigns the canonical offer exactly once")
-	_assert(CareerManager.get_active_job_offer(1).is_empty() and character.unemployment_start_date == null and character.job_offer_cooldown_until == null, "Successful acceptance clears only canonical pending/unemployment offer state")
+	_assert(CareerManager.get_active_job_offer(1).is_empty() and character.unemployment_start_date == null and character.job_offer_cooldown_until == null, "Successful acceptance clears canonical pending/unemployment offer state")
 	_assert(accepted_offers.size() == 1 and accepted_offers[0].previous_job_id == null and accepted_offers[0].previous_company_id == null and int(accepted_offers[0].previous_salary) == 0, "Acceptance domain signal preserves canonical unemployed previous values")
-	_assert(started.size() == 1 and _semantic("job_changed").is_empty() and _context_matches(started[0], {"character_id":1,"job_id":offer.job_id,"company_id":offer.company_id,"salary":offer.salary}), "Unemployed acceptance dispatches job_started once and never job_changed")
-	_assert(String(started[0].occurrence_id) == "job_started:1:%d:%s:1985-01-26" % [int(offer.job_id), String(offer.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_started" and int(EventManager.active_event.participants.primary) == 1, "job_started uses stable identity and primary Character binding")
+	_assert(occurrences.size() == 1 and _context_matches(occurrences[0], {"character_id":1,"previous_job_id":null,"previous_company_id":null,"previous_salary":0,"job_id":offer.job_id,"company_id":offer.company_id,"salary":offer.salary}), "Acceptance forwards one canonical job_offer_accepted occurrence")
+	_assert(String(occurrences[0].occurrence_id) == "job_offer_accepted:1:%d:%s:1985-01-26" % [int(offer.job_id), String(offer.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_accepted" and int(EventManager.active_event.participants.primary) == 1, "job_offer_accepted uses stable identity and primary Character binding")
 	var second := CareerManager.accept_job_offer(1)
-	_assert(not second and accepted_offers.size() == 1 and _semantic("job_started").size() == 1, "A consumed offer cannot be accepted or dispatched twice")
+	_assert(not second and accepted_offers.size() == 1 and _semantic("job_offer_accepted").size() == 1, "A consumed offer cannot be accepted or dispatched twice")
 	EventManager.cancel_active_event()
 
-
-func _test_employed_acceptance_dispatches_job_changed() -> void:
+func _test_employed_acceptance_dispatches_canonical_signal() -> void:
 	var character := _graduate()
 	character.job_id = 2076
 	character.company_id = "central_city_administration"
 	character.salary = 5600
 	character.unemployment_start_date = null
-	_setup_world(character, [_system_event("phase5b_started", "job_started"), _system_event("phase5b_changed", "job_changed")])
+	_setup_world(character, [_system_event("phase5b_accepted", "job_offer_accepted")])
 	var offer := _first_advancement_offer(character)
 	var previous := {"job_id":character.job_id,"company_id":character.company_id,"salary":character.salary}
 	CareerManager.request_job_offer(character, offer)
 	_clear_captures()
+
 	var accepted := CareerManager.accept_job_offer(1)
-	var changed := _semantic("job_changed")
+	var occurrences := _semantic("job_offer_accepted")
+
 	_assert(accepted and character.job_id == offer.job_id and character.company_id == offer.company_id and character.salary == offer.salary and int(character.salary) > int(previous.salary), "Employed acceptance applies one valid higher-salary different-Job offer")
 	_assert(accepted_offers.size() == 1 and accepted_offers[0].previous_job_id == previous.job_id and accepted_offers[0].previous_company_id == previous.company_id and accepted_offers[0].previous_salary == previous.salary, "Acceptance domain signal captures previous employment before mutation")
-	_assert(changed.size() == 1 and _semantic("job_started").is_empty() and _context_matches(changed[0], {"character_id":1,"previous_job_id":previous.job_id,"previous_company_id":previous.company_id,"previous_salary":previous.salary,"job_id":offer.job_id,"company_id":offer.company_id,"salary":offer.salary}), "Employed acceptance dispatches job_changed once with complete old/new context")
-	_assert(String(changed[0].occurrence_id) == "job_changed:1:%d:%s:%d:%s:1985-01-26" % [int(previous.job_id), String(previous.company_id), int(offer.job_id), String(offer.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_changed", "job_changed uses stable old/new identity and queues only its matching Event")
+	_assert(occurrences.size() == 1 and _context_matches(occurrences[0], {"character_id":1,"previous_job_id":previous.job_id,"previous_company_id":previous.company_id,"previous_salary":previous.salary,"job_id":offer.job_id,"company_id":offer.company_id,"salary":offer.salary}), "Employed acceptance forwards the same canonical job_offer_accepted occurrence")
+	_assert(String(occurrences[0].occurrence_id) == "job_offer_accepted:1:%d:%s:1985-01-26" % [int(offer.job_id), String(offer.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_accepted", "EventManager does not derive a second Career trigger category from previous employment")
 	EventManager.cancel_active_event()
-
 
 func _test_failed_acceptance_dispatches_nothing() -> void:
 	var character := _graduate()
-	_setup_world(character, [_system_event("phase5b_started", "job_started"), _system_event("phase5b_changed", "job_changed")])
+	_setup_world(character, [_system_event("phase5b_accepted", "job_offer_accepted")])
 	var offer := _first_unemployed_offer(character)
 	CareerManager.request_job_offer(character, offer)
 	CareerManager.active_job_offers[1]["salary"] = int(offer.salary) + 1
 	_clear_captures()
 	var accepted := CareerManager.accept_job_offer(1)
 	_assert(not accepted and character.job_id == null and CareerManager.get_active_job_offer(1).is_empty(), "Tampered active offer fails canonical validation and is removed")
-	_assert(accepted_offers.is_empty() and _semantic("job_started").is_empty() and _semantic("job_changed").is_empty() and EventManager.active_event == null, "Failed acceptance emits no acceptance domain signal or Career semantic Event")
+	_assert(accepted_offers.is_empty() and _semantic("job_offer_accepted").is_empty() and EventManager.active_event == null, "Failed acceptance emits no acceptance domain signal or Career semantic Event")
 	_assert(not CareerManager.accept_job_offer(999) and accepted_offers.is_empty(), "Missing Character acceptance also emits nothing")
-
 
 func _test_rejection_remains_authoritative_without_semantic_trigger() -> void:
 	var character := _graduate()
-	_setup_world(character, [_system_event("phase5b_started", "job_started"), _system_event("phase5b_changed", "job_changed"), _system_event("phase5b_lost", "job_lost")])
+	_setup_world(character, [_system_event("phase5b_accepted", "job_offer_accepted"), _system_event("phase5b_removed", "external_job_removed")])
 	var offer := _first_unemployed_offer(character)
 	CareerManager.request_job_offer(character, offer)
 	_clear_captures()
@@ -124,31 +125,29 @@ func _test_rejection_remains_authoritative_without_semantic_trigger() -> void:
 	_assert(not CareerManager.reject_job_offer(1) and _career_semantics().is_empty(), "An already-consumed rejection cannot mutate or dispatch twice")
 
 
-func _test_external_job_removal_dispatches_job_lost() -> void:
+func _test_external_job_removal_dispatches_canonical_signal() -> void:
 	var character := _employed_graduate()
-	_setup_world(character, [_system_event("phase5b_lost", "job_lost")])
+	_setup_world(character, [_system_event("phase5b_removed", "external_job_removed")])
 	CareerManager.active_job_offers[1] = {"job_id":2077,"company_id":"central_city_administration","salary":6000}
 	var previous := {"job_id":character.job_id,"company_id":character.company_id,"salary":character.salary}
 	var removed := CareerManager.remove_external_job(1)
-	var lost := _semantic("job_lost")
+	var occurrences := _semantic("external_job_removed")
 	_assert(removed and character.job_id == null and character.company_id == null and int(character.salary) == 0 and character.unemployment_start_date == "1985-01-26" and character.job_offer_cooldown_until == null, "External job removal clears canonical Career state and starts unemployment on the current date")
 	_assert(CareerManager.get_active_job_offer(1).is_empty(), "External job removal clears the same Character's pending offer")
 	_assert(removed_jobs.size() == 1 and _dictionary_matches(removed_jobs[0], {"character_id":1,"previous_job_id":previous.job_id,"previous_company_id":previous.company_id,"previous_salary":previous.salary}), "Removal domain signal captures pre-mutation external employment")
-	_assert(lost.size() == 1 and _context_matches(lost[0], {"character_id":1,"previous_job_id":previous.job_id,"previous_company_id":previous.company_id,"previous_salary":previous.salary}), "Successful removal dispatches one job_lost occurrence with canonical prior context")
-	_assert(String(lost[0].occurrence_id) == "job_lost:1:%d:%s:1985-01-26" % [int(previous.job_id), String(previous.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_lost" and int(EventManager.active_event.participants.primary) == 1, "job_lost uses stable identity and primary Character binding")
+	_assert(occurrences.size() == 1 and _context_matches(occurrences[0], {"character_id":1,"previous_job_id":previous.job_id,"previous_company_id":previous.company_id,"previous_salary":previous.salary}), "Successful removal forwards one external_job_removed occurrence")
+	_assert(String(occurrences[0].occurrence_id) == "external_job_removed:1:%d:%s:1985-01-26" % [int(previous.job_id), String(previous.company_id)] and EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_removed" and int(EventManager.active_event.participants.primary) == 1, "EventManager forwards the canonical external-job removal fact directly")
 	EventManager.cancel_active_event()
 
-
 func _test_failed_job_removal_dispatches_nothing() -> void:
-	_setup_world(_graduate(), [_system_event("phase5b_lost", "job_lost")])
+	_setup_world(_graduate(), [_system_event("phase5b_removed", "external_job_removed")])
 	var removed := CareerManager.remove_external_job(1)
-	_assert(not removed and removed_jobs.is_empty() and _semantic("job_lost").is_empty() and EventManager.active_event == null, "Already-unemployed removal emits no domain signal or job_lost Event")
+	_assert(not removed and removed_jobs.is_empty() and _semantic("external_job_removed").is_empty() and EventManager.active_event == null, "Already-unemployed removal emits no domain signal or Event occurrence")
 	_assert(not CareerManager.remove_external_job(999) and removed_jobs.is_empty(), "Missing Character removal emits nothing")
-
 
 func _test_family_business_isolation() -> void:
 	var character := _graduate()
-	_setup_world(character, [_system_event("phase5b_lost", "job_lost")])
+	_setup_world(character, [_system_event("phase5b_removed", "external_job_removed")])
 	BusinessManager.businesses = [{"business_instance_id":"phase5b_business","slots":[{"slot_id":"slot_1","assigned_character_id":1,"assigned_npc_id":null}]}]
 	CareerManager.check_unemployed_character_offer(character)
 	_assert(CareerManager.is_character_assigned_to_family_business(1) and CareerManager.active_job_offers.is_empty() and requested_offers.is_empty(), "Family Business-assigned Character remains excluded before external-offer generation")
@@ -157,14 +156,13 @@ func _test_family_business_isolation() -> void:
 	character.salary = 5600
 	var removed := CareerManager.remove_external_job(1)
 	var assignment := BusinessManager.get_character_assignment(1)
-	_assert(removed and String(assignment.get("business_instance_id", "")) == "phase5b_business" and String(assignment.get("slot_id", "")) == "slot_1", "External job removal and job_lost adapter preserve the Family Business slot")
-	_assert(EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_lost" and BusinessManager.businesses.size() == 1, "job_lost queues without assigning or removing any Business slot")
+	_assert(removed and String(assignment.get("business_instance_id", "")) == "phase5b_business" and String(assignment.get("slot_id", "")) == "slot_1", "External job removal preserves the Family Business slot")
+	_assert(EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_removed" and BusinessManager.businesses.size() == 1, "Canonical removal occurrence does not mutate any Family Business slot")
 	EventManager.cancel_active_event()
-
 
 func _test_salary_increase_remains_narrow() -> void:
 	var character := _employed_graduate()
-	_setup_world(character, [_system_event("phase5b_started", "job_started"), _system_event("phase5b_changed", "job_changed"), _system_event("phase5b_lost", "job_lost")])
+	_setup_world(character, [_system_event("phase5b_accepted", "job_offer_accepted"), _system_event("phase5b_removed", "external_job_removed")])
 	var job_id = character.job_id
 	var company_id = character.company_id
 	var before := int(character.salary)
@@ -172,7 +170,6 @@ func _test_salary_increase_remains_narrow() -> void:
 	var rejected_zero := not CareerManager.increase_external_salary(1, 0)
 	_assert(increased and rejected_zero and character.job_id == job_id and character.company_id == company_id and int(character.salary) == before + 400, "Positive salary increase applies once while preserving Job and Company")
 	_assert(not character.has("career_level") and not character.has("career_xp") and _career_semantics().is_empty() and EventManager.active_event == null, "Narrative promotion adds no Career Level/XP or unapproved semantic trigger")
-
 
 func _test_save_load_without_semantic_replay() -> void:
 	var character := _graduate()
@@ -200,7 +197,7 @@ func _test_save_load_without_semantic_replay() -> void:
 	var employment_loaded := SaveManager.apply_save_snapshot(employment_snapshot)
 	var restored := CharacterManager.get_character_by_id(1)
 	_assert(employment_loaded and restored.job_id == 2076 and restored.company_id == "central_city_administration" and int(restored.salary) == 5600, "Accepted external employment survives save/load")
-	_assert(_semantic("job_started").is_empty() and _semantic("job_changed").is_empty(), "Employment deserialization emits neither job_started nor job_changed")
+	_assert(_semantic("job_offer_accepted").is_empty(), "Employment deserialization emits no job_offer_accepted occurrence")
 
 	character = _employed_graduate()
 	_setup_world(character)
@@ -214,13 +211,13 @@ func _test_save_load_without_semantic_replay() -> void:
 	var removed_loaded := SaveManager.apply_save_snapshot(removed_snapshot)
 	restored = CharacterManager.get_character_by_id(1)
 	_assert(removed_loaded and restored.job_id == null and restored.company_id == null and int(restored.salary) == 0 and restored.unemployment_start_date == "1985-01-26", "Removed-job unemployment state survives save/load")
-	_assert(_semantic("job_lost").is_empty() and removed_jobs.is_empty(), "Unemployment deserialization replays no job_lost operation")
+	_assert(_semantic("external_job_removed").is_empty() and removed_jobs.is_empty(), "Unemployment deserialization replays no external_job_removed operation")
 
 
 func _test_nested_event_acceptance_queues_one_follow_up() -> void:
 	var character := _graduate()
 	var source := _chain_event("phase5b_accept_source", [{"type":"accept_job_offer","target":"primary"}])
-	var follow_up := _system_event("phase5b_started_follow_up", "job_started")
+	var follow_up := _system_event("phase5b_accepted_follow_up", "job_offer_accepted")
 	_setup_world(character, [source, follow_up])
 	var offer := _first_unemployed_offer(character)
 	CareerManager.request_job_offer(character, offer)
@@ -230,15 +227,14 @@ func _test_nested_event_acceptance_queues_one_follow_up() -> void:
 	var result := EventManager.resolve_active_event("continue")
 	_assert(bool(activated.get("queued", false)) and bool(result.get("resolved", false)) and result.effect_results.size() == 1 and bool(result.effect_results[0].success), "Nested Job Offer Event delegates acceptance through the existing effect resolver")
 	_assert(character.job_id == offer.job_id and character.company_id == offer.company_id and character.salary == offer.salary and CareerManager.get_active_job_offer(1).is_empty(), "Nested acceptance mutates canonical Career state exactly once")
-	_assert(accepted_offers.size() == 1 and _semantic("job_started").size() == 1 and _semantic("job_changed").is_empty(), "Nested acceptance emits exactly one correct follow-up semantic occurrence")
-	_assert(EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_started_follow_up" and EventManager.queued_events.is_empty(), "Follow-up Event waits in the ordinary queue until the source Event completes")
+	_assert(accepted_offers.size() == 1 and _semantic("job_offer_accepted").size() == 1, "Nested acceptance emits exactly one canonical follow-up occurrence")
+	_assert(EventManager.active_event != null and EventManager.active_event.event_id == "phase5b_accepted_follow_up" and EventManager.queued_events.is_empty(), "Follow-up Event waits in the ordinary queue until the source Event completes")
 	var source_completions := 0
 	for completed in completed_events:
 		if String(completed.get("instance_id", "")) == source_instance_id:
 			source_completions += 1
 	_assert(source_completions == 1 and int(character.salary) == int(offer.salary), "Source Job Offer Event resolves once without duplicate acceptance or salary mutation")
 	EventManager.cancel_active_event()
-
 
 func _setup_world(character: Dictionary, events: Array = []) -> void:
 	SaveManager.current_save_id = -1
@@ -308,10 +304,9 @@ func _semantic(name: String) -> Array[Dictionary]:
 
 func _career_semantics() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for name in ["job_offer_requested", "job_started", "job_changed", "job_lost"]:
+	for name in ["job_offer_requested", "job_offer_accepted", "external_job_removed"]:
 		result.append_array(_semantic(name))
 	return result
-
 
 func _context_matches(occurrence: Dictionary, expected: Dictionary) -> bool:
 	var context = occurrence.get("context", {})
