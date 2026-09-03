@@ -818,10 +818,6 @@ func _connect_runtime_adapters() -> void:
 	_connect_if_needed(HouseManager.house_upgraded, _on_house_upgraded)
 	_connect_if_needed(BusinessManager.family_business_created, _on_business_created)
 	_connect_if_needed(BusinessManager.family_business_upgraded, _on_business_upgraded)
-	_connect_if_needed(
-		BusinessManager.family_business_role_transitioned,
-		_on_business_role_transitioned
-	)
 
 
 func _connect_if_needed(source_signal: Signal, callable: Callable) -> void:
@@ -1056,104 +1052,6 @@ func _on_business_upgraded(
 		% [
 			business_instance_id,
 			new_level
-		],
-		"BusinessManager"
-	)
-
-
-func _on_business_role_transitioned(
-	business_instance_id: String,
-	slot_id: String,
-	previous_occupant: Dictionary,
-	new_occupant: Dictionary,
-	reason: String
-) -> void:
-	var previous_source_type := String(
-		previous_occupant.get(
-			"source_type",
-			""
-		)
-	)
-	var source_type := String(
-		new_occupant.get(
-			"source_type",
-			""
-		)
-	)
-	var previous_id = previous_occupant.get(
-		"id",
-		null
-	)
-	var occupant_id = new_occupant.get(
-		"id",
-		null
-	)
-
-	var previous_character_id := (
-		int(previous_id)
-		if previous_source_type == "family"
-		and previous_id != null
-		else 0
-	)
-	var character_id := (
-		int(occupant_id)
-		if source_type == "family"
-		and occupant_id != null
-		else 0
-	)
-	var previous_npc_id := (
-		String(previous_id)
-		if previous_source_type == "npc"
-		and previous_id != null
-		else ""
-	)
-	var npc_id := (
-		String(occupant_id)
-		if source_type == "npc"
-		and occupant_id != null
-		else ""
-	)
-
-	var context := {
-		"business_instance_id": business_instance_id,
-		"slot_id": slot_id,
-		"reason": reason,
-		"previous_source_type": previous_source_type,
-		"previous_character_id": previous_character_id,
-		"previous_npc_id": previous_npc_id,
-		"source_type": source_type,
-		"character_id": character_id,
-		"npc_id": npc_id
-	}
-	var runtime_context := {
-		"context": context
-	}
-	var primary_character_id := (
-		character_id
-		if character_id > 0
-		else previous_character_id
-	)
-	if primary_character_id > 0:
-		runtime_context["trigger_character_id"] = (
-			primary_character_id
-		)
-		runtime_context["trigger_participants"] = {
-			"primary": primary_character_id
-		}
-
-	dispatch_system_trigger(
-		"business_role_changed",
-		runtime_context,
-		"business_role_changed:%s:%s:%s:%s:%s:%s:%s:%s"
-		% [
-			business_instance_id,
-			slot_id,
-			previous_source_type,
-			str(previous_id),
-			source_type,
-			str(occupant_id),
-			reason,
-			_current_date()
 		],
 		"BusinessManager"
 	)

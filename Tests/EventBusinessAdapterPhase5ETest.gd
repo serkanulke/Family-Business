@@ -25,9 +25,7 @@ func _ready() -> void:
 	_test_business_purchase_bridge()
 	_test_business_upgrade_bridge()
 	_test_business_upgrade_effect_integration()
-	_test_family_role_assignment_and_removal()
-	_test_family_role_replacement_is_one_semantic_transition()
-	_test_npc_role_assignment_and_removal()
+	_test_staffing_stays_domain_only()
 	_test_live_business_requirements()
 	_test_save_load_without_business_semantic_replay()
 
@@ -250,6 +248,79 @@ func _test_business_upgrade_effect_integration() -> void:
 		"Nested Business upgrade produces one ordinary follow-up semantic Event after source resolution"
 	)
 	_cancel_all_events()
+
+
+func _test_staffing_stays_domain_only() -> void:
+	var character := _character(1)
+	var business := _business_fixture(
+		"business_staffing_domain_only",
+		"hospital",
+		1,
+		"phase5e_plot_staffing_domain_only"
+	)
+	var slot_id := _first_slot_id(
+		"hospital",
+		1
+	)
+
+	_setup_world(
+		[character],
+		[_system_event(
+			"phase5e_role_should_not_fire",
+			"business_role_changed",
+			true
+		)],
+		[business]
+	)
+
+	_assert(
+		BusinessManager.assign_character_to_slot(
+			"business_staffing_domain_only",
+			slot_id,
+			1
+		),
+		"Family Business staffing remains a canonical BusinessManager mutation"
+	)
+	_assert(
+		legacy_family_slot_signals.size() == 1
+		and int(
+			legacy_family_slot_signals[0].get(
+				"character_id",
+				0
+			)
+		) == 1,
+		"Existing family_business_slot_changed signal remains intact"
+	)
+	_assert(
+		_semantic("business_role_changed").is_empty()
+		and EventManager.active_event == null,
+		"Staffing does not create an Event-specific business_role_changed semantic"
+	)
+
+	_clear_captures()
+
+	_assert(
+		BusinessManager.remove_character_from_slot(
+			"business_staffing_domain_only",
+			slot_id
+		),
+		"Family Business removal remains a canonical BusinessManager mutation"
+	)
+	_assert(
+		legacy_family_slot_signals.size() == 1
+		and int(
+			legacy_family_slot_signals[0].get(
+				"character_id",
+				-1
+			)
+		) == 0,
+		"Existing family slot removal signal remains intact"
+	)
+	_assert(
+		_semantic("business_role_changed").is_empty()
+		and EventManager.active_event == null,
+		"Staff removal also stays outside Event semantic dispatch"
+	)
 
 
 func _test_family_role_assignment_and_removal() -> void:
