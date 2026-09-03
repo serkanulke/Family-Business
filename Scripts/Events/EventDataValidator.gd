@@ -1141,8 +1141,13 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 		"add_flag", "remove_flag":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_flag_reference(source, event_id, path + ".flag_id", effect.get("flag_id", null))
-			if effect_type == "add_flag" and effect.has("duration") and effect["duration"] != null:
-				_validate_duration(source, event_id, path + ".duration", effect["duration"])
+			if effect_type == "add_flag" and effect.has("duration"):
+				_add(
+					source,
+					event_id,
+					path + ".duration",
+					"add_flag does not support duration. Use schedule_event plus remove_flag for timed story state."
+				)
 		"relationship_marry", "relationship_divorce":
 			_validate_effect_target(source, event_id, path, effect, "primary", participant_names)
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)

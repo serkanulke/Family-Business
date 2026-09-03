@@ -30,7 +30,7 @@ func _test_deterministic_cost_effect_history_and_cooldown() -> void:
 	_setup()
 	var event := _event("phase4_deterministic", [
 		{"type":"stat_change","target":"primary","stat":"health","amount":5},
-		{"type":"add_flag","target":"primary","flag_id":FLAG_ID,"duration":{"unit":"day","value":1},"feedback":{"mode":"custom","text":"A private story state changed."}},
+		{"type":"add_flag","target":"primary","flag_id":FLAG_ID,"feedback":{"mode":"custom","text":"A private story state changed."}},
 		{"type":"money_change","amount":10},
 		{"type":"diamond_change","amount":-1},
 	])
@@ -50,13 +50,14 @@ func _test_deterministic_cost_effect_history_and_cooldown() -> void:
 	_assert(EventManager.story_history.records.size() == 1 and EventManager.story_history.has_choice(event.event_id, "continue", {"primary":1}, {}), "Story history records instance and choice")
 	_assert(EventManager.story_history.has_completed(event.event_id, {"primary":1}, {}) and EventManager.state_provider.is_completed_non_repeatable(event, {"primary":1}, {}), "History and repeat state commit only on completion")
 	_assert(EventManager.state_provider.is_on_cooldown(event, {"primary":1}, {}), "Cooldown begins at successful completion")
-	EventManager.effect_resolver.process_temporary_flags(GameCalendar.add_days(TimeManager.get_iso_date_string(), 1))
-	_assert(FLAG_ID not in CharacterManager.characters[0].flag_ids, "Temporary Event-added flag expires on the real calendar")
-	CharacterManager.set_character_flag(1, FLAG_ID, true)
-	var baseline := _event("temporary_flag_baseline", [{"type":"add_flag","target":"primary","flag_id":FLAG_ID,"duration":{"unit":"day","value":1}}])
-	_configure([baseline]); EventManager.activate_chain(baseline.event_id, {"primary":1}); EventManager.resolve_active_event("continue")
-	EventManager.effect_resolver.process_temporary_flags(GameCalendar.add_days(TimeManager.get_iso_date_string(), 1))
-	_assert(FLAG_ID in CharacterManager.characters[0].flag_ids, "Temporary duration never removes a pre-existing permanent flag")
+	var remove_flag := _event("remove_flag_explicitly", [{"type":"remove_flag","target":"primary","flag_id":FLAG_ID}])
+	_configure([remove_flag])
+	EventManager.activate_chain(remove_flag.event_id, {"primary":1})
+	_assert(
+		EventManager.resolve_active_event("continue").resolved
+		and FLAG_ID not in CharacterManager.characters[0].flag_ids,
+		"Flag removal is an explicit Event effect rather than an EventManager timer"
+	)
 
 
 func _test_choice_revalidation_and_atomic_preflight() -> void:
@@ -259,7 +260,7 @@ func _test_runtime_export_import_and_reset() -> void:
 	var resolved := EventManager.resolve_active_event("continue")
 	_assert(resolved.resolved and GameManager.family_money == money_before + 77, "Imported active Event resolves exactly once")
 	EventManager.reset_runtime_state()
-	_assert(EventManager.active_event == null and EventManager.queued_events.is_empty() and EventManager.story_history.records.is_empty() and EventManager.state_provider.cooldown_records.is_empty() and EventManager.effect_resolver.temporary_flags.is_empty(), "Runtime reset clears every Phase 4A state surface")
+	_assert(EventManager.active_event == null and EventManager.queued_events.is_empty() and EventManager.story_history.records.is_empty() and EventManager.state_provider.cooldown_records.is_empty(), "Runtime reset clears every Phase 4A Event state surface")
 
 
 func _event(event_id: String, effects: Array) -> Dictionary:

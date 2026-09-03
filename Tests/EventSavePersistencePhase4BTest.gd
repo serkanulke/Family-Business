@@ -4,8 +4,7 @@ extends Node
 const TEST_SAVE_DIRECTORY := "user://event_phase4b_persistence_test"
 const TEST_SAVE_ID := 46001
 const ITEM_ID := "accessory_common_black_gold_browline_sunglasses_007"
-const TEMP_FLAG_ID := 1001
-const PERMANENT_FLAG_ID := 1002
+const FLAG_ID := 1001
 
 var passed := 0
 var failed := 0
@@ -29,7 +28,7 @@ func _ready() -> void:
 	_test_active_blocking_and_queue_round_trip()
 	_test_history_repeat_and_cooldown_round_trip()
 	_test_schedule_counters_ledgers_and_rng_round_trip()
-	_test_temporary_flags_and_new_game_reset()
+	_test_flag_persistence_and_new_game_reset()
 
 	EventManager.configure_runtime(original_registry)
 	SaveManager.apply_save_snapshot(original_snapshot)
@@ -288,24 +287,32 @@ func _test_schedule_counters_ledgers_and_rng_round_trip() -> void:
 	_assert(SaveManager.apply_save_snapshot(terminal_snapshot) and _scheduled_record(EventManager.scheduled_events, invalid.scheduled_event_id).status == "expired" and _scheduled_record(EventManager.scheduled_events, cancelled.scheduled_event_id).status == "cancelled", "Cancelled and expired scheduled state cannot return as pending after load")
 
 
-func _test_temporary_flags_and_new_game_reset() -> void:
+func _test_flag_persistence_and_new_game_reset() -> void:
 	_setup_domain_state()
-	var short_flag := _event("temp_short", [{"type":"add_flag","target":"primary","flag_id":TEMP_FLAG_ID,"duration":{"unit":"day","value":1}}])
-	var long_flag := _event("temp_long", [{"type":"add_flag","target":"primary","flag_id":TEMP_FLAG_ID,"duration":{"unit":"day","value":2}}])
-	var permanent_flag := _event("temp_permanent", [{"type":"add_flag","target":"primary","flag_id":PERMANENT_FLAG_ID,"duration":{"unit":"day","value":1}}])
-	_configure([short_flag, long_flag, permanent_flag])
-	CharacterManager.set_character_flag(1, PERMANENT_FLAG_ID, true)
-	for event in [short_flag, long_flag, permanent_flag]:
-		EventManager.activate_chain(event.event_id, {"primary":1}, {}, null, "flag_%s" % event.event_id)
-		EventManager.resolve_active_event("continue")
-	_assert(SaveManager.apply_save_snapshot(_json_snapshot()) and EventManager.effect_resolver.temporary_flags.size() == 3, "Temporary and overlapping flag grants survive save/load")
-	EventManager.effect_resolver.process_temporary_flags("2000-01-02")
-	_assert(TEMP_FLAG_ID in CharacterManager.characters[0].flag_ids, "First overlapping grant expiry keeps the later temporary grant active", JSON.stringify({"flags":CharacterManager.characters[0].flag_ids,"temporary":EventManager.effect_resolver.temporary_flags}))
-	_assert(PERMANENT_FLAG_ID in CharacterManager.characters[0].flag_ids, "Temporary expiry never removes a pre-existing permanent flag", JSON.stringify({"flags":CharacterManager.characters[0].flag_ids,"temporary":EventManager.effect_resolver.temporary_flags}))
-	EventManager.effect_resolver.process_temporary_flags("2000-01-03")
-	_assert(TEMP_FLAG_ID not in CharacterManager.characters[0].flag_ids and PERMANENT_FLAG_ID in CharacterManager.characters[0].flag_ids, "Final temporary expiry removes only Event-owned temporary state", JSON.stringify({"flags":CharacterManager.characters[0].flag_ids,"temporary":EventManager.effect_resolver.temporary_flags}))
+	var add_flag := _event("persistent_flag", [{"type":"add_flag","target":"primary","flag_id":FLAG_ID}])
+	_configure([add_flag])
+	EventManager.activate_chain(add_flag.event_id, {"primary":1}, {}, null, "flag_persistence")
+	_assert(
+		EventManager.resolve_active_event("continue").resolved
+		and FLAG_ID in CharacterManager.characters[0].flag_ids,
+		"add_flag writes only canonical Character flag state"
+	)
+	var snapshot := _json_snapshot()
+	_assert(
+		not snapshot["event_system"].has("effect_runtime_state"),
+		"Event runtime no longer persists Event-owned temporary flag state"
+	)
 
-	EventManager.activate_chain(short_flag.event_id, {"primary":1}, {}, null, "before_new_game")
+	var legacy_snapshot := snapshot.duplicate(true)
+	legacy_snapshot["event_system"]["effect_runtime_state"] = {"temporary_flags": []}
+	CharacterManager.set_character_flag(1, FLAG_ID, false)
+	_assert(
+		SaveManager.apply_save_snapshot(legacy_snapshot)
+		and FLAG_ID in CharacterManager.characters[0].flag_ids,
+		"Legacy version 6 effect_runtime_state is ignored while canonical Character flags restore normally"
+	)
+
+	EventManager.activate_chain(add_flag.event_id, {"primary":1}, {}, null, "before_new_game")
 	EventManager.resolve_active_event("continue")
 	_assert(not EventManager.story_history.records.is_empty(), "New-game reset fixture contains prior Event state")
 	var started := GameManager.start_new_game("Reset", "male", "EventReset")
@@ -371,7 +378,7 @@ func _write_snapshot(save_id: int, snapshot: Dictionary) -> bool:
 
 
 func _event_state_is_empty() -> bool:
-	return EventManager.active_event == null and EventManager.queued_events.is_empty() and EventManager.scheduled_events.is_empty() and EventManager.story_history.records.is_empty() and EventManager.state_provider.completed_repeat_records.is_empty() and EventManager.state_provider.cooldown_records.is_empty() and EventManager.effect_resolver.temporary_flags.is_empty() and EventManager.runtime_service.get_next_instance_number() == 1
+	return EventManager.active_event == null and EventManager.queued_events.is_empty() and EventManager.scheduled_events.is_empty() and EventManager.story_history.records.is_empty() and EventManager.state_provider.completed_repeat_records.is_empty() and EventManager.state_provider.cooldown_records.is_empty() and EventManager.runtime_service.get_next_instance_number() == 1
 
 
 func _cooldown_record(event_id: String) -> Dictionary:

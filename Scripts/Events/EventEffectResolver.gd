@@ -3,7 +3,6 @@ extends RefCounted
 
 
 var registry: EventDataRegistry
-var temporary_flags: Array[Dictionary] = []
 
 
 func _init(p_registry: EventDataRegistry) -> void:
@@ -62,44 +61,6 @@ func apply(plans: Array, source_instance_id: String) -> Dictionary:
 		if not bool(result.get("success", false)):
 			return {"success": false, "effect_results": results, "failure_reasons": [result]}
 	return {"success": true, "effect_results": results, "failure_reasons": []}
-
-
-func process_temporary_flags(current_date: String) -> Array:
-	var removed: Array = []
-	var expired_groups: Dictionary = {}
-	for index in range(temporary_flags.size() - 1, -1, -1):
-		var record: Dictionary = temporary_flags[index]
-		if GameCalendar.compare(current_date, String(record.get("expires_date", ""))) < 0:
-			continue
-		var group_key := "%d|%s" % [int(record.get("character_id", 0)), str(record.get("flag_id", null))]
-		if not expired_groups.has(group_key):
-			expired_groups[group_key] = {"character_id": int(record.get("character_id", 0)), "flag_id": record.get("flag_id", null), "baseline_present": bool(record.get("baseline_present", false))}
-		else:
-			expired_groups[group_key]["baseline_present"] = bool(expired_groups[group_key]["baseline_present"]) or bool(record.get("baseline_present", false))
-		removed.append(record.duplicate(true))
-		temporary_flags.remove_at(index)
-	for group in expired_groups.values():
-		if not bool(group.get("baseline_present", false)) and not _has_temporary_flag(int(group.get("character_id", 0)), group.get("flag_id", null)):
-			CharacterManager.set_character_flag(int(group.get("character_id", 0)), group.get("flag_id", null), false)
-	return removed
-
-
-func export_state() -> Dictionary:
-	return {"temporary_flags": temporary_flags.duplicate(true)}
-
-
-func import_state(value) -> bool:
-	if typeof(value) != TYPE_DICTIONARY or typeof(value.get("temporary_flags", null)) != TYPE_ARRAY:
-		return false
-	temporary_flags.clear()
-	for member in value["temporary_flags"]:
-		if typeof(member) != TYPE_DICTIONARY: return false
-		temporary_flags.append((member as Dictionary).duplicate(true))
-	return true
-
-
-func reset() -> void:
-	temporary_flags.clear()
 
 
 func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, context: Dictionary, reserved_items: Dictionary) -> Dictionary:
@@ -213,23 +174,14 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			result.merge({"success": not mutation.is_empty(), "target_character_id": character_id, "stat": stat, "requested_amount": requested, "applied_amount": int(mutation.get("applied_amount", 0)), "before": before, "after": int(mutation.get("after", before))}, true)
 		"add_flag", "remove_flag":
 			var enabled := effect_type == "add_flag"
-			var flag_value = effect.get("flag_id", null)
-			var normalized_flag = int(flag_value) if typeof(flag_value) in [TYPE_INT, TYPE_FLOAT] else flag_value
-			var flags_value = CharacterManager.get_character_by_id(character_id).get("flag_ids", [])
-			var was_present: bool = typeof(flags_value) == TYPE_ARRAY and normalized_flag in flags_value
-			result.merge({"success": CharacterManager.set_character_flag(character_id, effect.get("flag_id", null), enabled), "target_character_id": character_id}, true)
-			if enabled and typeof(effect.get("duration", null)) == TYPE_DICTIONARY:
-				var duration: Dictionary = effect["duration"]
-				var baseline_present: bool = was_present
-				for current in temporary_flags:
-					if int(current.get("character_id", 0)) == character_id and current.get("flag_id", null) == normalized_flag:
-						baseline_present = bool(current.get("baseline_present", false))
-						break
-				temporary_flags.append({"character_id": character_id, "flag_id": normalized_flag, "expires_date": GameCalendar.add_interval(TimeManager.get_iso_date_string(), String(duration.get("unit", "")), int(duration.get("value", 0))), "source_instance_id": source_instance_id, "baseline_present": baseline_present})
-			elif enabled:
-				_mark_temporary_flag_as_permanent(character_id, flag_value)
-			elif not enabled:
-				_remove_temporary_flag_records(character_id, flag_value)
+			result.merge({
+				"success": CharacterManager.set_character_flag(
+					character_id,
+					effect.get("flag_id", null),
+					enabled
+				),
+				"target_character_id": character_id
+			}, true)
 		"money_change":
 			var before := GameManager.family_money
 			GameManager.set_family_money(before + int(effect.get("amount", 0)))
@@ -358,26 +310,6 @@ func _exclusive_mutation_key(plan: Dictionary) -> String:
 			var effect: Dictionary = plan.get("effect", {})
 			return "cancel:%s:%s" % [String(effect.get("scheduled_event_id", "")), String(effect.get("event_id", ""))]
 	return ""
-
-
-func _has_temporary_flag(character_id: int, flag_id) -> bool:
-	for record in temporary_flags:
-		if int(record.get("character_id", 0)) == character_id and record.get("flag_id", null) == flag_id:
-			return true
-	return false
-
-
-func _mark_temporary_flag_as_permanent(character_id: int, flag_id) -> void:
-	for record in temporary_flags:
-		if int(record.get("character_id", 0)) == character_id and record.get("flag_id", null) == flag_id:
-			record["baseline_present"] = true
-
-
-func _remove_temporary_flag_records(character_id: int, flag_id) -> void:
-	for index in range(temporary_flags.size() - 1, -1, -1):
-		var record: Dictionary = temporary_flags[index]
-		if int(record.get("character_id", 0)) == character_id and record.get("flag_id", null) == flag_id:
-			temporary_flags.remove_at(index)
 
 
 func _display(effect: Dictionary, result: Dictionary) -> Dictionary:

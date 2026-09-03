@@ -81,8 +81,6 @@ func reset_runtime_state() -> void:
 		state_provider.reset()
 	if story_history != null:
 		story_history.reset()
-	if effect_resolver != null:
-		effect_resolver.reset()
 	if runtime_service != null:
 		runtime_service.reset_instance_counter()
 	_emit_queue_state()
@@ -380,7 +378,6 @@ func export_runtime_state() -> Dictionary:
 	state["occurrence_by_instance"] = _occurrence_by_instance.duplicate(true)
 	state["processed_selection_occurrences"] = _processed_selection_occurrences.keys()
 	state["history"] = story_history.export_state()
-	state["effect_runtime_state"] = effect_resolver.export_state()
 	state["pool_random_state"] = pool_selector.export_state()
 	state["resolution_random_state"] = resolution_resolver.export_state()
 	state["queue_order_by_instance"] = _queue_order_by_instance.duplicate(true)
@@ -413,7 +410,6 @@ func import_runtime_state(value) -> bool:
 		scheduled_events.append((record_value as Dictionary).duplicate(true))
 	if not story_history.import_state(state["history"]): return _import_dependency_failed("Story history rejected its validated state.")
 	if not state_provider.import_state({"completed_repeat_records": state["repeat_runtime_state"], "cooldowns": state["cooldowns"]}): return _import_dependency_failed("Repeat/cooldown state was rejected.")
-	if not effect_resolver.import_state(state["effect_runtime_state"]): return _import_dependency_failed("Temporary flag state was rejected.")
 	if not pool_selector.import_state(state["pool_random_state"]): return _import_dependency_failed("Pool RNG state was rejected.")
 	if not resolution_resolver.import_state(state["resolution_random_state"]): return _import_dependency_failed("Resolution RNG state was rejected.")
 	runtime_service.reset_instance_counter(int(state.get("next_event_instance_number", 1)))
@@ -448,7 +444,6 @@ func _runtime_state_validation_error(state: Dictionary) -> String:
 		"history": TYPE_ARRAY,
 		"repeat_runtime_state": TYPE_ARRAY,
 		"cooldowns": TYPE_ARRAY,
-		"effect_runtime_state": TYPE_DICTIONARY,
 		"pool_random_state": TYPE_DICTIONARY,
 		"resolution_random_state": TYPE_DICTIONARY,
 		"occurrence_by_instance": TYPE_DICTIONARY,
@@ -485,11 +480,6 @@ func _runtime_state_validation_error(state: Dictionary) -> String:
 		for member in state[key]:
 			if typeof(member) != TYPE_DICTIONARY:
 				return "Event runtime array '%s' must contain only Dictionaries." % key
-	var effect_state: Dictionary = state["effect_runtime_state"]
-	if typeof(effect_state.get("temporary_flags", null)) != TYPE_ARRAY:
-		return "Temporary Event flag state must be an Array."
-	for member in effect_state["temporary_flags"]:
-		if typeof(member) != TYPE_DICTIONARY: return "Temporary Event flag entries must be Dictionaries."
 	for key in ["pool_random_state", "resolution_random_state"]:
 		var random_state: Dictionary = state[key]
 		if not _is_integer_value(random_state.get("seed", null)) or not _is_integer_value(random_state.get("state", null)):
@@ -844,8 +834,6 @@ func _on_new_game_starting() -> void:
 
 
 func _on_date_changed(_date_text: String) -> void:
-	if effect_resolver != null:
-		effect_resolver.process_temporary_flags(_current_date())
 	process_calendar_date(_current_date())
 	process_scheduled_due(_current_date())
 

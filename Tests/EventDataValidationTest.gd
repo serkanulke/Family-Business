@@ -595,6 +595,19 @@ func _test_effect_validation() -> void:
 	leaking_flag_feedback["choices"][0]["resolution"]["effects"] = [{"type":"add_flag","target":"primary","flag_id":1001,"feedback":{"mode":"custom","text":"Flag 1001 gained."}}]
 	_expect_invalid_event(leaking_flag_feedback, "Custom feedback cannot expose an internal flag ID", "must not expose the internal flag_id")
 
+	var timed_flag := _base_event("unsupported_timed_flag", "general")
+	timed_flag["choices"][0]["resolution"]["effects"] = [{
+		"type": "add_flag",
+		"target": "primary",
+		"flag_id": 1001,
+		"duration": {"unit": "month", "value": 1}
+	}]
+	_expect_invalid_event(
+		timed_flag,
+		"Event-owned temporary flag duration is rejected",
+		"add_flag does not support duration"
+	)
+
 	var generic_business := _base_event("unsupported_generic_business_effect", "business")
 	generic_business["participants"]["business"] = {"type": "business", "source": "owned_business"}
 	generic_business["choices"][0]["resolution"]["effects"] = [{
@@ -838,7 +851,7 @@ func _all_valid_effects() -> Array:
 	return [
 		{"type": "stat_change", "target": "primary", "stat": "health", "amount": 5},
 		{"type": "stat_set", "target": "primary", "stat": "happiness", "value": 80},
-		{"type": "add_flag", "target": "primary", "flag_id": 1001, "duration": {"unit": "month", "value": 1}},
+		{"type": "add_flag", "target": "primary", "flag_id": 1001},
 		{"type": "remove_flag", "target": "primary", "flag_id": 1001},
 		{"type": "relationship_marry", "primary": "primary", "target": "target"},
 		{"type": "relationship_divorce", "primary": "primary", "target": "target"},
