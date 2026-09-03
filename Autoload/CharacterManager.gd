@@ -130,7 +130,6 @@ var characters: Array = []
 var majors: Array = []
 var jobs: Array = []
 var next_character_id: int = 1
-var _suppress_lifecycle_semantics := false
 
 
 func _ready() -> void:
@@ -966,9 +965,6 @@ func get_avatar_texture(
 func _on_date_changed(
 	_date_text: String
 ) -> void:
-	if _suppress_lifecycle_semantics:
-		return
-
 	var previous_states: Array[Dictionary] = []
 
 	for character_value in characters:
@@ -1023,7 +1019,7 @@ func _on_date_changed(
 
 
 func _on_new_game_starting() -> void:
-	_suppress_lifecycle_semantics = true
+	reset_characters_for_new_game()
 
 
 func _is_character_birthday_today(
@@ -2701,9 +2697,11 @@ func create_starting_character(
 
 
 func reset_characters_for_new_game() -> void:
+	if characters.is_empty() and next_character_id == 1:
+		return
+
 	characters.clear()
 	next_character_id = 1
-	_suppress_lifecycle_semantics = false
 
 	print(
 		"Characters reset for new game."

@@ -23,14 +23,6 @@ signal unhoused_penalties_applied(
 	processing_date: String
 )
 
-signal character_house_assignment_changed(
-	character_id: int,
-	previous_assignment: Dictionary,
-	new_assignment: Dictionary,
-	reason: String
-)
-
-
 const HOUSE_DATA_PATH := "res://Resources/Json/House.json"
 const HOUSEHOLD_PERKS_DATA_PATH := "res://Resources/Json/HouseholdPerks.json"
 const DEFAULT_HOUSE_DEFINITION_ID := "family_house"
@@ -320,7 +312,7 @@ func assign_character_to_role(
 		return false
 	if not can_character_hold_household_role(character_id):
 		return false
-	var candidate_assignment := get_character_assignment(character_id).duplicate(true)
+	var candidate_assignment := get_character_assignment(character_id)
 	if str(candidate_assignment.get("assignment_type", "")) == "role":
 		return (
 			str(candidate_assignment.get("house_instance_id", "")) == house_instance_id
@@ -329,10 +321,6 @@ func assign_character_to_role(
 	var roles: Dictionary = house.get("role_assignments", {})
 	var current_value = roles.get(role_id, null)
 	var current_character_id := 0 if current_value == null else int(current_value)
-	var displaced_assignment: Dictionary = {}
-	if current_character_id > 0 and current_character_id != character_id:
-		displaced_assignment = get_character_assignment(current_character_id).duplicate(true)
-
 	var candidate_already_in_target := (
 		str(candidate_assignment.get("house_instance_id", "")) == house_instance_id
 	)
@@ -352,17 +340,6 @@ func assign_character_to_role(
 	if not source_house_id.is_empty() and source_house_id != house_instance_id:
 		house_state_changed.emit(source_house_id, "resident_moved")
 	house_state_changed.emit(house_instance_id, "role_assignment")
-	if (
-		current_character_id > 0
-		and current_character_id != character_id
-		and not displaced_assignment.is_empty()
-	):
-		_emit_character_house_assignment_changed(
-			current_character_id,
-			displaced_assignment,
-			"role_replaced"
-		)
-	_emit_character_house_assignment_changed(character_id, candidate_assignment, "role_assignment")
 	return true
 
 
@@ -376,7 +353,7 @@ func assign_character_as_resident(
 		return false
 	if not bool(character.get("is_alive", true)) or not bool(character.get("is_player_family", false)):
 		return false
-	var assignment := get_character_assignment(character_id).duplicate(true)
+	var assignment := get_character_assignment(character_id)
 	if not assignment.is_empty():
 		return (
 			str(assignment.get("house_instance_id", "")) == house_instance_id
@@ -390,22 +367,17 @@ func assign_character_as_resident(
 	residents.append(character_id)
 	house["resident_character_ids"] = residents
 	house_state_changed.emit(house_instance_id, "resident_assignment")
-	_emit_character_house_assignment_changed(character_id, assignment, "resident_assignment")
 	return true
 
 
-func remove_character_from_house(
-	character_id: int,
-	reason: String = "occupant_removed"
-) -> bool:
-	var assignment := get_character_assignment(character_id).duplicate(true)
+func remove_character_from_house(character_id: int) -> bool:
+	var assignment := get_character_assignment(character_id)
 	if assignment.is_empty():
 		return false
 	var house_instance_id := str(assignment.get("house_instance_id", ""))
 	if not _remove_character_assignment_internal(character_id):
 		return false
 	house_state_changed.emit(house_instance_id, "occupant_removed")
-	_emit_character_house_assignment_changed(character_id, assignment, reason)
 	return true
 
 
@@ -425,19 +397,6 @@ func _remove_character_assignment_internal(character_id: int) -> bool:
 		residents.erase(character_id)
 		house["resident_character_ids"] = residents
 	return true
-
-
-func _emit_character_house_assignment_changed(
-	character_id: int,
-	previous_assignment: Dictionary,
-	reason: String
-) -> void:
-	character_house_assignment_changed.emit(
-		character_id,
-		previous_assignment.duplicate(true),
-		get_character_assignment(character_id).duplicate(true),
-		reason
-	)
 
 
 func get_role_candidates(house_instance_id: String, role_id: String) -> Array:

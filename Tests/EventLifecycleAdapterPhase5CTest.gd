@@ -30,6 +30,7 @@ func _ready() -> void:
 	_test_deterministic_death_and_existing_adapter()
 	_test_character_born_regression()
 	_test_save_load_without_lifecycle_replay()
+	_test_new_game_reset_is_domain_owned()
 	_test_no_persistent_lifecycle_markers()
 
 	_disconnect_capture_signals()
@@ -178,6 +179,40 @@ func _test_save_load_without_lifecycle_replay() -> void:
 	EventManager.cancel_active_event()
 
 
+func _test_new_game_reset_is_domain_owned() -> void:
+	var stale_character := _character(
+		1,
+		"1979-01-26",
+		"child"
+	)
+	_setup_world(
+		[stale_character],
+		[
+			_system_event(
+				"phase5c_stale_age",
+				"age_reached"
+			)
+		]
+	)
+
+	GameManager.new_game_starting.emit()
+	TimeManager.reset_time()
+
+	_assert(
+		CharacterManager.characters.is_empty()
+		and CharacterManager.next_character_id == 1,
+		"New-game start clears Character domain state before the Time reset"
+	)
+	_assert(
+		age_signals.is_empty()
+		and stage_signals.is_empty()
+		and retirement_signals.is_empty()
+		and death_signals.is_empty()
+		and _lifecycle_semantics().is_empty(),
+		"New-game Time reset cannot replay lifecycle transitions from the previous family"
+	)
+
+
 func _test_no_persistent_lifecycle_markers() -> void:
 	var character := _character(1, "1965-01-26", "young_adult")
 	_setup_world([character])
@@ -185,7 +220,18 @@ func _test_no_persistent_lifecycle_markers() -> void:
 	var absent := true
 	for field_name in forbidden:
 		absent = absent and not character.has(field_name)
-	_assert(absent and int(SaveManager.SAVE_VERSION) == 6, "Phase 5C adds no persistent lifecycle marker and leaves save version 6 unchanged")
+	_assert(
+		absent
+		and int(SaveManager.SAVE_VERSION) == 6,
+		"Phase 5C adds no persistent Character lifecycle marker and leaves save version 6 unchanged"
+	)
+	_assert(
+		not _object_has_property(
+			CharacterManager,
+			"_suppress_lifecycle_semantics"
+		),
+		"CharacterManager keeps no Event-only lifecycle suppression state"
+	)
 
 
 func _setup_world(characters: Array, events: Array = [], businesses: Array = []) -> void:
@@ -302,6 +348,26 @@ func _clear_captures() -> void:
 	death_signals.clear()
 	birth_signals.clear()
 	semantic_occurrences.clear()
+
+
+func _object_has_property(
+	object: Object,
+	property_name: String
+) -> bool:
+	for property_value in object.get_property_list():
+		if typeof(property_value) != TYPE_DICTIONARY:
+			continue
+
+		var property: Dictionary = property_value
+		if String(
+			property.get(
+				"name",
+				""
+			)
+		) == property_name:
+			return true
+
+	return false
 
 
 func _assert(condition: bool, name: String, detail: String = "") -> void:

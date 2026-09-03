@@ -948,8 +948,7 @@ func _handle_character_after_divorce(
 		character_id
 	)
 	HouseManager.remove_character_from_house(
-		character_id,
-		"family_exit"
+		character_id
 	)
 
 	character["is_player_family"] = false

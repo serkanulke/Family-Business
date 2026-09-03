@@ -811,10 +811,6 @@ func _connect_runtime_adapters() -> void:
 	_connect_if_needed(CareerManager.job_offer_requested, _on_job_offer_requested)
 	_connect_if_needed(CareerManager.job_offer_accepted, _on_job_offer_accepted)
 	_connect_if_needed(CareerManager.external_job_removed, _on_external_job_removed)
-	_connect_if_needed(
-		HouseManager.character_house_assignment_changed,
-		_on_character_house_assignment_changed
-	)
 	_connect_if_needed(HouseManager.house_upgraded, _on_house_upgraded)
 	_connect_if_needed(BusinessManager.family_business_created, _on_business_created)
 	_connect_if_needed(BusinessManager.family_business_upgraded, _on_business_upgraded)
@@ -909,94 +905,6 @@ func _on_job_offer_accepted(
 func _on_external_job_removed(character_id: int, previous_job_id: int, previous_company_id: String, previous_salary: int) -> void:
 	var context := {"character_id": character_id, "previous_job_id": previous_job_id, "previous_company_id": previous_company_id, "previous_salary": previous_salary}
 	dispatch_system_trigger("job_lost", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "job_lost:%d:%d:%s:%s" % [character_id, previous_job_id, previous_company_id, _current_date()], "CareerManager")
-
-
-func _on_character_house_assignment_changed(
-	character_id: int,
-	previous_assignment: Dictionary,
-	new_assignment: Dictionary,
-	reason: String
-) -> void:
-	if reason == "family_exit":
-		return
-
-	var character := CharacterManager.get_character_by_id(character_id)
-	if (
-		character.is_empty()
-		or not bool(character.get("is_alive", true))
-		or not bool(character.get("is_player_family", false))
-	):
-		return
-
-	var previous_house_instance_id := String(
-		previous_assignment.get("house_instance_id", "")
-	)
-	var house_instance_id := String(
-		new_assignment.get("house_instance_id", "")
-	)
-	var previous_assignment_type := String(
-		previous_assignment.get("assignment_type", "")
-	)
-	var assignment_type := String(
-		new_assignment.get("assignment_type", "")
-	)
-	var previous_role_id := String(
-		previous_assignment.get("role_id", "")
-	)
-	var role_id := String(
-		new_assignment.get("role_id", "")
-	)
-	var context := {
-		"character_id": character_id,
-		"reason": reason,
-		"previous_house_instance_id": previous_house_instance_id,
-		"house_instance_id": house_instance_id,
-		"previous_assignment_type": previous_assignment_type,
-		"assignment_type": assignment_type,
-		"previous_role_id": previous_role_id,
-		"role_id": role_id
-	}
-	var runtime_context := {
-		"trigger_character_id": character_id,
-		"trigger_participants": {"primary": character_id},
-		"context": context
-	}
-
-	dispatch_system_trigger(
-		"house_assignment_changed",
-		runtime_context,
-		"house_assignment_changed:%d:%s:%s:%s:%s:%s:%s:%s:%s"
-		% [
-			character_id,
-			previous_house_instance_id,
-			previous_assignment_type,
-			previous_role_id,
-			house_instance_id,
-			assignment_type,
-			role_id,
-			reason,
-			_current_date()
-		],
-		"HouseManager"
-	)
-
-	if (
-		not previous_assignment.is_empty()
-		and new_assignment.is_empty()
-		and HouseManager.is_character_unhoused(character_id)
-	):
-		dispatch_system_trigger(
-			"character_became_unhoused",
-			runtime_context,
-			"character_became_unhoused:%d:%s:%s:%s"
-			% [
-				character_id,
-				previous_house_instance_id,
-				reason,
-				_current_date()
-			],
-			"HouseManager"
-		)
 
 
 func _on_house_upgraded(house_instance_id: String, new_level: int, _upgrade_cost: int) -> void:

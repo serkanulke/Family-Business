@@ -7,7 +7,6 @@ var original_snapshot: Dictionary = {}
 var original_registry: EventDataRegistry
 var original_save_id := -1
 
-var assignment_signals: Array[Dictionary] = []
 var semantic_occurrences: Array[Dictionary] = []
 
 
@@ -19,9 +18,8 @@ func _ready() -> void:
 
 	_connect_capture_signals()
 
-	_test_assignment_and_unhoused_transitions()
-	_test_role_replacement()
-	_test_divorce_death_and_bootstrap_suppression()
+	_test_assignment_mutations_stay_domain_only()
+	_test_divorce_death_and_bootstrap_cleanup()
 	_test_upgrade_and_live_requirements()
 	_test_save_load_without_house_semantic_replay()
 
@@ -36,172 +34,74 @@ func _ready() -> void:
 	get_tree().quit(0 if failed == 0 else 1)
 
 
-func _test_assignment_and_unhoused_transitions() -> void:
-	var head := _character(1, 60, [1002])
+func _test_assignment_mutations_stay_domain_only() -> void:
+	var head := _character(1, 60)
 	var resident := _character(2, 70)
-	var mover := _character(3, 70)
+	var replacement := _character(3, 80)
 	_setup_world(
-		[head, resident, mover],
+		[head, resident, replacement],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true)
+			_system_event("phase5d_assignment_should_not_fire", "house_assignment_changed", true),
+			_system_event("phase5d_unhoused_should_not_fire", "character_became_unhoused", true)
 		],
 		_default_houses(1)
 	)
 
 	_assert(
 		HouseManager.assign_character_as_resident("house_0001", 2),
-		"Resident assignment succeeds through the canonical HouseManager API"
+		"Resident assignment remains a canonical HouseManager mutation"
 	)
 	_assert(
-		assignment_signals.size() == 1
-		and assignment_signals[0].previous_assignment.is_empty()
-		and String(assignment_signals[0].new_assignment.get("assignment_type", "")) == "resident"
-		and String(assignment_signals[0].new_assignment.get("house_instance_id", "")) == "house_0001",
-		"Resident assignment emits one precise post-success domain transition"
+		HouseManager.get_character_assignment(2).get("assignment_type", "") == "resident",
+		"Resident assignment updates authoritative House state"
 	)
 	_assert(
-		_semantic("house_assignment_changed").size() == 1
-		and _context_matches(
-			_semantic("house_assignment_changed")[0],
-			{
-				"character_id": 2,
-				"previous_house_instance_id": "",
-				"house_instance_id": "house_0001",
-				"assignment_type": "resident"
-			}
-		),
-		"Resident assignment dispatches one character-bound house_assignment_changed occurrence"
+		_semantic("house_assignment_changed").is_empty()
+		and _semantic("character_became_unhoused").is_empty()
+		and EventManager.active_event == null,
+		"House assignment does not create Event-only assignment or Unhoused semantics"
 	)
-	_assert(
-		_semantic("character_became_unhoused").is_empty(),
-		"Becoming housed never emits a false Unhoused occurrence"
-	)
-	_assert(
-		_active_event_is("phase5d_assignment", 2),
-		"Controlled assignment Event queues exactly once"
-	)
-	_cancel_all_events()
-	_clear_captures()
 
 	_assert(
 		HouseManager.assign_character_to_role("house_0001", "cook", 2),
-		"Resident can move directly into a House role through existing canonical behavior"
+		"Resident-to-role transition remains HouseManager-owned"
 	)
 	_assert(
-		assignment_signals.size() == 1
-		and String(assignment_signals[0].previous_assignment.get("assignment_type", "")) == "resident"
-		and String(assignment_signals[0].new_assignment.get("assignment_type", "")) == "role"
-		and String(assignment_signals[0].new_assignment.get("role_id", "")) == "cook",
-		"Resident-to-role is reported as one logical transition"
-	)
-	_assert(
-		_semantic("house_assignment_changed").size() == 1
+		String(HouseManager.get_character_assignment(2).get("role_id", "")) == "cook"
+		and _semantic("house_assignment_changed").is_empty()
 		and _semantic("character_became_unhoused").is_empty(),
-		"Resident-to-role does not expose a transient Unhoused state"
-	)
-	_cancel_all_events()
-	_clear_captures()
-
-	_assert(
-		HouseManager.assign_character_as_resident("house_0001", 3),
-		"Move fixture Character can first enter the source House"
-	)
-	_cancel_all_events()
-	_clear_captures()
-
-	_assert(
-		HouseManager.assign_character_to_role("house_0002", "cook", 3),
-		"Existing resident-to-role behavior supports a direct cross-House move"
-	)
-	_assert(
-		assignment_signals.size() == 1
-		and String(assignment_signals[0].previous_assignment.get("house_instance_id", "")) == "house_0001"
-		and String(assignment_signals[0].new_assignment.get("house_instance_id", "")) == "house_0002",
-		"Cross-House move preserves source and destination in one transition"
-	)
-	_assert(
-		_semantic("character_became_unhoused").is_empty(),
-		"Direct cross-House move never emits a transient Unhoused occurrence"
-	)
-	_cancel_all_events()
-	_clear_captures()
-
-	_assert(
-		HouseManager.remove_character_from_house(2),
-		"Explicit canonical House removal succeeds"
-	)
-	_assert(
-		HouseManager.is_character_unhoused(2),
-		"Explicit removal leaves the living playable Character canonically Unhoused"
-	)
-	_assert(
-		_semantic("house_assignment_changed").size() == 1
-		and _semantic("character_became_unhoused").size() == 1,
-		"Explicit removal emits exactly one assignment change and one Unhoused semantic occurrence"
-	)
-	var counts_before := {
-		"assignment": _semantic("house_assignment_changed").size(),
-		"unhoused": _semantic("character_became_unhoused").size()
-	}
-	_assert(
-		not HouseManager.remove_character_from_house(2)
-		and _semantic("house_assignment_changed").size() == int(counts_before.get("assignment", 0))
-		and _semantic("character_became_unhoused").size() == int(counts_before.get("unhoused", 0)),
-		"Failed repeated removal emits no duplicate semantic occurrence"
-	)
-	_cancel_all_events()
-
-
-func _test_role_replacement() -> void:
-	var head := _character(1, 60)
-	var displaced := _character(2, 60)
-	var replacement := _character(3, 80)
-	var houses := _default_houses(1)
-	var roles: Dictionary = houses[0].get("role_assignments", {})
-	roles["cook"] = 2
-	houses[0]["role_assignments"] = roles
-
-	_setup_world(
-		[head, displaced, replacement],
-		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true)
-		],
-		houses
+		"Resident-to-role transition stays outside Event semantic dispatch"
 	)
 
 	_assert(
 		HouseManager.assign_character_to_role("house_0001", "cook", 3),
-		"Occupied House role replacement preserves existing canonical assignment behavior"
+		"Occupied House role replacement remains supported"
 	)
 	_assert(
 		HouseManager.get_role_character_id("house_0001", "cook") == 3
-		and HouseManager.get_character_assignment(2).is_empty()
 		and HouseManager.is_character_unhoused(2),
-		"Role replacement leaves the displaced playable Character genuinely Unhoused"
+		"Role replacement preserves canonical final House state"
 	)
 	_assert(
-		assignment_signals.size() == 2
-		and int(assignment_signals[0].character_id) == 2
-		and String(assignment_signals[0].reason) == "role_replaced"
-		and int(assignment_signals[1].character_id) == 3,
-		"Role replacement reports both affected Characters without changing assignment rules"
+		_semantic("house_assignment_changed").is_empty()
+		and _semantic("character_became_unhoused").is_empty(),
+		"Displaced occupant does not create an Event-only Unhoused transition"
+	)
+
+	_assert(
+		HouseManager.remove_character_from_house(3),
+		"Explicit House removal remains supported"
 	)
 	_assert(
-		_semantic_for_character("house_assignment_changed", 2).size() == 1
-		and _semantic_for_character("house_assignment_changed", 3).size() == 1
-		and _semantic_for_character("character_became_unhoused", 2).size() == 1,
-		"Role replacement dispatches precise assignment semantics and one displaced-Unhoused occurrence"
+		HouseManager.is_character_unhoused(3)
+		and _semantic("house_assignment_changed").is_empty()
+		and _semantic("character_became_unhoused").is_empty()
+		and EventManager.active_event == null,
+		"Explicit House removal changes domain state without fabricating an Event occurrence"
 	)
-	_assert(
-		HouseManager.get_role_character_id("house_0001", "head_of_household") == 1,
-		"Role replacement does not alter unrelated House occupants"
-	)
-	_cancel_all_events()
 
 
-func _test_divorce_death_and_bootstrap_suppression() -> void:
+func _test_divorce_death_and_bootstrap_cleanup() -> void:
 	var family_character := _character(1, 60)
 	family_character.partner_id = 2
 	var spouse := _character(2, 60)
@@ -212,12 +112,11 @@ func _test_divorce_death_and_bootstrap_suppression() -> void:
 
 	var houses := _default_houses(1)
 	houses[0]["resident_character_ids"] = [2]
-
 	_setup_world(
 		[family_character, spouse],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true)
+			_system_event("phase5d_assignment_should_not_fire", "house_assignment_changed", true),
+			_system_event("phase5d_unhoused_should_not_fire", "character_became_unhoused", true)
 		],
 		houses
 	)
@@ -229,18 +128,13 @@ func _test_divorce_death_and_bootstrap_suppression() -> void:
 	_assert(
 		HouseManager.get_character_assignment(2).is_empty()
 		and not bool(spouse.get("is_player_family", true)),
-		"Divorce family-exit cleanup still removes the departing spouse from House"
+		"Divorce still removes the departing spouse from the House"
 	)
 	_assert(
-		assignment_signals.size() == 1
-		and String(assignment_signals[0].reason) == "family_exit",
-		"HouseManager retains a precise family_exit domain transition for cleanup consumers"
+		_house_semantics().is_empty()
+		and EventManager.active_event == null,
+		"Divorce House cleanup creates no Event-only House transition"
 	)
-	_assert(
-		_house_semantics().is_empty(),
-		"Departing divorce spouse creates no playable-family House or Unhoused Event occurrence"
-	)
-	_cancel_all_events()
 
 	var living := _character(1, 60)
 	var doomed := _character(2, 60)
@@ -249,8 +143,8 @@ func _test_divorce_death_and_bootstrap_suppression() -> void:
 	_setup_world(
 		[living, doomed],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true)
+			_system_event("phase5d_assignment_should_not_fire", "house_assignment_changed", true),
+			_system_event("phase5d_unhoused_should_not_fire", "character_became_unhoused", true)
 		],
 		houses
 	)
@@ -262,18 +156,16 @@ func _test_divorce_death_and_bootstrap_suppression() -> void:
 		"Existing death cleanup still removes the dead Character from House"
 	)
 	_assert(
-		assignment_signals.is_empty()
-		and _house_semantics().is_empty(),
-		"Death cleanup does not reinterpret a dead Character as Unhoused or as a House assignment Event"
+		_house_semantics().is_empty(),
+		"Death cleanup creates no House assignment or Unhoused Event semantic"
 	)
-	_cancel_all_events()
 
 	var starter := _character(1, 60)
 	_setup_world(
 		[starter],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true)
+			_system_event("phase5d_assignment_should_not_fire", "house_assignment_changed", true),
+			_system_event("phase5d_unhoused_should_not_fire", "character_became_unhoused", true)
 		],
 		[]
 	)
@@ -283,11 +175,9 @@ func _test_divorce_death_and_bootstrap_suppression() -> void:
 		"Starting House bootstrap still assigns the starting Character as Head"
 	)
 	_assert(
-		assignment_signals.is_empty()
-		and _house_semantics().is_empty(),
-		"Starting House bootstrap produces no gameplay House semantic occurrence"
+		_house_semantics().is_empty(),
+		"Starting House bootstrap creates no gameplay House semantic occurrence"
 	)
-	_cancel_all_events()
 
 
 func _test_upgrade_and_live_requirements() -> void:
@@ -296,8 +186,6 @@ func _test_upgrade_and_live_requirements() -> void:
 	_setup_world(
 		[head, replacement],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true),
 			_system_event("phase5d_upgrade", "house_upgraded", false)
 		],
 		_default_houses(1, 1)
@@ -313,9 +201,8 @@ func _test_upgrade_and_live_requirements() -> void:
 		"Canonical House level mutation remains unchanged"
 	)
 	_assert(
-		_semantic("house_upgraded").size() == 1
-		and _semantic("house_assignment_changed").is_empty(),
-		"House upgrade dispatches house_upgraded once and no false assignment semantic"
+		_semantic("house_upgraded").size() == 1,
+		"House upgrade still dispatches the canonical house_upgraded semantic exactly once"
 	)
 	_cancel_all_events()
 	_clear_captures()
@@ -399,8 +286,6 @@ func _test_save_load_without_house_semantic_replay() -> void:
 	_setup_world(
 		[head, resident],
 		[
-			_system_event("phase5d_assignment", "house_assignment_changed", true),
-			_system_event("phase5d_unhoused", "character_became_unhoused", true),
 			_system_event("phase5d_upgrade", "house_upgraded", false)
 		],
 		_default_houses(1)
@@ -436,9 +321,8 @@ func _test_save_load_without_house_semantic_replay() -> void:
 		"Save/load restores House, upgrade, and Unhoused domain state"
 	)
 	_assert(
-		assignment_signals.is_empty()
-		and _house_semantics().is_empty(),
-		"House restore emits no assignment, Unhoused, or upgrade semantic replay"
+		_house_semantics().is_empty(),
+		"House restore emits no House semantic replay"
 	)
 	_assert(
 		int(SaveManager.SAVE_VERSION) == 6,
@@ -644,22 +528,6 @@ func _character(
 	}
 
 
-func _active_event_is(
-	event_id: String,
-	character_id: int
-) -> bool:
-	return (
-		EventManager.active_event != null
-		and EventManager.active_event.event_id == event_id
-		and int(
-			EventManager.active_event.participants.get(
-				"primary",
-				0
-			)
-		) == character_id
-	)
-
-
 func _semantic(name: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for occurrence in semantic_occurrences:
@@ -669,21 +537,6 @@ func _semantic(name: String) -> Array[Dictionary]:
 				""
 			)
 		) == name:
-			result.append(occurrence)
-	return result
-
-
-func _semantic_for_character(
-	name: String,
-	character_id: int
-) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for occurrence in _semantic(name):
-		var context = occurrence.get("context", {})
-		if (
-			typeof(context) == TYPE_DICTIONARY
-			and int(context.get("character_id", 0)) == character_id
-		):
 			result.append(occurrence)
 	return result
 
@@ -705,55 +558,20 @@ func _house_semantics() -> Array[Dictionary]:
 	return result
 
 
-func _context_matches(
-	occurrence: Dictionary,
-	expected: Dictionary
-) -> bool:
-	var context = occurrence.get("context", {})
-	if typeof(context) != TYPE_DICTIONARY:
-		return false
-	for key in expected:
-		if context.get(key, null) != expected[key]:
-			return false
-	return true
-
-
 func _cancel_all_events() -> void:
 	while EventManager.active_event != null:
 		EventManager.cancel_active_event()
 
 
 func _connect_capture_signals() -> void:
-	HouseManager.character_house_assignment_changed.connect(
-		_on_character_house_assignment_changed
-	)
 	EventManager.semantic_trigger_dispatched.connect(
 		_on_semantic_trigger_dispatched
 	)
 
 
 func _disconnect_capture_signals() -> void:
-	HouseManager.character_house_assignment_changed.disconnect(
-		_on_character_house_assignment_changed
-	)
 	EventManager.semantic_trigger_dispatched.disconnect(
 		_on_semantic_trigger_dispatched
-	)
-
-
-func _on_character_house_assignment_changed(
-	character_id: int,
-	previous_assignment: Dictionary,
-	new_assignment: Dictionary,
-	reason: String
-) -> void:
-	assignment_signals.append(
-		{
-			"character_id": character_id,
-			"previous_assignment": previous_assignment.duplicate(true),
-			"new_assignment": new_assignment.duplicate(true),
-			"reason": reason
-		}
 	)
 
 
@@ -766,7 +584,6 @@ func _on_semantic_trigger_dispatched(
 
 
 func _clear_captures() -> void:
-	assignment_signals.clear()
 	semantic_occurrences.clear()
 
 
