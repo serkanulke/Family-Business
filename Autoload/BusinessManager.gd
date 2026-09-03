@@ -27,14 +27,6 @@ signal family_business_upgraded(
 	upgrade_cost: int
 )
 
-signal family_business_role_transitioned(
-	business_instance_id: String,
-	slot_id: String,
-	previous_occupant: Dictionary,
-	new_occupant: Dictionary,
-	reason: String
-)
-
 
 const BUSINESS_DATA_PATH := "res://Resources/Json/Business.json"
 const BUSINESS_TYPES_DATA_PATH := "res://Resources/Json/BusinessTypes.json"
@@ -1348,8 +1340,7 @@ func can_assign_character(
 func assign_character_to_slot(
 	business_instance_id: String,
 	slot_id: String,
-	character_id: int,
-	emit_role_transition: bool = true
+	character_id: int
 ) -> bool:
 	var slot := get_slot(
 		business_instance_id,
@@ -1442,14 +1433,6 @@ func assign_character_to_slot(
 		character_id
 	)
 
-	if emit_role_transition:
-		_emit_family_business_role_transition(
-			business_instance_id,
-			slot_id,
-			{},
-			"character_assigned"
-		)
-
 	print(
 		"FAMILY BUSINESS ASSIGNED | Character: ",
 		character_id,
@@ -1464,8 +1447,7 @@ func assign_character_to_slot(
 
 func remove_character_from_slot(
 	business_instance_id: String,
-	slot_id: String,
-	emit_role_transition: bool = true
+	slot_id: String
 ) -> bool:
 	var slot := get_slot(
 		business_instance_id,
@@ -1486,11 +1468,6 @@ func remove_character_from_slot(
 	var character_id := int(
 		character_id_value
 	)
-
-	var previous_occupant := {
-		"source_type": "family",
-		"id": character_id
-	}
 
 	slot["assigned_character_id"] = null
 
@@ -1516,14 +1493,6 @@ func remove_character_from_slot(
 		slot_id,
 		0
 	)
-
-	if emit_role_transition:
-		_emit_family_business_role_transition(
-			business_instance_id,
-			slot_id,
-			previous_occupant,
-			"character_removed"
-		)
 
 	print(
 		"FAMILY BUSINESS REMOVED | Character: ",
@@ -1816,24 +1785,6 @@ func is_slot_occupied(
 	).is_empty()
 
 
-func _emit_family_business_role_transition(
-	business_instance_id: String,
-	slot_id: String,
-	previous_occupant: Dictionary,
-	reason: String
-) -> void:
-	family_business_role_transitioned.emit(
-		business_instance_id,
-		slot_id,
-		previous_occupant.duplicate(true),
-		get_slot_occupant(
-			business_instance_id,
-			slot_id
-		).duplicate(true),
-		reason
-	)
-
-
 func replace_slot_with_character(
 	business_instance_id: String,
 	slot_id: String,
@@ -1915,37 +1866,22 @@ func replace_slot_with_character(
 	if occupant_source == "family":
 		removed = remove_character_from_slot(
 			business_instance_id,
-			slot_id,
-			false
+			slot_id
 		)
 	elif occupant_source == "npc":
 		removed = remove_npc_from_slot(
 			business_instance_id,
-			slot_id,
-			false
+			slot_id
 		)
 
 	if not removed:
 		return false
 
-	var assigned := assign_character_to_slot(
+	return assign_character_to_slot(
 		business_instance_id,
 		slot_id,
-		character_id,
-		false
+		character_id
 	)
-
-	if not assigned:
-		return false
-
-	_emit_family_business_role_transition(
-		business_instance_id,
-		slot_id,
-		occupant,
-		"slot_replaced"
-	)
-
-	return true
 
 
 func replace_slot_with_npc(
@@ -2036,37 +1972,22 @@ func replace_slot_with_npc(
 	if occupant_source == "family":
 		removed = remove_character_from_slot(
 			business_instance_id,
-			slot_id,
-			false
+			slot_id
 		)
 	elif occupant_source == "npc":
 		removed = remove_npc_from_slot(
 			business_instance_id,
-			slot_id,
-			false
+			slot_id
 		)
 
 	if not removed:
 		return false
 
-	var assigned := assign_npc_to_slot(
+	return assign_npc_to_slot(
 		business_instance_id,
 		slot_id,
-		npc_id,
-		false
+		npc_id
 	)
-
-	if not assigned:
-		return false
-
-	_emit_family_business_role_transition(
-		business_instance_id,
-		slot_id,
-		occupant,
-		"slot_replaced"
-	)
-
-	return true
 
 
 func get_npc_assignment(
@@ -2186,8 +2107,7 @@ func can_assign_npc(
 func assign_npc_to_slot(
 	business_instance_id: String,
 	slot_id: String,
-	npc_id: String,
-	emit_role_transition: bool = true
+	npc_id: String
 ) -> bool:
 	var slot := get_slot(
 		business_instance_id,
@@ -2271,14 +2191,6 @@ func assign_npc_to_slot(
 		npc_id
 	)
 
-	if emit_role_transition:
-		_emit_family_business_role_transition(
-			business_instance_id,
-			slot_id,
-			{},
-			"npc_assigned"
-		)
-
 	print(
 		"FAMILY BUSINESS NPC ASSIGNED | NPC: ",
 		npc_id,
@@ -2293,8 +2205,7 @@ func assign_npc_to_slot(
 
 func remove_npc_from_slot(
 	business_instance_id: String,
-	slot_id: String,
-	emit_role_transition: bool = true
+	slot_id: String
 ) -> bool:
 	var slot := get_slot(
 		business_instance_id,
@@ -2319,11 +2230,6 @@ func remove_npc_from_slot(
 	if npc_id.is_empty():
 		return false
 
-	var previous_occupant := {
-		"source_type": "npc",
-		"id": npc_id
-	}
-
 	slot["assigned_npc_id"] = null
 
 	family_business_npc_slot_changed.emit(
@@ -2331,14 +2237,6 @@ func remove_npc_from_slot(
 		slot_id,
 		""
 	)
-
-	if emit_role_transition:
-		_emit_family_business_role_transition(
-			business_instance_id,
-			slot_id,
-			previous_occupant,
-			"npc_removed"
-		)
 
 	print(
 		"FAMILY BUSINESS NPC REMOVED | NPC: ",

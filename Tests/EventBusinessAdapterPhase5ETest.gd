@@ -8,7 +8,6 @@ var original_snapshot: Dictionary = {}
 var original_registry: EventDataRegistry
 var original_save_id := -1
 
-var role_transitions: Array[Dictionary] = []
 var legacy_family_slot_signals: Array[Dictionary] = []
 var legacy_npc_slot_signals: Array[Dictionary] = []
 var semantic_occurrences: Array[Dictionary] = []
@@ -323,340 +322,6 @@ func _test_staffing_stays_domain_only() -> void:
 	)
 
 
-func _test_family_role_assignment_and_removal() -> void:
-	var character := _character(1)
-	var business := _business_fixture(
-		"business_family_role",
-		"hospital",
-		1,
-		"phase5e_plot_family"
-	)
-	var slot_id := _first_slot_id(
-		"hospital",
-		1
-	)
-	_setup_world(
-		[character],
-		[_system_event("phase5e_role", "business_role_changed", true)],
-		[business]
-	)
-
-	CareerManager.active_job_offers[1] = {
-		"character_id": 1,
-		"job_id": 2001,
-		"company_id": "phase5e_company",
-		"salary": 1000
-	}
-
-	_assert(
-		BusinessManager.assign_character_to_slot(
-			"business_family_role",
-			slot_id,
-			1
-		),
-		"Playable family Character assignment remains BusinessManager-owned"
-	)
-	_assert(
-		BusinessManager.get_character_assignment(1).get(
-			"slot_id",
-			""
-		) == slot_id
-		and character.get("job_id", null) == null
-		and not CareerManager.active_job_offers.has(1),
-		"Existing external-job cleanup on Family Business assignment is preserved"
-	)
-	_assert(
-		role_transitions.size() == 1
-		and role_transitions[0].previous_occupant.is_empty()
-		and String(
-			role_transitions[0].new_occupant.get(
-				"source_type",
-				""
-			)
-		) == "family"
-		and int(
-			role_transitions[0].new_occupant.get(
-				"id",
-				0
-			)
-		) == 1
-		and String(role_transitions[0].reason) == "character_assigned",
-		"Family assignment emits one precise post-success slot transition"
-	)
-	_assert(
-		legacy_family_slot_signals.size() == 1
-		and int(legacy_family_slot_signals[0].character_id) == 1,
-		"Existing family_business_slot_changed signal remains intact for existing consumers"
-	)
-
-	var occurrences := _semantic("business_role_changed")
-	_assert(
-		occurrences.size() == 1
-		and _context_matches(
-			occurrences[0],
-			{
-				"business_instance_id": "business_family_role",
-				"slot_id": slot_id,
-				"source_type": "family",
-				"character_id": 1,
-				"previous_source_type": ""
-			}
-		)
-		and _active_event_is(
-			"phase5e_role",
-			1
-		),
-		"Family assignment dispatches one character-bound business_role_changed occurrence"
-	)
-
-	_cancel_all_events()
-	_clear_captures()
-
-	_assert(
-		BusinessManager.remove_character_from_slot(
-			"business_family_role",
-			slot_id
-		),
-		"Playable family Character removal remains BusinessManager-owned"
-	)
-	_assert(
-		BusinessManager.get_character_assignment(1).is_empty()
-		and String(
-			character.get(
-				"unemployment_start_date",
-				""
-			)
-		) == TimeManager.get_iso_date_string(),
-		"Existing removal state and external-offer eligibility timing are preserved"
-	)
-	_assert(
-		role_transitions.size() == 1
-		and String(
-			role_transitions[0].previous_occupant.get(
-				"source_type",
-				""
-			)
-		) == "family"
-		and role_transitions[0].new_occupant.is_empty()
-		and String(role_transitions[0].reason) == "character_removed",
-		"Family removal emits one precise previous-to-empty transition"
-	)
-	_assert(
-		legacy_family_slot_signals.size() == 1
-		and int(legacy_family_slot_signals[0].character_id) == 0,
-		"Legacy family slot removal signal still emits zero occupant exactly as before"
-	)
-	occurrences = _semantic("business_role_changed")
-	_assert(
-		occurrences.size() == 1
-		and _context_matches(
-			occurrences[0],
-			{
-				"previous_source_type": "family",
-				"previous_character_id": 1,
-				"source_type": "",
-				"character_id": 0
-			}
-		)
-		and _active_event_is(
-			"phase5e_role",
-			1
-		),
-		"Family removal retains the removed Character as primary semantic participant"
-	)
-	_cancel_all_events()
-
-
-func _test_family_role_replacement_is_one_semantic_transition() -> void:
-	var previous := _character(1)
-	previous["job_id"] = null
-	previous["company_id"] = null
-	previous["salary"] = 0
-	var replacement := _character(2)
-	var business := _business_fixture(
-		"business_replace",
-		"hospital",
-		1,
-		"phase5e_plot_replace"
-	)
-	var slot_id := _first_slot_id(
-		"hospital",
-		1
-	)
-	var slot := _slot_from_fixture(
-		business,
-		slot_id
-	)
-	slot["assigned_character_id"] = 1
-
-	_setup_world(
-		[previous, replacement],
-		[_system_event("phase5e_role", "business_role_changed", true)],
-		[business]
-	)
-
-	_assert(
-		BusinessManager.replace_slot_with_character(
-			"business_replace",
-			slot_id,
-			2
-		),
-		"Existing occupied-slot family replacement succeeds"
-	)
-	_assert(
-		int(
-			BusinessManager.get_slot(
-				"business_replace",
-				slot_id
-			).get(
-				"assigned_character_id",
-				0
-			)
-		) == 2
-		and BusinessManager.get_character_assignment(1).is_empty(),
-		"Replacement preserves canonical final staffing state"
-	)
-	_assert(
-		role_transitions.size() == 1
-		and int(
-			role_transitions[0].previous_occupant.get(
-				"id",
-				0
-			)
-		) == 1
-		and int(
-			role_transitions[0].new_occupant.get(
-				"id",
-				0
-			)
-		) == 2
-		and String(role_transitions[0].reason) == "slot_replaced",
-		"Replacement is exposed to Event integration as one logical slot transition"
-	)
-	_assert(
-		legacy_family_slot_signals.size() == 2
-		and int(legacy_family_slot_signals[0].character_id) == 0
-		and int(legacy_family_slot_signals[1].character_id) == 2,
-		"Existing two-step legacy replacement signals are preserved for current UI/autosave consumers"
-	)
-	_assert(
-		_semantic("business_role_changed").size() == 1
-		and _active_event_is(
-			"phase5e_role",
-			2
-		),
-		"One replacement creates exactly one business_role_changed semantic Event"
-	)
-	_cancel_all_events()
-
-
-func _test_npc_role_assignment_and_removal() -> void:
-	var business := _business_fixture(
-		"business_npc_role",
-		"hospital",
-		1,
-		"phase5e_plot_npc"
-	)
-	var slot_id := _first_slot_id(
-		"hospital",
-		1
-	)
-	var worker := _worker_npc(
-		"npc_phase5e"
-	)
-
-	_setup_world(
-		[],
-		[_system_event("phase5e_npc_role", "business_role_changed", false)],
-		[business],
-		[worker]
-	)
-
-	_assert(
-		BusinessManager.assign_npc_to_slot(
-			"business_npc_role",
-			slot_id,
-			"npc_phase5e"
-		),
-		"Worker NPC assignment remains BusinessManager-owned"
-	)
-	_assert(
-		role_transitions.size() == 1
-		and String(
-			role_transitions[0].new_occupant.get(
-				"source_type",
-				""
-			)
-		) == "npc"
-		and String(
-			role_transitions[0].new_occupant.get(
-				"id",
-				""
-			)
-		) == "npc_phase5e",
-		"NPC assignment emits one precise post-success role transition"
-	)
-	_assert(
-		legacy_npc_slot_signals.size() == 1
-		and String(legacy_npc_slot_signals[0].npc_id) == "npc_phase5e",
-		"Existing family_business_npc_slot_changed assignment signal remains intact"
-	)
-	_assert(
-		_semantic("business_role_changed").size() == 1
-		and _context_matches(
-			_semantic("business_role_changed")[0],
-			{
-				"source_type": "npc",
-				"npc_id": "npc_phase5e",
-				"character_id": 0
-			}
-		)
-		and EventManager.active_event != null
-		and EventManager.active_event.event_id == "phase5e_npc_role",
-		"NPC assignment queues one context-only business_role_changed Event"
-	)
-
-	_cancel_all_events()
-	_clear_captures()
-
-	_assert(
-		BusinessManager.remove_npc_from_slot(
-			"business_npc_role",
-			slot_id
-		),
-		"Worker NPC removal remains BusinessManager-owned"
-	)
-	_assert(
-		role_transitions.size() == 1
-		and String(
-			role_transitions[0].previous_occupant.get(
-				"id",
-				""
-			)
-		) == "npc_phase5e"
-		and role_transitions[0].new_occupant.is_empty(),
-		"NPC removal reports the previous worker without storing parallel role state"
-	)
-	_assert(
-		legacy_npc_slot_signals.size() == 1
-		and String(legacy_npc_slot_signals[0].npc_id).is_empty(),
-		"Existing NPC removal signal still publishes an empty occupant ID"
-	)
-	_assert(
-		_semantic("business_role_changed").size() == 1
-		and _context_matches(
-			_semantic("business_role_changed")[0],
-			{
-				"previous_source_type": "npc",
-				"previous_npc_id": "npc_phase5e",
-				"source_type": ""
-			}
-		),
-		"NPC removal dispatches one authoritative business_role_changed context"
-	)
-	_cancel_all_events()
-
-
 func _test_live_business_requirements() -> void:
 	var character := _character(1)
 	character["job_id"] = null
@@ -902,8 +567,7 @@ func _test_save_load_without_business_semantic_replay() -> void:
 		"Save/load restores Business level and staffing state"
 	)
 	_assert(
-		role_transitions.is_empty()
-		and _business_semantics().is_empty(),
+		_business_semantics().is_empty(),
 		"Business restore emits no purchase, upgrade, or role semantic replay"
 	)
 	_assert(
@@ -1300,9 +964,6 @@ func _cancel_all_events() -> void:
 
 
 func _connect_capture_signals() -> void:
-	BusinessManager.family_business_role_transitioned.connect(
-		_on_role_transitioned
-	)
 	BusinessManager.family_business_slot_changed.connect(
 		_on_legacy_family_slot_changed
 	)
@@ -1315,9 +976,6 @@ func _connect_capture_signals() -> void:
 
 
 func _disconnect_capture_signals() -> void:
-	BusinessManager.family_business_role_transitioned.disconnect(
-		_on_role_transitioned
-	)
 	BusinessManager.family_business_slot_changed.disconnect(
 		_on_legacy_family_slot_changed
 	)
@@ -1326,24 +984,6 @@ func _disconnect_capture_signals() -> void:
 	)
 	EventManager.semantic_trigger_dispatched.disconnect(
 		_on_semantic_trigger_dispatched
-	)
-
-
-func _on_role_transitioned(
-	business_instance_id: String,
-	slot_id: String,
-	previous_occupant: Dictionary,
-	new_occupant: Dictionary,
-	reason: String
-) -> void:
-	role_transitions.append(
-		{
-			"business_instance_id": business_instance_id,
-			"slot_id": slot_id,
-			"previous_occupant": previous_occupant.duplicate(true),
-			"new_occupant": new_occupant.duplicate(true),
-			"reason": reason
-		}
 	)
 
 
@@ -1384,7 +1024,6 @@ func _on_semantic_trigger_dispatched(
 
 
 func _clear_captures() -> void:
-	role_transitions.clear()
 	legacy_family_slot_signals.clear()
 	legacy_npc_slot_signals.clear()
 	semantic_occurrences.clear()
