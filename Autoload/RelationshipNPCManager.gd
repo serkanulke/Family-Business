@@ -31,6 +31,21 @@ func _ready() -> void:
 	rng.randomize()
 	load_relationship_npc_data()
 
+	if not GameManager.new_game_starting.is_connected(
+		_on_new_game_starting
+	):
+		GameManager.new_game_starting.connect(
+			_on_new_game_starting
+		)
+
+
+func reset_runtime_state_for_new_game() -> void:
+	relationship_candidate_ids.clear()
+
+
+func _on_new_game_starting() -> void:
+	reset_runtime_state_for_new_game()
+
 
 func load_relationship_npc_data() -> bool:
 	generation_config = {}
@@ -424,12 +439,134 @@ func get_relationship_candidate_ids_for(
 		):
 			continue
 
+		var candidate_linked_id := int(
+			candidate.get(
+				"linked_character_id",
+				0
+			)
+		)
+		var linked_character := CharacterManager.get_character_by_id(
+			candidate_linked_id
+		)
+		if not _is_candidate_pair_currently_eligible(
+			candidate,
+			linked_character
+		):
+			continue
+
 		result.append(
 			candidate_id
 		)
 
 	result.sort()
 	return result
+
+
+func _is_candidate_pair_currently_eligible(
+	candidate: Dictionary,
+	linked_character: Dictionary
+) -> bool:
+	if candidate.is_empty() or linked_character.is_empty():
+		return false
+
+	if String(
+		candidate.get(
+			"character_type",
+			""
+		)
+	) != "relationship_npc":
+		return false
+
+	if (
+		not bool(candidate.get("is_alive", true))
+		or bool(candidate.get("is_player_family", false))
+		or candidate.get("partner_id", null) != null
+	):
+		return false
+
+	var linked_character_id := int(
+		linked_character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if (
+		linked_character_id <= 0
+		or int(candidate.get("linked_character_id", 0)) != linked_character_id
+		or not is_character_relationship_eligible(linked_character)
+	):
+		return false
+
+	var candidate_age := CharacterManager.get_character_age(candidate)
+	var linked_age := CharacterManager.get_character_age(linked_character)
+	var minimum_age := int(
+		generation_config.get(
+			"minimum_relationship_age",
+			18
+		)
+	)
+	var maximum_age := int(
+		generation_config.get(
+			"maximum_relationship_age",
+			54
+		)
+	)
+
+	if candidate_age < minimum_age or candidate_age > maximum_age:
+		return false
+
+	var maximum_age_gap := int(
+		generation_config.get(
+			"maximum_age_gap",
+			14
+		)
+	)
+
+	return absi(candidate_age - linked_age) <= maximum_age_gap
+
+
+func is_external_relationship_pair_currently_eligible(
+	candidate_id: int,
+	linked_character_id: int
+) -> bool:
+	return _is_candidate_pair_currently_eligible(
+		CharacterManager.get_character_by_id(candidate_id),
+		CharacterManager.get_character_by_id(linked_character_id)
+	)
+
+
+func discard_unpresented_relationship_candidate(
+	candidate_id: int,
+	linked_character_id: int
+) -> bool:
+	if candidate_id <= 0 or linked_character_id <= 0:
+		return false
+	if not relationship_candidate_ids.has(candidate_id):
+		return false
+
+	var candidate := CharacterManager.get_character_by_id(candidate_id)
+	if (
+		candidate.is_empty()
+		or String(candidate.get("character_type", "")) != "relationship_npc"
+		or String(candidate.get("relationship_status", "")) != "candidate"
+		or bool(candidate.get("is_player_family", false))
+		or candidate.get("partner_id", null) != null
+		or int(candidate.get("linked_character_id", 0)) != linked_character_id
+	):
+		return false
+
+	relationship_candidate_ids.erase(candidate_id)
+	for index in CharacterManager.characters.size():
+		var value = CharacterManager.characters[index]
+		if (
+			typeof(value) == TYPE_DICTIONARY
+			and int(value.get("character_id", 0)) == candidate_id
+		):
+			CharacterManager.characters.remove_at(index)
+			return true
+
+	return false
 
 
 func can_set_external_relationship_status(
@@ -481,6 +618,16 @@ func can_set_external_relationship_status(
 	if (
 		linked_character_id == null
 		or int(linked_character_id) <= 0
+	):
+		return false
+
+	var linked_character := CharacterManager.get_character_by_id(
+		int(linked_character_id)
+	)
+
+	if not _is_candidate_pair_currently_eligible(
+		character,
+		linked_character
 	):
 		return false
 
@@ -896,54 +1043,9 @@ func make_candidate_family_member(
 		partner_id
 	)
 
-	if candidate.is_empty() or partner.is_empty():
-		return false
-
-	if String(
-		candidate.get(
-			"character_type",
-			""
-		)
-	) != "relationship_npc":
-		return false
-
-	if int(
-		candidate.get(
-			"linked_character_id",
-			0
-		)
-	) != partner_id:
-		return false
-
-	if candidate.get(
-		"partner_id",
-		null
-	) != null:
-		return false
-
-	if partner.get(
-		"partner_id",
-		null
-	) != null:
-		return false
-
-	var cooldown_until_value = candidate.get(
-		"relationship_cooldown_until",
-		null
-	)
-
-	if cooldown_until_value != null:
-		if not GameManager.allow_ex_spouse_remarriage:
-			return false
-
-		if not _is_relationship_cooldown_finished(
-			candidate
-		):
-			return false
-
-	if not is_marriage_allowed_by_settings(
-		candidate,
-		partner
+	if not can_make_candidate_family_member(
+		candidate_id,
+		partner_id
 	):
 		return false
 
@@ -959,6 +1061,11 @@ func make_candidate_family_member(
 		candidate_id
 	)
 
+	_place_married_candidate_in_partner_house(
+		candidate_id,
+		partner_id
+	)
+
 	family_relationship_changed.emit()
 
 	return true
@@ -967,16 +1074,40 @@ func make_candidate_family_member(
 func can_make_candidate_family_member(candidate_id: int, partner_id: int) -> bool:
 	var candidate := CharacterManager.get_character_by_id(candidate_id)
 	var partner := CharacterManager.get_character_by_id(partner_id)
-	if candidate.is_empty() or partner.is_empty():
-		return false
-	if String(candidate.get("character_type", "")) != "relationship_npc" or int(candidate.get("linked_character_id", 0)) != partner_id:
-		return false
-	if candidate.get("partner_id", null) != null or partner.get("partner_id", null) != null:
+	if not _is_candidate_pair_currently_eligible(
+		candidate,
+		partner
+	):
 		return false
 	if candidate.get("relationship_cooldown_until", null) != null:
 		if not GameManager.allow_ex_spouse_remarriage or not _is_relationship_cooldown_finished(candidate):
 			return false
 	return is_marriage_allowed_by_settings(candidate, partner)
+
+
+func _place_married_candidate_in_partner_house(
+	candidate_id: int,
+	partner_id: int
+) -> void:
+	# Marriage itself remains valid even when no generic resident slot exists.
+	# Never move/evict an existing occupant or mutate a household role here.
+	if not HouseManager.get_character_assignment(candidate_id).is_empty():
+		return
+
+	var partner_assignment := HouseManager.get_character_assignment(partner_id)
+	if partner_assignment.is_empty():
+		return
+
+	var house_instance_id := String(
+		partner_assignment.get(
+			"house_instance_id",
+			""
+		)
+	)
+	if house_instance_id.is_empty():
+		return
+
+	HouseManager.assign_character_as_resident(house_instance_id, candidate_id)
 
 
 func divorce_characters(
@@ -1539,54 +1670,18 @@ func _is_relationship_cooldown_finished(
 func _iso_date_to_sort_key(
 	iso_date: String
 ) -> int:
-	var date_parts := iso_date.split(
-		"-"
-	)
-
-	if date_parts.size() != 3:
-		return -1
-
-	var year := int(date_parts[0])
-	var month := int(date_parts[1])
-	var day := int(date_parts[2])
-
-	if year <= 0 or month < 1 or month > 12 or day < 1 or day > 31:
-		return -1
-
-	return year * 10000 + month * 100 + day
+	return GameCalendar.date_to_ordinal(iso_date)
 
 
 func _get_date_years_later(
 	iso_date: String,
 	years_to_add: int
 ) -> String:
-	var date_parts := iso_date.split(
-		"-"
+	return TimeManager.add_calendar_interval(
+		iso_date,
+		"year",
+		maxi(years_to_add, 0)
 	)
-
-	if date_parts.size() != 3:
-		return ""
-
-	var year := int(
-		date_parts[0]
-	) + maxi(
-		years_to_add,
-		0
-	)
-
-	var month := int(
-		date_parts[1]
-	)
-
-	var day := int(
-		date_parts[2]
-	)
-
-	return "%04d-%02d-%02d" % [
-		year,
-		month,
-		day
-	]
 
 
 func can_receive_new_relationship_event(

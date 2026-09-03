@@ -812,15 +812,30 @@ func get_save_path(
 	)
 
 
-func _on_new_game_starting() -> void:
-	# Save the current family before GameManager clears its runtime state.
-	if current_save_id > 0:
-		save_current_game()
+func prepare_for_new_game() -> bool:
+	# Preserve the active save before any new_game_starting listener is allowed
+	# to clear save-scoped runtime state such as Items or Events.
+	_autosave_queued = false
 
-	current_save_id = -1
-	current_save_changed.emit(
-		current_save_id
-	)
+	if current_save_id > 0 and not save_current_game():
+		return false
+
+	if current_save_id != -1:
+		current_save_id = -1
+		current_save_changed.emit(current_save_id)
+
+	_is_starting_new_game = true
+	return true
+
+
+func _on_new_game_starting() -> void:
+	# The active save was already preserved by prepare_for_new_game(), before
+	# this signal was emitted. Never snapshot partially reset listener state here.
+	if current_save_id != -1:
+		current_save_id = -1
+		current_save_changed.emit(
+			current_save_id
+		)
 
 	_is_starting_new_game = true
 	_autosave_queued = false
@@ -860,6 +875,10 @@ func _connect_autosave_signals() -> void:
 	_connect_signal_for_autosave(
 		CharacterManager,
 		"character_died"
+	)
+	_connect_signal_for_autosave(
+		CharacterManager,
+		"character_retired"
 	)
 	_connect_signal_for_autosave(
 		HouseManager,
@@ -904,6 +923,14 @@ func _connect_autosave_signals() -> void:
 	_connect_signal_for_autosave(
 		CareerManager,
 		"job_offer_requested"
+	)
+	_connect_signal_for_autosave(
+		CareerManager,
+		"job_offer_accepted"
+	)
+	_connect_signal_for_autosave(
+		CareerManager,
+		"external_job_removed"
 	)
 	_connect_signal_for_autosave(
 		EducationManager,
@@ -977,7 +1004,11 @@ func _on_autosave_relevant_signal(
 	_arg1 = null,
 	_arg2 = null,
 	_arg3 = null,
-	_arg4 = null
+	_arg4 = null,
+	_arg5 = null,
+	_arg6 = null,
+	_arg7 = null,
+	_arg8 = null
 ) -> void:
 	request_autosave()
 

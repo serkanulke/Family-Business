@@ -21,6 +21,9 @@ const CALENDAR_UNITS: Array[String] = [
 	"day", "week", "month", "year"
 ]
 const MANUAL_MODES: Array[String] = ["direct", "pool"]
+const MANUAL_SOURCES: Array[String] = [
+	"lifestyle", "family_agency"
+]
 const RARITIES: Array[String] = [
 	"common", "uncommon", "rare", "epic", "legendary"
 ]
@@ -42,7 +45,7 @@ const PARTICIPANT_TYPES: Array[String] = [
 ]
 const PARTICIPANT_SOURCES: Array[String] = [
 	"trigger", "player_selected", "relation", "relationship_npc",
-	"primary_house", "owned_business", "context"
+	"new_relationship_npc", "primary_house", "owned_business", "context"
 ]
 const RELATIONS: Array[String] = [
 	"spouse", "child", "parent", "family_member"
@@ -487,7 +490,11 @@ func _validate_trigger(source: String, event_id: String, path: String, value) ->
 		"calendar":
 			_validate_calendar_trigger(source, event_id, path, trigger)
 		"manual":
-			_required_string(source, event_id, path + ".source", trigger.get("source", null))
+			var manual_source := _required_string(
+				source, event_id, path + ".source", trigger.get("source", null)
+			)
+			if not manual_source.is_empty() and manual_source not in MANUAL_SOURCES:
+				_add(source, event_id, path + ".source", "Unsupported manual source '%s'. Only Lifestyle and Family Agency Events may be manual." % manual_source)
 			var mode := _required_string(source, event_id, path + ".mode", trigger.get("mode", null))
 			if not mode.is_empty() and mode not in MANUAL_MODES:
 				_add(source, event_id, path + ".mode", "Unsupported manual mode '%s'." % mode)
@@ -624,6 +631,18 @@ func _validate_participants(source: String, event_id: String, path: String, valu
 				_add(source, event_id, participant_path + ".relation", "Unsupported relation '%s'." % relation)
 			if not from_name.is_empty() and not participants.has(from_name):
 				_add(source, event_id, participant_path + ".from", "Relation source participant '%s' does not exist." % from_name)
+
+		if participant_source == "new_relationship_npc":
+			if participant_type != "relationship_npc":
+				_add(source, event_id, participant_path + ".type", "new_relationship_npc source requires relationship_npc type.")
+			var from_name := _required_string(
+				source,
+				event_id,
+				participant_path + ".from",
+				definition.get("from", null)
+			)
+			if not from_name.is_empty() and not participants.has(from_name):
+				_add(source, event_id, participant_path + ".from", "Relationship source participant '%s' does not exist." % from_name)
 
 		if participant_type == "character_group":
 			if participant_source != "player_selected":

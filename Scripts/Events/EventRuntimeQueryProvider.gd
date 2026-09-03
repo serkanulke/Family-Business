@@ -69,6 +69,16 @@ func get_relationship_npc_ids(primary_character_id: int = 0) -> Array[int]:
 	)
 
 
+func is_relationship_npc_pair_available(
+	candidate_id: int,
+	primary_character_id: int
+) -> bool:
+	return RelationshipNpcManager.is_external_relationship_pair_currently_eligible(
+		candidate_id,
+		primary_character_id
+	)
+
+
 func get_character_house_id(character_id: int) -> String:
 	return String(HouseManager.get_character_assignment(character_id).get("house_instance_id", ""))
 

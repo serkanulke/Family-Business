@@ -46,6 +46,9 @@ func _process(delta: float) -> void:
 		day_timer -= DAY_DURATION
 		advance_day()
 
+		if is_paused:
+			break
+
 
 func get_date_string() -> String:
 	var months = [

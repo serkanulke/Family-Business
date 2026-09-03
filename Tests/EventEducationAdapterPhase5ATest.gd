@@ -27,6 +27,7 @@ func _ready() -> void:
 	_test_failed_enrollment_paths()
 	_test_graduation_and_event_queue()
 	_test_major_selection_and_university_decline_remain_legacy_owned()
+	_test_blocking_education_event_restores_pre_queue_time_state()
 	_test_manually_paused_time_remains_paused()
 	_test_save_load_emits_no_domain_occurrences()
 
@@ -196,6 +197,64 @@ func _test_major_selection_and_university_decline_remain_legacy_owned() -> void:
 	var declined := EducationManager.decline_university(1)
 	_assert(declined and candidate.major_id == null and not EducationManager.is_education_event_active and not TimeManager.is_paused, "University decline remains canonical and preserves legacy completion/resume")
 	_assert(_semantic("education_declined").is_empty() and _semantic("university_rejected").is_empty(), "University decline invents no unapproved semantic trigger")
+
+
+func _test_blocking_education_event_restores_pre_queue_time_state() -> void:
+	var school_id := _find_school_id("primary_school", "public")
+	var blocking_event := _system_event("phase5a_blocking_enrollment", "education_stage_due")
+	blocking_event["behavior"] = {"blocking": true, "pause_game": true}
+	var choices: Array = blocking_event["choices"]
+	var choice: Dictionary = choices[0]
+	choice["resolution"] = {
+		"mode": "deterministic",
+		"effects": [
+			{
+				"type": "education_enroll",
+				"target": "primary",
+				"school_id": school_id
+			}
+		]
+	}
+	choices[0] = choice
+	blocking_event["choices"] = choices
+
+	var running_character := _character(1, "1979-01-26", 50)
+	_setup_world(running_character, [blocking_event], false)
+	EducationManager.check_birthday_education_events()
+	_assert(
+		TimeManager.is_paused
+		and EventManager.active_event != null
+		and EventManager.active_event.event_id == "phase5a_blocking_enrollment"
+		and EventManager._pause_state_captured
+		and not EventManager._pre_event_was_paused,
+		"Blocking Education Event preserves the pre-queue running-time intent"
+	)
+	var running_result := EventManager.resolve_active_event("continue")
+	_assert(
+		running_result.resolved
+		and not TimeManager.is_paused
+		and not EducationManager.is_education_pause_active
+		and not EventManager._pause_state_captured,
+		"Blocking Education Event restores running time after canonical enrollment completes"
+	)
+
+	var paused_character := _character(1, "1979-01-26", 50)
+	_setup_world(paused_character, [blocking_event], true)
+	EducationManager.check_birthday_education_events()
+	_assert(
+		EventManager.active_event != null
+		and EventManager._pause_state_captured
+		and EventManager._pre_event_was_paused,
+		"Blocking Education Event preserves a real manual pause"
+	)
+	var paused_result := EventManager.resolve_active_event("continue")
+	_assert(
+		paused_result.resolved
+		and TimeManager.is_paused
+		and not EducationManager.is_education_pause_active
+		and not EventManager._pause_state_captured,
+		"Blocking Education Event leaves a genuinely paused simulation paused after completion"
+	)
 
 
 func _test_manually_paused_time_remains_paused() -> void:

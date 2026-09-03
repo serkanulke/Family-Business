@@ -35,6 +35,7 @@ var _processed_selection_occurrences: Dictionary = {}
 var _pause_state_captured := false
 var _pre_event_was_paused := true
 var _pre_event_speed := 1.0
+var _suppress_date_dispatch_during_new_game := false
 
 
 func _ready() -> void:
@@ -104,7 +105,7 @@ func dispatch_system_trigger(
 			continue
 		if _parameters_match(trigger.get("parameters", {}), runtime_context):
 			matching.append(event)
-	return _select_and_queue(matching, runtime_context, occurrence)
+	return _select_and_queue_with_automatic_character_fanout(matching, runtime_context, occurrence)
 
 
 func process_calendar_date(date_text: String = "", runtime_context: Dictionary = {}) -> Dictionary:
@@ -124,7 +125,7 @@ func process_calendar_date(date_text: String = "", runtime_context: Dictionary =
 		_calendar_occurrence_keys[occurrence_key] = true
 		matching.append(event)
 	var occurrence := _make_occurrence("calendar", "", runtime_context, "calendar:%s" % current_date, "TimeManager")
-	var selected := _select_and_queue(matching, runtime_context, occurrence)
+	var selected := _select_and_queue_with_automatic_character_fanout(matching, runtime_context, occurrence)
 	selected["date"] = current_date
 	return selected
 
@@ -138,6 +139,8 @@ func activate_manual_direct(event_id: String, runtime_context: Dictionary = {}, 
 	var trigger = event.get("trigger", {})
 	if event.is_empty() or typeof(trigger) != TYPE_DICTIONARY or String(trigger.get("type", "")) != "manual" or String(trigger.get("mode", "")) != "direct":
 		return {"queued": false, "reason": "not_manual_direct", "availability": runtime_service.get_availability(event_id, runtime_context)}
+	if not runtime_service.is_manual_source_supported(String(trigger.get("source", ""))):
+		return {"queued": false, "reason": "unsupported_manual_source", "availability": runtime_service.get_availability(event_id, runtime_context)}
 	var occurrence := _make_occurrence("manual", String(trigger.get("source", "")), runtime_context, occurrence_key, "manual")
 	var availability := runtime_service.get_availability(event_id, runtime_context)
 	var instance := _queue_available_event(event, availability, occurrence)
@@ -145,6 +148,8 @@ func activate_manual_direct(event_id: String, runtime_context: Dictionary = {}, 
 
 
 func invoke_manual_pool(source: String, pool_id: String, runtime_context: Dictionary = {}, occurrence_key: String = "") -> Dictionary:
+	if not runtime_service.is_manual_source_supported(source):
+		return {"occurrence": {}, "results": [], "selected_event_ids": [], "queued_instances": [], "reason": "unsupported_manual_source"}
 	var events: Array = []
 	for event_value in registry.get_events_for_pool(pool_id):
 		var event: Dictionary = event_value
@@ -572,7 +577,132 @@ func _import_dependency_failed(message: String) -> bool:
 	return false
 
 
-func _select_and_queue(events: Array, runtime_context: Dictionary, occurrence: Dictionary, forced_pool_id: String = "") -> Dictionary:
+func _select_and_queue_with_automatic_character_fanout(
+	events: Array,
+	runtime_context: Dictionary,
+	occurrence: Dictionary
+) -> Dictionary:
+	if _get_trigger_primary_character_id(runtime_context) > 0:
+		return _select_and_queue(events, runtime_context, occurrence)
+
+	var global_events: Array = []
+	var character_events: Array = []
+	for event_value in events:
+		if typeof(event_value) != TYPE_DICTIONARY:
+			continue
+		var event: Dictionary = event_value
+		if _requires_trigger_primary_character(event):
+			character_events.append(event)
+		else:
+			global_events.append(event)
+
+	if character_events.is_empty():
+		return _select_and_queue(global_events, runtime_context, occurrence)
+
+	var aggregate := {
+		"occurrence": occurrence.duplicate(true),
+		"results": [],
+		"selected_event_ids": [],
+		"queued_instances": []
+	}
+
+	if not global_events.is_empty():
+		_merge_selection_result(
+			aggregate,
+			_select_and_queue(global_events, runtime_context, occurrence, "", false)
+		)
+
+	for character_id_value in runtime_service.query_provider.get_family_character_ids():
+		var character_id := int(character_id_value)
+		var character_context := _runtime_context_for_primary_character(
+			runtime_context,
+			character_id
+		)
+		var character_occurrence := _make_occurrence(
+			String(occurrence.get("trigger_type", "")),
+			String(occurrence.get("semantic_event", "")),
+			character_context,
+			"%s:character:%d" % [
+				String(occurrence.get("occurrence_id", "")),
+				character_id
+			],
+			String(occurrence.get("source", ""))
+		)
+		_merge_selection_result(
+			aggregate,
+			_select_and_queue(
+				character_events,
+				character_context,
+				character_occurrence,
+				"",
+				false
+			)
+		)
+
+	if active_event == null:
+		_activate_next_event()
+	_emit_queue_state()
+	return aggregate
+
+
+func _requires_trigger_primary_character(event: Dictionary) -> bool:
+	var definitions_value = event.get("participants", {})
+	if typeof(definitions_value) != TYPE_DICTIONARY:
+		return false
+	var primary_value = definitions_value.get("primary", null)
+	if typeof(primary_value) != TYPE_DICTIONARY:
+		return false
+	var primary: Dictionary = primary_value
+	return (
+		String(primary.get("type", "")) == "character"
+		and String(primary.get("source", "")) == "trigger"
+	)
+
+
+func _get_trigger_primary_character_id(runtime_context: Dictionary) -> int:
+	var trigger_value = runtime_context.get("trigger_participants", {})
+	if typeof(trigger_value) == TYPE_DICTIONARY:
+		var trigger: Dictionary = trigger_value
+		var primary_id := int(trigger.get("primary", 0))
+		if primary_id > 0:
+			return primary_id
+	return int(runtime_context.get("trigger_character_id", 0))
+
+
+func _runtime_context_for_primary_character(
+	runtime_context: Dictionary,
+	character_id: int
+) -> Dictionary:
+	var result := runtime_context.duplicate(true)
+	var trigger_value = result.get("trigger_participants", {})
+	var trigger: Dictionary = (
+		trigger_value.duplicate(true)
+		if typeof(trigger_value) == TYPE_DICTIONARY
+		else {}
+	)
+	trigger["primary"] = character_id
+	result["trigger_participants"] = trigger
+	result["trigger_character_id"] = character_id
+	return result
+
+
+func _merge_selection_result(aggregate: Dictionary, result: Dictionary) -> void:
+	for key in ["results", "selected_event_ids", "queued_instances"]:
+		var value = result.get(key, [])
+		if typeof(value) != TYPE_ARRAY:
+			continue
+		var aggregate_values: Array = aggregate.get(key, [])
+		aggregate_values.append_array(value)
+		aggregate[key] = aggregate_values
+
+
+func _select_and_queue(
+	events: Array,
+	runtime_context: Dictionary,
+	occurrence: Dictionary,
+	forced_pool_id: String = "",
+	activate_after_selection: bool = true
+) -> Dictionary:
 	var selection_occurrence_key := _selection_occurrence_key(occurrence, forced_pool_id)
 	if _processed_selection_occurrences.has(selection_occurrence_key):
 		return {"occurrence": occurrence.duplicate(true), "results": [], "selected_event_ids": [], "queued_instances": [], "duplicate_occurrence": true}
@@ -612,9 +742,10 @@ func _select_and_queue(events: Array, runtime_context: Dictionary, occurrence: D
 		var instance := _queue_available_event(event, availability_by_id.get(String(event.get("event_id", "")), {}), occurrence, null, false)
 		if instance != null:
 			queued.append(instance.to_dictionary())
-	if active_event == null:
-		_activate_next_event()
-	_emit_queue_state()
+	if activate_after_selection:
+		if active_event == null:
+			_activate_next_event()
+		_emit_queue_state()
 	return {"occurrence": occurrence.duplicate(true), "results": results, "selected_event_ids": selected.map(func(event): return String(event.get("event_id", ""))), "queued_instances": queued}
 
 
@@ -656,19 +787,180 @@ func _queue_available_event(event: Dictionary, availability: Dictionary, occurre
 func _activate_next_event() -> void:
 	while active_event == null and not queued_events.is_empty():
 		var candidate: EventInstance = queued_events.pop_front()
-		var availability: Dictionary = runtime_service.get_resolved_availability(candidate.event_id, candidate.participants, candidate.context)
+		var event: Dictionary = registry.get_event(candidate.event_id)
+
+		# Revalidate all already-bound state before creating an automatic runtime
+		# participant. This prevents an Event waiting in the queue from creating a
+		# Relationship Character after its primary Character became ineligible.
+		var availability: Dictionary = runtime_service.get_resolved_availability(
+			candidate.event_id,
+			candidate.participants,
+			candidate.context
+		)
 		if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
 			candidate.mark_expired()
-			event_expired.emit(candidate.to_dictionary(), availability.get("failure_reasons", []).duplicate(true))
+			event_expired.emit(
+				candidate.to_dictionary(),
+				availability.get("failure_reasons", []).duplicate(true)
+			)
 			continue
+
+		var materialization: Dictionary = _materialize_activation_participants(
+			event,
+			candidate
+		)
+		if not bool(materialization.get("success", false)):
+			candidate.mark_expired()
+			event_expired.emit(
+				candidate.to_dictionary(),
+				materialization.get("failure_reasons", []).duplicate(true)
+			)
+			continue
+
+		availability = runtime_service.get_resolved_availability(
+			candidate.event_id,
+			candidate.participants,
+			candidate.context
+		)
+		if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+			_discard_activation_materializations(
+				candidate,
+				materialization.get("created", [])
+			)
+			candidate.mark_expired()
+			event_expired.emit(
+				candidate.to_dictionary(),
+				availability.get("failure_reasons", []).duplicate(true)
+			)
+			continue
+
 		active_event = candidate
 		active_event.mark_active(_current_date())
-		var event: Dictionary = registry.get_event(active_event.event_id)
 		if bool(event.get("behavior", {}).get("blocking", false)):
 			_capture_and_pause_time()
 		active_event_changed.emit(active_event.to_dictionary())
 	_emit_queue_state()
 	_maybe_restore_time_state()
+
+
+func _materialize_activation_participants(
+	event: Dictionary,
+	instance: EventInstance
+) -> Dictionary:
+	var definitions_value = event.get("participants", {})
+	if typeof(definitions_value) != TYPE_DICTIONARY:
+		return {
+			"success": false,
+			"created": [],
+			"failure_reasons": [
+				{
+					"code": "invalid_participants",
+					"message": "Event participants are unavailable."
+				}
+			]
+		}
+
+	var definitions: Dictionary = definitions_value
+	var created: Array = []
+	for name_value in definitions:
+		var name := String(name_value)
+		var definition_value = definitions[name]
+		if typeof(definition_value) != TYPE_DICTIONARY:
+			continue
+		var definition: Dictionary = definition_value
+		if String(definition.get("source", "")) != "new_relationship_npc":
+			continue
+		if instance.participants.has(name):
+			continue
+
+		var from_name := String(definition.get("from", ""))
+		var linked_character_id := int(
+			instance.participants.get(from_name, 0)
+		)
+		if from_name.is_empty() or linked_character_id <= 0:
+			_discard_activation_materializations(instance, created)
+			return {
+				"success": false,
+				"created": [],
+				"failure_reasons": [
+					{
+						"code": "relationship_source_unavailable",
+						"message": "The linked family Character is unavailable."
+					}
+				]
+			}
+
+		var relationship_character: Dictionary = (
+			RelationshipNpcManager.create_relationship_candidate(
+				linked_character_id
+			)
+		)
+		if relationship_character.is_empty():
+			_discard_activation_materializations(instance, created)
+			return {
+				"success": false,
+				"created": [],
+				"failure_reasons": [
+					{
+						"code": "relationship_candidate_unavailable",
+						"message": "A new Relationship Character could not be created."
+					}
+				]
+			}
+
+		var candidate_id := int(
+			relationship_character.get("character_id", 0)
+		)
+		if candidate_id <= 0:
+			_discard_activation_materializations(instance, created)
+			return {
+				"success": false,
+				"created": [],
+				"failure_reasons": [
+					{
+						"code": "relationship_candidate_unavailable",
+						"message": "The generated Relationship Character has no valid ID."
+					}
+				]
+			}
+
+		instance.participants[name] = candidate_id
+		created.append({
+			"participant": name,
+			"candidate_id": candidate_id,
+			"linked_character_id": linked_character_id
+		})
+
+	return {
+		"success": true,
+		"created": created,
+		"failure_reasons": []
+	}
+
+
+func _discard_activation_materializations(
+	instance: EventInstance,
+	created_value
+) -> void:
+	if typeof(created_value) != TYPE_ARRAY:
+		return
+	var created: Array = created_value
+	for index in range(created.size() - 1, -1, -1):
+		var record_value = created[index]
+		if typeof(record_value) != TYPE_DICTIONARY:
+			continue
+		var record: Dictionary = record_value
+		var candidate_id := int(record.get("candidate_id", 0))
+		var linked_character_id := int(
+			record.get("linked_character_id", 0)
+		)
+		RelationshipNpcManager.discard_unpresented_relationship_candidate(
+			candidate_id,
+			linked_character_id
+		)
+		instance.participants.erase(
+			String(record.get("participant", ""))
+		)
 
 
 func _finish_active_event(status: String) -> bool:
@@ -836,6 +1128,7 @@ func _rebuild_runtime_indexes() -> void:
 func _connect_runtime_adapters() -> void:
 	_connect_if_needed(TimeManager.date_changed, _on_date_changed)
 	_connect_if_needed(GameManager.new_game_starting, _on_new_game_starting)
+	_connect_if_needed(GameManager.new_game_started, _on_new_game_started)
 	_connect_if_needed(CharacterManager.character_born, _on_character_born)
 	_connect_if_needed(CharacterManager.character_died, _on_character_died)
 	_connect_if_needed(CharacterManager.age_reached, _on_character_age_reached)
@@ -859,10 +1152,22 @@ func _connect_if_needed(source_signal: Signal, callable: Callable) -> void:
 
 
 func _on_new_game_starting() -> void:
+	_suppress_date_dispatch_during_new_game = true
 	reset_runtime_state()
 
 
+func _on_new_game_started(_starting_character: Dictionary) -> void:
+	_suppress_date_dispatch_during_new_game = false
+	# All earlier save-scoped Autoloads have now completed their new-game
+	# initialization. Evaluate the starting date exactly once against the new
+	# runtime state, before SaveManager (the final Autoload) creates the save.
+	process_calendar_date(_current_date())
+	process_scheduled_due(_current_date())
+
+
 func _on_date_changed(_date_text: String) -> void:
+	if _suppress_date_dispatch_during_new_game:
+		return
 	process_calendar_date(_current_date())
 	process_scheduled_due(_current_date())
 
@@ -887,12 +1192,35 @@ func _on_character_retired(character_id: int) -> void:
 	dispatch_system_trigger("retired", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id}}, "retired:%d:%s" % [character_id, _current_date()], "CharacterManager")
 
 
+func _dispatch_education_system_trigger(
+	semantic_event: String,
+	runtime_context: Dictionary,
+	occurrence_key: String
+) -> Dictionary:
+	var should_restore_running_time := (
+		EducationManager.is_education_pause_active
+		and EducationManager.should_resume_time_after_education_events
+	)
+	var result := dispatch_system_trigger(
+		semantic_event,
+		runtime_context,
+		occurrence_key,
+		"EducationManager"
+	)
+	if should_restore_running_time and _pause_state_captured:
+		# EducationManager paused a previously-running simulation for its
+		# canonical queue. Do not reinterpret that temporary domain pause as
+		# a player/manual pause when a blocking Event is activated from it.
+		_pre_event_was_paused = false
+	return result
+
+
 func _on_education_event_requested(character_id: int, event_type: String, education_stage: String) -> void:
-	dispatch_system_trigger("education_stage_due", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "event_type": event_type, "education_stage": education_stage}}, "education_stage_due:%d:%s:%s" % [character_id, event_type, _current_date()], "EducationManager")
+	_dispatch_education_system_trigger("education_stage_due", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "event_type": event_type, "education_stage": education_stage}}, "education_stage_due:%d:%s:%s" % [character_id, event_type, _current_date()])
 
 
 func _on_major_selection_requested(character_id: int) -> void:
-	dispatch_system_trigger("education_stage_due", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "event_type": "major_selection", "education_stage": "university"}}, "education_stage_due:%d:major_selection:%s" % [character_id, _current_date()], "EducationManager")
+	_dispatch_education_system_trigger("education_stage_due", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "event_type": "major_selection", "education_stage": "university"}}, "education_stage_due:%d:major_selection:%s" % [character_id, _current_date()])
 
 
 func _on_school_enrolled(character_id: int, school_id: int) -> void:
@@ -901,7 +1229,7 @@ func _on_school_enrolled(character_id: int, school_id: int) -> void:
 		return
 	var education_stage := String(school.get("education_stage", ""))
 	var school_type := String(school.get("school_type", ""))
-	dispatch_system_trigger("school_enrolled", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "school_id": school_id, "education_stage": education_stage, "school_type": school_type}}, "school_enrolled:%d:%d:%s" % [character_id, school_id, _current_date()], "EducationManager")
+	_dispatch_education_system_trigger("school_enrolled", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": {"character_id": character_id, "school_id": school_id, "education_stage": education_stage, "school_type": school_type}}, "school_enrolled:%d:%d:%s" % [character_id, school_id, _current_date()])
 
 
 func _on_school_graduated(character_id: int, school_id: int, graduation_date: String) -> void:
@@ -912,7 +1240,7 @@ func _on_school_graduated(character_id: int, school_id: int, graduation_date: St
 	var character := CharacterManager.get_character_by_id(character_id)
 	if not character.is_empty() and character.get("major_id", null) != null:
 		context["major_id"] = int(character.get("major_id", 0))
-	dispatch_system_trigger("school_graduated", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "school_graduated:%d:%d:%s" % [character_id, school_id, graduation_date], "EducationManager")
+	_dispatch_education_system_trigger("school_graduated", {"trigger_character_id": character_id, "trigger_participants": {"primary": character_id}, "context": context}, "school_graduated:%d:%d:%s" % [character_id, school_id, graduation_date])
 
 
 func _on_job_offer_requested(character_id: int, job_id: int, company_id: String, salary: int) -> void:

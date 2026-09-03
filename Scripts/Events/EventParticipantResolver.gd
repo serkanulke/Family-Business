@@ -48,6 +48,10 @@ func resolve(event: Dictionary, runtime_context: Dictionary = {}) -> Dictionary:
 				if String(definition.get("type", "")) == "character_group":
 					candidate_groups[name] = prepare_character_group(name, definition, participants, context)
 				continue
+			if bool(resolved.get("materialize_on_activation", false)):
+				# Automatic participant materialization is intentionally deferred until
+				# the Event has actually been selected and is about to be presented.
+				continue
 			if not bool(resolved.get("valid", false)):
 				failures.append(_failure(
 					"participant_unavailable",
@@ -167,6 +171,16 @@ func _resolve_participant(
 			if candidates.size() == 1: return {"valid": true, "value": candidates[0]}
 			if candidates.size() > 1: return {"valid": true, "pending": true}
 			return {"valid": false, "message": "No eligible Relationship character is available."}
+		"new_relationship_npc":
+			var from_name := String(definition.get("from", ""))
+			if from_name.is_empty():
+				return {"valid": false, "message": "New Relationship character source is missing its linked participant."}
+			if not participants.has(from_name):
+				return {"deferred": true}
+			var linked_character_id := int(participants[from_name])
+			if not query_provider.entity_exists("character", linked_character_id):
+				return {"valid": false, "message": "Linked family Character is unavailable."}
+			return {"valid": true, "materialize_on_activation": true}
 		"primary_house":
 			if not participants.has("primary"): return {"deferred": true}
 			var house_id := query_provider.get_character_house_id(int(participants["primary"]))
@@ -249,6 +263,25 @@ func _validate_resolved_participants(
 		):
 			failures.append(_failure("participant_invalid", "Participant '%s' is no longer available." % name, name))
 			continue
+		var participant_source := String(definition.get("source", ""))
+		if (
+			participant_type == "relationship_npc"
+			and participant_source in ["relationship_npc", "new_relationship_npc"]
+		):
+			var primary_id := _primary_id(participants)
+			if (
+				primary_id <= 0
+				or not query_provider.is_relationship_npc_pair_available(
+					int(value),
+					primary_id
+				)
+			):
+				failures.append(_failure(
+					"participant_invalid",
+					"Relationship participant '%s' is no longer eligible for the primary Character." % name,
+					name
+				))
+				continue
 		if definition.has("requirements"):
 			if participant_type == "character_group":
 				for character_id in value:

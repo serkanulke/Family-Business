@@ -1025,19 +1025,8 @@ func _on_new_game_starting() -> void:
 func _is_character_birthday_today(
 	character: Dictionary
 ) -> bool:
-	var date_parts := String(
-		character.get(
-			"birth_date",
-			""
-		)
-	).split("-")
-
-	if date_parts.size() != 3:
-		return false
-
-	return (
-		int(date_parts[1]) == TimeManager.current_month
-		and int(date_parts[2]) == TimeManager.current_day
+	return did_character_age_change_today(
+		character
 	)
 
 
@@ -1115,6 +1104,16 @@ func update_character_life_stage(
 func get_character_age(
 	character: Dictionary
 ) -> int:
+	return get_character_age_on_date(
+		character,
+		TimeManager.get_iso_date_string()
+	)
+
+
+func get_character_age_on_date(
+	character: Dictionary,
+	date_text: String
+) -> int:
 	var birth_date: String = String(
 		character.get(
 			"birth_date",
@@ -1122,39 +1121,66 @@ func get_character_age(
 		)
 	)
 
-	var date_parts := birth_date.split(
-		"-"
+	var birth_date_parts := GameCalendar.parse_iso_date(
+		birth_date
+	)
+	var current_date_parts := GameCalendar.parse_iso_date(
+		date_text
 	)
 
-	if date_parts.size() != 3:
+	if not bool(
+		birth_date_parts.get(
+			"valid",
+			false
+		)
+	):
 		push_error(
 			"Invalid character birth date: "
 			+ birth_date
 		)
 		return -1
 
+	if not bool(
+		current_date_parts.get(
+			"valid",
+			false
+		)
+	):
+		push_error(
+			"Invalid current date for character age: "
+			+ date_text
+		)
+		return -1
+
 	var birth_year := int(
-		date_parts[0]
+		birth_date_parts["year"]
 	)
-
 	var birth_month := int(
-		date_parts[1]
+		birth_date_parts["month"]
 	)
-
 	var birth_day := int(
-		date_parts[2]
+		birth_date_parts["day"]
+	)
+	var current_year := int(
+		current_date_parts["year"]
+	)
+	var current_month := int(
+		current_date_parts["month"]
+	)
+	var current_day := int(
+		current_date_parts["day"]
 	)
 
 	var age := (
-		TimeManager.current_year
+		current_year
 		- birth_year
 	)
 
 	var birthday_has_not_happened := (
-		TimeManager.current_month < birth_month
+		current_month < birth_month
 		or (
-			TimeManager.current_month == birth_month
-			and TimeManager.current_day < birth_day
+			current_month == birth_month
+			and current_day < birth_day
 		)
 	)
 
@@ -1162,6 +1188,34 @@ func get_character_age(
 		age -= 1
 
 	return age
+
+
+func did_character_age_change_today(
+	character: Dictionary
+) -> bool:
+	var current_date := TimeManager.get_iso_date_string()
+	var previous_date := GameCalendar.add_days(
+		current_date,
+		-1
+	)
+
+	if previous_date.is_empty():
+		return false
+
+	var current_age := get_character_age_on_date(
+		character,
+		current_date
+	)
+	var previous_age := get_character_age_on_date(
+		character,
+		previous_date
+	)
+
+	return (
+		current_age >= 0
+		and previous_age >= 0
+		and current_age > previous_age
+	)
 
 
 func get_life_stage_from_age(

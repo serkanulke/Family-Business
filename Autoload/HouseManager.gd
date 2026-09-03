@@ -480,6 +480,9 @@ func is_role_important(house_instance_id: String, role_id: String) -> bool:
 		return true
 	var occupant_ids := get_house_occupant_ids(house_instance_id)
 	var total_occupants := occupant_ids.size()
+	var full_population_trigger := int(rule.get("important_from_total_occupants", 0))
+	if full_population_trigger > 0 and total_occupants >= full_population_trigger:
+		return true
 	var required_stages_value = rule.get("required_life_stages", [])
 	if required_stages_value is Array and not required_stages_value.is_empty():
 		var has_required_stage := false
@@ -490,9 +493,6 @@ func is_role_important(house_instance_id: String, role_id: String) -> bool:
 				break
 		if not has_required_stage:
 			return false
-	var full_population_trigger := int(rule.get("important_from_total_occupants", 0))
-	if full_population_trigger > 0 and total_occupants < full_population_trigger:
-		return false
 	var min_total := int(rule.get("min_total_occupants", 0))
 	if min_total > 0 and total_occupants < min_total:
 		return false
@@ -505,7 +505,14 @@ func is_role_important(house_instance_id: String, role_id: String) -> bool:
 				adult_count += 1
 		if adult_count < min_adults:
 			return false
-	return min_total > 0 or min_adults > 0 or full_population_trigger > 0
+	return (
+		min_total > 0
+		or min_adults > 0
+		or (
+			required_stages_value is Array
+			and not required_stages_value.is_empty()
+		)
+	)
 
 
 func get_household_score(house_instance_id: String) -> float:

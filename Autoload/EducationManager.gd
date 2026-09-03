@@ -63,6 +63,25 @@ func _ready() -> void:
 		_on_date_changed
 	)
 
+	if not GameManager.new_game_starting.is_connected(
+		_on_new_game_starting
+	):
+		GameManager.new_game_starting.connect(
+			_on_new_game_starting
+		)
+
+
+func reset_runtime_state_for_new_game() -> void:
+	education_event_queue.clear()
+	current_education_event.clear()
+	is_education_event_active = false
+	is_education_pause_active = false
+	should_resume_time_after_education_events = false
+
+
+func _on_new_game_starting() -> void:
+	reset_runtime_state_for_new_game()
+
 
 func load_school_data() -> void:
 	var loaded_schools := _load_json_array(
@@ -300,21 +319,8 @@ func _load_json_array(
 func is_character_birthday(
 	character: Dictionary
 ) -> bool:
-	var birth_date := String(
-		character.get("birth_date", "")
-	)
-
-	var date_parts := birth_date.split("-")
-
-	if date_parts.size() != 3:
-		return false
-
-	var birth_month := int(date_parts[1])
-	var birth_day := int(date_parts[2])
-
-	return (
-		TimeManager.current_month == birth_month
-		and TimeManager.current_day == birth_day
+	return CharacterManager.did_character_age_change_today(
+		character
 	)
 
 func get_birthday_education_event(

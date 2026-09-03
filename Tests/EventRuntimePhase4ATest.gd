@@ -296,14 +296,58 @@ func _test_domain_manager_delegation() -> void:
 		and status_result.effect_results[0].after == "dating",
 		"relationship_status_set delegates narrow external Relationship status mutation"
 	)
+	HouseManager.restore_save_state({
+		"houses": [{
+			"house_instance_id":"relationship_event_house",
+			"house_definition_id":"family_house",
+			"property_id":"relationship_event_house_plot",
+			"level":1,
+			"role_assignments":{"head_of_household":1,"cook":null,"housekeeper":null,"caregiver":null},
+			"resident_character_ids":[]
+		}],
+		"next_house_instance_number":2
+	})
 	var marry := _event("relationship_marry_event", [{"type":"relationship_marry","primary":"primary","target":"target"}])
 	marry.participants.target = {"type":"relationship_npc","source":"trigger"}
 	_configure([marry]); EventManager.activate_chain(marry.event_id, {"primary":1,"target":3})
-	_assert(EventManager.resolve_active_event("continue").resolved and CharacterManager.characters[0].partner_id == 3 and CharacterManager.characters[2].is_player_family, "relationship_marry delegates RelationshipNpcManager family entry")
+	_assert(
+		EventManager.resolve_active_event("continue").resolved
+		and CharacterManager.characters[0].partner_id == 3
+		and CharacterManager.characters[2].is_player_family
+		and String(HouseManager.get_character_assignment(3).get("assignment_type", "")) == "resident",
+		"relationship_marry delegates RelationshipNpcManager family entry and canonical spouse House placement"
+	)
 	var divorce := _event("relationship_divorce_event", [{"type":"relationship_divorce","primary":"primary","target":"target"}])
 	divorce.participants.target = {"type":"character","source":"trigger"}
 	_configure([divorce]); EventManager.activate_chain(divorce.event_id, {"primary":1,"target":3})
-	_assert(EventManager.resolve_active_event("continue").resolved and CharacterManager.characters[0].partner_id == null and not CharacterManager.characters[2].is_player_family, "relationship_divorce delegates partner and external-spouse cleanup")
+	_assert(
+		EventManager.resolve_active_event("continue").resolved
+		and CharacterManager.characters[0].partner_id == null
+		and not CharacterManager.characters[2].is_player_family
+		and HouseManager.get_character_assignment(3).is_empty(),
+		"relationship_divorce delegates partner, House, and external-spouse cleanup"
+	)
+
+	_setup()
+	CharacterManager.characters[0].gender = "female"
+	CharacterManager.characters[0].birth_date = "1945-01-01"
+	CharacterManager.characters[2].gender = "male"
+	CharacterManager.characters[2].linked_character_id = 1
+	CharacterManager.characters[2].relationship_status = "candidate"
+	RelationshipNpcManager.relationship_candidate_ids = [3]
+	var stale_marry := _event("relationship_stale_marry_event", [{"type":"relationship_marry","primary":"primary","target":"target"}])
+	stale_marry.participants.target = {"type":"relationship_npc","source":"trigger"}
+	_configure([stale_marry]); EventManager.activate_chain(stale_marry.event_id, {"primary":1,"target":3})
+	var stale_result := EventManager.resolve_active_event("continue")
+	_assert(
+		not stale_result.resolved
+		and CharacterManager.characters[0].partner_id == null
+		and not CharacterManager.characters[2].is_player_family
+		and stale_result.effect_results.size() == 1
+		and String(stale_result.effect_results[0].get("code", "")) == "marriage_unavailable",
+		"relationship_marry revalidates the age boundary at final Event resolution"
+	)
+	EventManager.cancel_active_event()
 
 
 func _test_runtime_export_import_and_reset() -> void:

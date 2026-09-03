@@ -340,6 +340,12 @@ func start_new_game(
 		)
 		return {}
 
+	if not SaveManager.prepare_for_new_game():
+		push_error(
+			"Current game could not be saved before starting a new game."
+		)
+		return {}
+
 	new_game_starting.emit()
 
 	TimeManager.reset_time()

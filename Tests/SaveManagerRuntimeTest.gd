@@ -11,16 +11,19 @@ const TEST_SAVE_DIRECTORY := (
 var passed: int = 0
 var failed: int = 0
 var original_save_directory: String = ""
+var original_save_id: int = -1
 
 
 func _ready() -> void:
 	original_save_directory = (
 		SaveManager.save_directory
 	)
+	original_save_id = SaveManager.current_save_id
 
 	SaveManager.save_directory = (
 		TEST_SAVE_DIRECTORY
 	)
+	SaveManager.current_save_id = -1
 
 	_cleanup_test_saves()
 
@@ -43,18 +46,25 @@ func _ready() -> void:
 		TimeManager.get_iso_date_string()
 	)
 
+	var test_save_id := SaveManager.current_save_id
+
 	_assert_true(
-		SaveManager.save_game(0),
-		"Runtime state can be written to slot 0"
+		test_save_id > 0,
+		"New game owns a positive dynamic save ID"
 	)
 
 	_assert_true(
-		SaveManager.has_save(0),
-		"Saved slot is reported as occupied"
+		SaveManager.save_current_game(),
+		"Runtime state can be written to the current save file"
 	)
 
-	var summary := (
-		SaveManager.get_slot_summary(0)
+	_assert_true(
+		SaveManager.has_save(test_save_id),
+		"Current dynamic save is reported as existing"
+	)
+
+	var summary: Dictionary = (
+		SaveManager.get_save_summary(test_save_id)
 	)
 
 	_assert_true(
@@ -87,8 +97,8 @@ func _ready() -> void:
 	TimeManager.current_year = 2000
 
 	_assert_true(
-		SaveManager.load_game(0),
-		"Saved slot can be loaded"
+		SaveManager.load_game(test_save_id),
+		"Saved dynamic file can be loaded"
 	)
 
 	_assert_true(
@@ -124,13 +134,13 @@ func _ready() -> void:
 		"Game date is restored"
 	)
 
-	await _test_load_game_screen_binding()
-
+	SaveManager.current_save_id = -1
 	_cleanup_test_saves()
 
 	SaveManager.save_directory = (
 		original_save_directory
 	)
+	SaveManager.current_save_id = original_save_id
 
 	print("")
 	print(
@@ -252,25 +262,40 @@ func _test_load_game_screen_binding() -> void:
 
 
 func _cleanup_test_saves() -> void:
-	for slot_index in range(
-		SaveManager.MAX_SAVE_SLOTS
-	):
-		SaveManager.delete_save(
-			slot_index
-		)
-
 	var absolute_directory := (
 		ProjectSettings.globalize_path(
 			TEST_SAVE_DIRECTORY
 		)
 	)
 
-	if DirAccess.dir_exists_absolute(
+	if not DirAccess.dir_exists_absolute(
 		absolute_directory
 	):
-		DirAccess.remove_absolute(
-			absolute_directory
-		)
+		return
+
+	var directory := DirAccess.open(
+		TEST_SAVE_DIRECTORY
+	)
+
+	if directory != null:
+		directory.list_dir_begin()
+		var file_name := directory.get_next()
+
+		while not file_name.is_empty():
+			if not directory.current_is_dir():
+				DirAccess.remove_absolute(
+					ProjectSettings.globalize_path(
+						TEST_SAVE_DIRECTORY.path_join(file_name)
+					)
+				)
+
+			file_name = directory.get_next()
+
+		directory.list_dir_end()
+
+	DirAccess.remove_absolute(
+		absolute_directory
+	)
 
 
 func _assert_true(

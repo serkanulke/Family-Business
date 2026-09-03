@@ -24,6 +24,7 @@ func _run_tests() -> void:
 	_test_static_data()
 	_test_new_game_house()
 	_test_slot_and_age_rules()
+	_test_role_to_resident_capacity_regression()
 	_test_employment_independence()
 	_test_performance_and_importance()
 	_test_score_status_and_perks()
@@ -139,6 +140,43 @@ func _test_slot_and_age_rules() -> void:
 	_assert(not HouseManager.assign_character_to_role("house_0001", "head_of_household", 5), "One Character cannot hold multiple roles")
 
 
+func _test_role_to_resident_capacity_regression() -> void:
+	_reset()
+	_character(1, "adult")
+	_character(2, "adult")
+	_character(3, "adult")
+	_house_with_head()
+	_assert(
+		HouseManager.get_house_resident_capacity("house_0001") == 1,
+		"Level 1 House reserves four role slots and exposes exactly one resident slot"
+	)
+	_assert(
+		HouseManager.assign_character_to_role("house_0001", "cook", 2),
+		"Regression setup assigns Character to a fixed House role"
+	)
+	_assert(
+		HouseManager.remove_character_from_house(2),
+		"Role Character can be removed before moving to the resident slot"
+	)
+	_assert(
+		HouseManager.assign_character_as_resident("house_0001", 2),
+		"Removed role Character can move into the single resident slot"
+	)
+	_assert(
+		HouseManager.get_house_resident_count("house_0001") == 1
+		and HouseManager.get_house_occupancy("house_0001") == 2,
+		"Role-to-resident move occupies one resident slot without creating extra occupancy"
+	)
+	_assert(
+		not HouseManager.assign_character_as_resident("house_0001", 3),
+		"Filled resident capacity rejects a phantom second resident slot"
+	)
+	_assert(
+		HouseManager.get_resident_candidates("house_0001").is_empty(),
+		"Filled resident capacity exposes no additional resident candidates"
+	)
+
+
 func _test_employment_independence() -> void:
 	_reset(); _character(1); var worker := _character(2); _house_with_head()
 	BusinessManager.businesses = [{"business_instance_id": "business_test", "business_type_id": "cafe", "plot_id": "cafe_test", "level": 1, "slots": [{"slot_id": "manager_01", "assigned_character_id": 2, "assigned_npc_id": null}]}]
@@ -161,14 +199,14 @@ func _test_performance_and_importance() -> void:
 	var caregiver := _character(4, "adult", 50); HouseManager.assign_character_to_role("house_0001", "caregiver", 4)
 	_assert(not HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver stays inactive without Baby or Child")
 	var baby := _character(5, "baby"); HouseManager.assign_character_as_resident("house_0001", 5)
-	_assert(HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver follows adult-count plus Baby/Child rule")
+	_assert(HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver becomes important at five total occupants")
 
 	_reset(); _character(1, "adult", 50); var adult_rule_house := _house_with_head(); adult_rule_house["level"] = 2
 	_character(2, "adult", 50); HouseManager.assign_character_to_role("house_0001", "cook", 2)
 	_character(3, "adult", 50); HouseManager.assign_character_to_role("house_0001", "housekeeper", 3)
 	_character(4, "teen", 50); HouseManager.assign_character_as_resident("house_0001", 4)
 	_character(5, "baby", 50); HouseManager.assign_character_as_resident("house_0001", 5)
-	_assert(not HouseManager.is_role_important("house_0001", "caregiver"), "Caregiver still requires four adult-stage occupants at five total occupants")
+	_assert(HouseManager.is_role_important("house_0001", "caregiver"), "Five total occupants makes Caregiver important regardless of lower-population conditions")
 
 	_reset(); _character(1, "adult", 50); var scoring_house := _house_with_head(); scoring_house["level"] = 2
 	_character(2, "adult", 100); HouseManager.assign_character_to_role("house_0001", "cook", 2)
@@ -176,7 +214,7 @@ func _test_performance_and_importance() -> void:
 	for id in range(3, 6):
 		_character(id, "adult", 50)
 		HouseManager.assign_character_as_resident("house_0001", id)
-	_assert(is_equal_approx(HouseManager.get_household_score("house_0001"), 52.0), "Full role contribution applies from five occupants")
+	_assert(is_equal_approx(HouseManager.get_household_score("house_0001"), 42.0), "All roles become important with full contribution from five occupants")
 
 
 func _test_score_status_and_perks() -> void:

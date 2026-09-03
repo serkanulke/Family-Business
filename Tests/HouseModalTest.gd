@@ -41,6 +41,29 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_assert(modal.capacity_label.text == "Capacity 2 / 5", "Modal refreshes immediately after assignment")
 	_assert(int(CharacterManager.get_character_by_id(1).job_id) == head_job, "Modal-backed House operations preserve career state")
+	_assert(
+		HouseManager.remove_character_from_house(2)
+		and HouseManager.assign_character_as_resident("house_0001", 2),
+		"Role Character can be moved into the standard resident slot"
+	)
+	await get_tree().process_frame
+	_assert(
+		HouseManager.get_house_resident_capacity("house_0001") == 1
+		and HouseManager.get_house_resident_count("house_0001") == 1,
+		"Level 1 House keeps exactly one standard resident slot after role-to-resident move"
+	)
+	_assert(
+		modal.capacity_label.text == "Capacity 2 / 5",
+		"Role-to-resident move does not inflate total House occupancy"
+	)
+	_assert(
+		modal.household_list.get_child_count() == 5,
+		"Role-to-resident move keeps exactly four role rows plus one resident row"
+	)
+	_assert(
+		modal.find_child("EmptyResidentCard", true, false) == null,
+		"Filled resident capacity does not render a phantom extra resident slot"
+	)
 	modal.call("_open_info_modal")
 	await get_tree().process_frame
 	var info_modals := modal.find_children("*", "HouseInfoModal", true, false)

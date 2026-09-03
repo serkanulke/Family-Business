@@ -9,6 +9,9 @@ const LOCKED_COST := "locked_cost"
 const COMPLETED_NON_REPEATABLE := "completed_non_repeatable"
 const REQUIRES_PARTICIPANTS := "requires_participants"
 const DISABLED := "disabled"
+const MANUAL_SOURCES: Array[String] = [
+	"lifestyle", "family_agency"
+]
 
 
 var registry: EventDataRegistry
@@ -49,6 +52,10 @@ func get_definitions_by_manual_source(source: String, enabled_only: bool = false
 
 func get_definitions_by_pool(pool_id: String, enabled_only: bool = false) -> Array:
 	return registry.get_events_for_pool(pool_id, enabled_only)
+
+
+func is_manual_source_supported(source: String) -> bool:
+	return source.strip_edges() in MANUAL_SOURCES
 
 
 func get_content(event_id: String) -> Dictionary:
@@ -116,8 +123,17 @@ func discover_manual(
 	mode: String = "",
 	pool_id: String = ""
 ) -> Dictionary:
+	var normalized_source := source.strip_edges()
+	if not is_manual_source_supported(normalized_source):
+		return {
+			"source": normalized_source,
+			"mode": mode,
+			"pool_id": pool_id,
+			"events": [],
+			"weighted_selection_performed": false
+		}
 	var results: Array = []
-	for event_value in registry.get_events_for_manual_source(source):
+	for event_value in registry.get_events_for_manual_source(normalized_source):
 		if typeof(event_value) != TYPE_DICTIONARY:
 			continue
 		var event: Dictionary = event_value
@@ -132,7 +148,7 @@ func discover_manual(
 			continue
 		results.append(get_availability(String(event.get("event_id", "")), runtime_context))
 	return {
-		"source": source,
+		"source": normalized_source,
 		"mode": mode,
 		"pool_id": pool_id,
 		"events": results,

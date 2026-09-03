@@ -245,6 +245,18 @@ func _test_trigger_validation() -> void:
 		"Required value must be a non-empty String"
 	)
 
+	var relationship_manual := _base_event("relationship_manual", "relationship")
+	relationship_manual["trigger"] = {
+		"type": "manual",
+		"source": "relationship",
+		"mode": "direct"
+	}
+	_expect_invalid_event(
+		relationship_manual,
+		"Relationship Events cannot use manual triggers",
+		"Unsupported manual source 'relationship'"
+	)
+
 	var direct_with_pool := _base_event("direct_with_pool", "general")
 	direct_with_pool["trigger"] = {
 		"type": "manual",
@@ -798,7 +810,7 @@ func _test_all_trigger_repeat_and_cooldown_constructs() -> void:
 		{"type": "system", "event": "age_reached", "parameters": {"age": 18}},
 		{"type": "calendar", "cadence": {"unit": "week", "interval": 2}},
 		{"type": "manual", "source": "lifestyle", "mode": "direct"},
-		{"type": "manual", "source": "relationship", "mode": "pool", "pool_id": "manual_pool"},
+		{"type": "manual", "source": "lifestyle", "mode": "pool", "pool_id": "manual_pool"},
 		{"type": "chain"},
 		{"type": "scheduled"}
 	]

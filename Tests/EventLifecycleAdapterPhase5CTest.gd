@@ -25,6 +25,7 @@ func _ready() -> void:
 	_connect_capture_signals()
 
 	_test_age_reached_transition()
+	_test_leap_day_age_transition_uses_canonical_age_change()
 	_test_all_life_stage_boundaries()
 	_test_retirement_transition_is_complete_before_signal()
 	_test_deterministic_death_and_existing_adapter()
@@ -63,6 +64,27 @@ func _test_age_reached_transition() -> void:
 	EventManager.cancel_active_event()
 
 
+func _test_leap_day_age_transition_uses_canonical_age_change() -> void:
+	var character := _character(1, "1976-02-29", "child")
+	_setup_world([character], [_system_event("phase5c_leap_age", "age_reached")])
+	TimeManager.current_year = 1985
+	TimeManager.current_month = 2
+	TimeManager.current_day = 28
+
+	TimeManager.advance_day()
+
+	var occurrences := _semantic("age_reached")
+	_assert(
+		TimeManager.get_iso_date_string() == "1985-03-01"
+		and CharacterManager.get_character_age(character) == 9
+		and age_signals.size() == 1
+		and int(age_signals[0].age) == 9,
+		"Leap-day Character reaches the next age on March 1 of a non-leap year"
+	)
+	_assert(occurrences.size() == 1 and String(occurrences[0].occurrence_id) == "age_reached:1:9:1985-03-01" and _active_event_is("phase5c_leap_age", 1), "Leap-day age transition dispatches one canonical age_reached occurrence")
+	EventManager.cancel_active_event()
+
+
 func _test_all_life_stage_boundaries() -> void:
 	var boundaries: Array[int] = []
 	for age in range(1, 100):
@@ -92,13 +114,16 @@ func _test_retirement_transition_is_complete_before_signal() -> void:
 	character.salary = 12000
 	var businesses := [{"business_instance_id":"phase5c_business","slots":[{"slot_id":"slot_1","assigned_character_id":1,"assigned_npc_id":null},{"slot_id":"slot_2","assigned_character_id":2,"assigned_npc_id":null}]}]
 	_setup_world([character, _character(2, "1940-01-26", "adult")], [_system_event("phase5c_retired", "retired")], businesses)
+	CareerManager.active_job_offers[1] = {"job_id":2001,"company_id":"retirement_cleanup_fixture","salary":5000}
 
 	TimeManager.advance_day()
 
 	var occurrences := _semantic("retired")
 	_assert(bool(character.is_retired) and int(character.last_salary) == 12000 and int(character.pension) == 1200 and int(character.salary) == 0, "Age-65 progression completes the unchanged canonical retirement calculation")
 	_assert(BusinessManager.get_character_assignment(1).is_empty() and String(BusinessManager.get_character_assignment(2).get("slot_id", "")) == "slot_2", "Retirement removes only the retiree's Family Business assignment")
-	_assert(retirement_signals.size() == 1 and bool(retirement_signals[0].state_final) and bool(retirement_signals[0].business_cleanup_complete), "character_retired emits once only after retirement and Business cleanup are complete")
+	_assert(CareerManager.get_active_job_offer(1).is_empty(), "Retirement clears an obsolete pending external job offer")
+	_assert(retirement_signals.size() == 1 and bool(retirement_signals[0].state_final) and bool(retirement_signals[0].business_cleanup_complete) and bool(retirement_signals[0].career_offer_cleanup_complete), "character_retired reaches adapters only after retirement, Business cleanup, and Career offer cleanup are complete")
+	_assert(CharacterManager.character_retired.is_connected(Callable(SaveManager, "_on_autosave_relevant_signal")), "Retirement is connected to the existing SaveManager autosave boundary")
 	_assert(occurrences.size() == 1 and _context_matches(occurrences[0], {"character_id":1}) and String(occurrences[0].occurrence_id) == "retired:1:1985-01-26" and _active_event_is("phase5c_retired", 1), "retired bridge queues once with minimal canonical context and stable identity")
 
 	TimeManager.advance_day()
@@ -110,7 +135,9 @@ func _test_deterministic_death_and_existing_adapter() -> void:
 	var character := _character(1, "1897-01-25", "elder")
 	character.is_retired = true
 	character.health = 50
-	_setup_world([character], [_system_event("phase5c_death", "character_died")])
+	var businesses := [{"business_instance_id":"phase5c_death_business","slots":[{"slot_id":"slot_1","assigned_character_id":1,"assigned_npc_id":null}]}]
+	_setup_world([character], [_system_event("phase5c_death", "character_died")], businesses)
+	CareerManager.active_job_offers[1] = {"job_id":2001,"company_id":"death_cleanup_fixture","salary":5000}
 	GameManager.lifespan_setting = "normal"
 
 	_assert(CharacterManager.get_annual_death_chance(character) == 1.0, "Existing lifespan and health algorithm provides a deterministic canonical death condition")
@@ -118,7 +145,8 @@ func _test_deterministic_death_and_existing_adapter() -> void:
 
 	var occurrences := _semantic("character_died")
 	_assert(not bool(character.is_alive) and String(character.death_date) == "1985-01-26", "Canonical death commits is_alive and death_date before adaptation")
-	_assert(death_signals.size() == 1 and bool(death_signals[0].state_final), "Existing character_died signal emits once from completed CharacterManager death")
+	_assert(BusinessManager.get_character_assignment(1).is_empty() and CareerManager.get_active_job_offer(1).is_empty(), "Death clears stale Family Business and pending Career assignments through their owning managers")
+	_assert(death_signals.size() == 1 and bool(death_signals[0].state_final) and bool(death_signals[0].business_cleanup_complete) and bool(death_signals[0].career_offer_cleanup_complete), "Existing character_died reaches adapters only after dependent domain cleanup")
 	_assert(occurrences.size() == 1 and _context_matches(occurrences[0], {"character_id":1,"death_date":"1985-01-26"}) and String(occurrences[0].occurrence_id) == "character_died:1:1985-01-26", "Existing death bridge preserves canonical context and stable occurrence identity")
 	_assert(_active_event_is("phase5c_death", 1), "A controlled character_died Event accepts the dead trigger Character and queues exactly once")
 
@@ -325,12 +353,18 @@ func _on_life_stage_changed(character_id: int, previous_stage: String, new_stage
 
 func _on_character_retired(character_id: int) -> void:
 	var character := CharacterManager.get_character_by_id(character_id)
-	retirement_signals.append({"character_id":character_id,"state_final":bool(character.get("is_retired", false)) and int(character.get("salary", -1)) == 0,"business_cleanup_complete":BusinessManager.get_character_assignment(character_id).is_empty()})
+	retirement_signals.append({"character_id":character_id,"state_final":bool(character.get("is_retired", false)) and int(character.get("salary", -1)) == 0,"business_cleanup_complete":BusinessManager.get_character_assignment(character_id).is_empty(),"career_offer_cleanup_complete":CareerManager.get_active_job_offer(character_id).is_empty()})
 
 
 func _on_character_died(character_id: int, death_date: String) -> void:
 	var character := CharacterManager.get_character_by_id(character_id)
-	death_signals.append({"character_id":character_id,"death_date":death_date,"state_final":not bool(character.get("is_alive", true)) and String(character.get("death_date", "")) == death_date})
+	death_signals.append({
+		"character_id":character_id,
+		"death_date":death_date,
+		"state_final":not bool(character.get("is_alive", true)) and String(character.get("death_date", "")) == death_date,
+		"business_cleanup_complete":BusinessManager.get_character_assignment(character_id).is_empty(),
+		"career_offer_cleanup_complete":CareerManager.get_active_job_offer(character_id).is_empty()
+	})
 
 
 func _on_character_born(character_id: int, parent_one_id: int, parent_two_id: int) -> void:

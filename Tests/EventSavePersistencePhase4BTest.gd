@@ -28,6 +28,7 @@ func _ready() -> void:
 	_test_active_blocking_and_queue_round_trip()
 	_test_history_repeat_and_cooldown_round_trip()
 	_test_schedule_counters_ledgers_and_rng_round_trip()
+	_test_new_game_preserves_previous_event_save()
 	_test_flag_persistence_and_new_game_reset()
 
 	EventManager.configure_runtime(original_registry)
@@ -285,6 +286,54 @@ func _test_schedule_counters_ledgers_and_rng_round_trip() -> void:
 	var terminal_snapshot := _json_snapshot()
 	EventManager.cancel_active_event()
 	_assert(SaveManager.apply_save_snapshot(terminal_snapshot) and _scheduled_record(EventManager.scheduled_events, invalid.scheduled_event_id).status == "expired" and _scheduled_record(EventManager.scheduled_events, cancelled.scheduled_event_id).status == "cancelled", "Cancelled and expired scheduled state cannot return as pending after load")
+
+
+func _test_new_game_preserves_previous_event_save() -> void:
+	_setup_domain_state()
+	var preserved_event := _event("preserved_before_new_game")
+	preserved_event.repeat = {"mode":"once"}
+	_configure([preserved_event])
+	EventManager.activate_chain(
+		preserved_event.event_id,
+		{"primary":1},
+		{},
+		null,
+		"preserve_before_new_game"
+	)
+	_assert(
+		EventManager.resolve_active_event("continue").resolved,
+		"Previous save fixture completes a real Event before New Game"
+	)
+	var expected_history_count := EventManager.story_history.records.size()
+	var previous_save_id := TEST_SAVE_ID + 20
+	SaveManager.current_save_id = previous_save_id
+	_assert(
+		SaveManager.save_current_game(),
+		"Previous save captures Event history before New Game"
+	)
+
+	var started := GameManager.start_new_game("Fresh", "female", "FreshSave")
+	var fresh_save_id := SaveManager.current_save_id
+	_assert(
+		not started.is_empty() and fresh_save_id > 0 and fresh_save_id != previous_save_id,
+		"New Game creates a separate save after preserving the previous one"
+	)
+	_assert(_event_state_is_empty(), "New Game still resets current Event runtime state")
+	_assert(SaveManager.load_game(previous_save_id), "Previous Event save remains loadable after New Game")
+	_assert(
+		EventManager.story_history.records.size() == expected_history_count
+		and EventManager.story_history.has_completed(
+			preserved_event.event_id,
+			{"primary":1},
+			{}
+		)
+		and EventManager.state_provider.is_completed_non_repeatable(
+			preserved_event,
+			{"primary":1},
+			{}
+		),
+		"New Game does not overwrite the previous save with reset Event state"
+	)
 
 
 func _test_flag_persistence_and_new_game_reset() -> void:

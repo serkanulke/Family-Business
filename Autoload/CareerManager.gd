@@ -49,6 +49,50 @@ func _ready() -> void:
 		_on_date_changed
 	)
 
+	if not CharacterManager.character_retired.is_connected(
+		_on_character_retired
+	):
+		CharacterManager.character_retired.connect(
+			_on_character_retired
+		)
+
+	if not CharacterManager.character_died.is_connected(
+		_on_character_died
+	):
+		CharacterManager.character_died.connect(
+			_on_character_died
+		)
+
+	if not GameManager.new_game_starting.is_connected(
+		_on_new_game_starting
+	):
+		GameManager.new_game_starting.connect(
+			_on_new_game_starting
+		)
+
+
+func reset_runtime_state_for_new_game() -> void:
+	active_job_offers.clear()
+
+
+func _on_new_game_starting() -> void:
+	reset_runtime_state_for_new_game()
+
+
+func _on_character_retired(character_id: int) -> void:
+	active_job_offers.erase(
+		character_id
+	)
+
+
+func _on_character_died(
+	character_id: int,
+	_death_date: String
+) -> void:
+	active_job_offers.erase(
+		character_id
+	)
+
 
 func load_company_data() -> void:
 	companies = CharacterManager.load_json_array(
@@ -373,28 +417,14 @@ func get_employed_advancement_offer_pool(
 func iso_date_to_game_day_index(
 	date_text: String
 ) -> int:
-	var parts := date_text.split("-")
+	var ordinal := GameCalendar.date_to_ordinal(
+		date_text
+	)
 
-	if parts.size() != 3:
+	if ordinal < 1:
 		return -1
 
-	var year := int(parts[0])
-	var month := int(parts[1])
-	var day := int(parts[2])
-
-	if month < 1 or month > 12:
-		return -1
-
-	var result := year * 365
-
-	for month_index in range(month - 1):
-		result += TimeManager.DAYS_IN_MONTH[
-			month_index
-		]
-
-	result += day - 1
-
-	return result
+	return ordinal - 1
 
 
 func get_current_game_day_index() -> int:
@@ -504,57 +534,18 @@ func game_day_index_to_iso_date(
 	if day_index < 0:
 		return ""
 
-	var year := int(
-		floor(
-			float(day_index) / 365.0
-		)
+	return GameCalendar.ordinal_to_date(
+		day_index + 1
 	)
-
-	var remaining_days := (
-		day_index - year * 365
-	)
-
-	var month := 1
-
-	while (
-		month <= 12
-		and remaining_days
-		>= TimeManager.DAYS_IN_MONTH[
-			month - 1
-		]
-	):
-		remaining_days -= (
-			TimeManager.DAYS_IN_MONTH[
-				month - 1
-			]
-		)
-
-		month += 1
-
-	var day := remaining_days + 1
-
-	return "%04d-%02d-%02d" % [
-		year,
-		month,
-		day
-	]
 
 
 func add_game_days_to_iso_date(
 	date_text: String,
 	days_to_add: int
 ) -> String:
-	var starting_index := (
-		iso_date_to_game_day_index(
-			date_text
-		)
-	)
-
-	if starting_index < 0:
-		return ""
-
-	return game_day_index_to_iso_date(
-		starting_index + days_to_add
+	return GameCalendar.add_days(
+		date_text,
+		days_to_add
 	)
 
 func is_unemployed_offer_on_cooldown(

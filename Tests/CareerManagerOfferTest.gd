@@ -38,6 +38,9 @@ func _run_all_tests() -> void:
     _test_existing_job_gets_valid_company()
     _test_remove_external_job_preserves_family_business_assignment()
     _test_increase_external_salary_preserves_job_and_company()
+    _test_gregorian_calendar_math()
+    _test_gregorian_offer_cooldown()
+    _test_career_mutations_are_autosave_connected()
 
 func _save_state() -> void:
     saved_characters = CharacterManager.characters.duplicate(true)
@@ -280,6 +283,68 @@ func _test_increase_external_salary_preserves_job_and_company() -> void:
         and String(c.get("company_id", "")) == "central_city_administration"
         and int(c.get("salary", 0)) == 6000,
         "Salary increase changes only current external salary"
+    )
+
+func _test_gregorian_calendar_math() -> void:
+    _reset_world()
+    var feb_28 := CareerManager.iso_date_to_game_day_index("2024-02-28")
+    var feb_29 := CareerManager.iso_date_to_game_day_index("2024-02-29")
+    var mar_01 := CareerManager.iso_date_to_game_day_index("2024-03-01")
+    _assert_true(
+        feb_29 - feb_28 == 1
+        and mar_01 - feb_28 == 2
+        and CareerManager.game_day_index_to_iso_date(feb_29) == "2024-02-29"
+        and CareerManager.iso_date_to_game_day_index("2023-02-29") == -1,
+        "Career date helpers use the shared Gregorian calendar including leap day"
+    )
+    _assert_true(
+        CareerManager.add_game_days_to_iso_date("2024-02-27", 2) == "2024-02-29"
+        and CareerManager.add_game_days_to_iso_date("2024-02-28", 2) == "2024-03-01",
+        "Career day addition crosses leap day without losing a calendar day"
+    )
+
+func _test_gregorian_offer_cooldown() -> void:
+    _reset_world()
+    var c := _make_graduate()
+    c["job_offer_cooldown_until"] = null
+
+    TimeManager.current_day = 27
+    TimeManager.current_month = 2
+    TimeManager.current_year = 2024
+    CareerManager.start_unemployed_offer_cooldown(c)
+
+    var cooldown_date := String(c.get("job_offer_cooldown_until", ""))
+    TimeManager.current_day = 5
+    TimeManager.current_month = 3
+    var blocked_on_last_day := CareerManager.is_unemployed_offer_on_cooldown(c)
+
+    TimeManager.current_day = 6
+    var open_after_last_day := not CareerManager.is_unemployed_offer_on_cooldown(c)
+
+    c["unemployment_start_date"] = "2024-02-28"
+    TimeManager.current_day = 1
+    TimeManager.current_month = 3
+    var unemployed_days := CareerManager.get_days_since_iso_date(
+        String(c["unemployment_start_date"])
+    )
+
+    _assert_true(
+        cooldown_date == "2024-03-05"
+        and blocked_on_last_day
+        and open_after_last_day
+        and unemployed_days == 2,
+        "Offer cooldown and unemployment duration count real Gregorian days across leap day"
+    )
+
+func _test_career_mutations_are_autosave_connected() -> void:
+    var autosave_callable := Callable(
+        SaveManager,
+        "_on_autosave_relevant_signal"
+    )
+    _assert_true(
+        CareerManager.job_offer_accepted.is_connected(autosave_callable)
+        and CareerManager.external_job_removed.is_connected(autosave_callable),
+        "SaveManager tracks authoritative Career acceptance and removal mutations"
     )
 
 func _on_job_offer_requested(

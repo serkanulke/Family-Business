@@ -26,10 +26,12 @@ func _run_tests() -> void:
 	_test_calendar_math()
 	_test_calendar_trigger_evaluator()
 	_test_system_triggers_and_duplicates()
+	_test_automatic_character_fanout()
 	_test_calendar_dispatch_and_five_trigger_families()
 	_test_pool_selection()
 	_test_exclusive_priority_and_queue()
 	_test_time_pause_restore()
+	_test_blocking_date_change_stops_same_frame_progression()
 	_test_repeat_modes_and_commit_point()
 	_test_cooldown_scopes_and_calendar_expiry()
 	_test_manual_real_availability_and_agency_isolation()
@@ -80,6 +82,63 @@ func _test_system_triggers_and_duplicates() -> void:
 	EventManager.cancel_active_event()
 
 
+func _test_automatic_character_fanout() -> void:
+	var calendar_event := _calendar_event(
+		"calendar_character_fanout",
+		{"cadence":{"unit":"day","interval":1}}
+	)
+	calendar_event.participants = {
+		"primary":{"type":"character","source":"trigger"}
+	}
+	calendar_event.behavior.blocking = false
+	_configure([calendar_event])
+	EventManager.calendar_evaluator.anchor_date = "2024-01-31"
+	_set_date(2024, 2, 1)
+	var calendar_result := EventManager.process_calendar_date("2024-02-01")
+	var calendar_primary_ids: Array[int] = []
+	for instance in calendar_result.queued_instances:
+		calendar_primary_ids.append(int(instance.get("participants", {}).get("primary", 0)))
+	calendar_primary_ids.sort()
+	_assert(
+		calendar_result.queued_instances.size() == 2
+		and calendar_primary_ids == [1, 2],
+		"Automatic Calendar Event independently evaluates every living family primary Character"
+	)
+	while EventManager.active_event != null:
+		EventManager.complete_active_event()
+	_assert(
+		EventManager.process_calendar_date("2024-02-01").queued_instances.is_empty(),
+		"Automatic Calendar fanout does not duplicate the same calendar occurrence"
+	)
+
+	var system_event := _event(
+		"system_character_fanout",
+		{"type":"system","event":"family_wide_character_tick"}
+	)
+	system_event.participants = {
+		"primary":{"type":"character","source":"trigger"}
+	}
+	system_event.behavior.blocking = false
+	_configure([system_event])
+	var system_result := EventManager.dispatch_system_trigger(
+		"family_wide_character_tick",
+		{},
+		"family_wide_character_tick_1",
+		"test"
+	)
+	var system_primary_ids: Array[int] = []
+	for instance in system_result.queued_instances:
+		system_primary_ids.append(int(instance.get("participants", {}).get("primary", 0)))
+	system_primary_ids.sort()
+	_assert(
+		system_result.queued_instances.size() == 2
+		and system_primary_ids == [1, 2],
+		"Automatic System Event without a bound primary fans out to living family Characters only"
+	)
+	while EventManager.active_event != null:
+		EventManager.complete_active_event()
+
+
 func _test_calendar_dispatch_and_five_trigger_families() -> void:
 	var daily := _calendar_event("calendar_daily", {"cadence":{"unit":"day","interval":1}})
 	_configure([daily])
@@ -118,12 +177,12 @@ func _test_pool_selection() -> void:
 	var eligible_only := EventPoolSelector.new(3).select({"selection_mode":"weighted_one"}, [_weighted("eligible", 1.0)])
 	_assert(eligible_only.size() == 1 and eligible_only[0].event_id == "eligible", "One eligible Event consumes all probability after filtering")
 
-	var pool_events := [_event("pool_ok", {"type":"manual","source":"relationship","mode":"pool","pool_id":"manual_pool"}), _event("pool_locked", {"type":"manual","source":"relationship","mode":"pool","pool_id":"manual_pool"})]
+	var pool_events := [_event("pool_ok", {"type":"manual","source":"lifestyle","mode":"pool","pool_id":"manual_pool"}), _event("pool_locked", {"type":"manual","source":"lifestyle","mode":"pool","pool_id":"manual_pool"})]
 	pool_events[0].pool_id = "manual_pool"; pool_events[1].pool_id = "manual_pool"
 	pool_events[1].requirements = {"all":[{"type":"money","operator":">=","value":999999}]}
 	_configure(pool_events, [{"pool_id":"manual_pool","selection_mode":"weighted_one","max_events":1}])
 	GameManager.family_money = 100
-	var invoked := EventManager.invoke_manual_pool("relationship", "manual_pool", {}, "pool_occurrence")
+	var invoked := EventManager.invoke_manual_pool("lifestyle", "manual_pool", {}, "pool_occurrence")
 	_assert(invoked.selected_event_ids == ["pool_ok"] and invoked.queued_instances.size() == 1, "Manual pool filters ineligible weight before selection")
 	EventManager.cancel_active_event()
 
@@ -174,6 +233,42 @@ func _test_time_pause_restore() -> void:
 	_assert(TimeManager.is_paused, "Blocking behavior pauses even when legacy pause_game metadata is false")
 	EventManager.complete_active_event()
 	_assert(not TimeManager.is_paused and is_equal_approx(TimeManager.speed_multiplier, 2.0), "Blocking contract restores the exact prior running state")
+
+
+func _test_blocking_date_change_stops_same_frame_progression() -> void:
+	var blocking_daily := _calendar_event(
+		"blocking_daily_same_frame",
+		{"cadence":{"unit":"day","interval":1}}
+	)
+	_configure([blocking_daily])
+	EventManager.calendar_evaluator.anchor_date = "2024-01-31"
+
+	var previous_date := _set_date(2024, 1, 31)
+	var previous_timer := TimeManager.day_timer
+	var previous_paused := TimeManager.is_paused
+	var previous_speed := TimeManager.speed_multiplier
+
+	TimeManager.day_timer = TimeManager.DAY_DURATION * 3.0
+	TimeManager.is_paused = false
+	TimeManager.speed_multiplier = 1.0
+
+	TimeManager._process(0.0)
+
+	_assert(
+		TimeManager.get_iso_date_string() == "2024-02-01"
+		and TimeManager.is_paused
+		and EventManager.active_event != null
+		and EventManager.active_event.event_id == "blocking_daily_same_frame",
+		"Blocking calendar Event stops same-frame date catch-up immediately"
+	)
+
+	while EventManager.active_event != null:
+		EventManager.cancel_active_event()
+
+	_restore_date(previous_date)
+	TimeManager.day_timer = previous_timer
+	TimeManager.is_paused = previous_paused
+	TimeManager.speed_multiplier = previous_speed
 
 
 func _test_repeat_modes_and_commit_point() -> void:
@@ -252,6 +347,10 @@ func _test_manual_real_availability_and_agency_isolation() -> void:
 	_assert(_manual_status("lifestyle", "manual_cooldown") == EventRuntimeService.LOCKED_COOLDOWN, "Manual discovery uses real Phase 3 cooldown state")
 	EventManager.activate_manual_direct("manual_once", {}, "once_use"); EventManager.complete_active_event()
 	_assert(_manual_status("lifestyle", "manual_once") == EventRuntimeService.COMPLETED_NON_REPEATABLE, "Manual discovery uses real Phase 3 repeat state")
+	_assert(
+		EventManager.discover_manual("relationship").events.is_empty(),
+		"Relationship is not exposed as a manual Event source"
+	)
 
 	var agency_a := _agency_event("agency_a", "month", 60)
 	var agency_b := _agency_event("agency_b", "year", 5)

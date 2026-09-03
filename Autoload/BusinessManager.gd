@@ -42,6 +42,38 @@ func _ready() -> void:
 	load_business_data()
 	load_business_type_data()
 
+	if not CharacterManager.character_died.is_connected(
+		_on_character_died
+	):
+		CharacterManager.character_died.connect(
+			_on_character_died
+		)
+
+	if not GameManager.new_game_starting.is_connected(
+		_on_new_game_starting
+	):
+		GameManager.new_game_starting.connect(
+			_on_new_game_starting
+		)
+
+
+func reset_runtime_state_for_new_game() -> void:
+	businesses.clear()
+	next_business_instance_number = 1
+
+
+func _on_new_game_starting() -> void:
+	reset_runtime_state_for_new_game()
+
+
+func _on_character_died(
+	character_id: int,
+	_death_date: String
+) -> void:
+	remove_character_from_any_slot(
+		character_id
+	)
+
 
 func load_business_data() -> void:
 	businesses = CharacterManager.load_json_array(

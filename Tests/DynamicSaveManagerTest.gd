@@ -8,6 +8,10 @@ const TEST_SAVE_DIRECTORY := (
 	"user://family_business_dynamic_save_test"
 )
 
+const TEST_ITEM_ID := (
+	"accessory_common_black_gold_browline_sunglasses_007"
+)
+
 var passed: int = 0
 var failed: int = 0
 var original_save_directory: String = ""
@@ -78,6 +82,21 @@ func _ready() -> void:
 		7
 	)
 
+	var preserved_item := ItemManager.create_item_instance(
+		TEST_ITEM_ID
+	)
+	var preserved_item_instance_id := String(
+		preserved_item.get("instance_id", "")
+	)
+	_assert_true(
+		not preserved_item_instance_id.is_empty(),
+		"First save owns a real ItemInstance before another new game starts"
+	)
+	_assert_true(
+		SaveManager.save_game(first_save_id),
+		"First save captures Item state before the new-game transition"
+	)
+
 	await get_tree().process_frame
 	await get_tree().process_frame
 
@@ -115,6 +134,11 @@ func _ready() -> void:
 	)
 
 	_assert_true(
+		ItemManager.get_inventory_item_instance(preserved_item_instance_id).is_empty(),
+		"Second new game starts with clean Item runtime state"
+	)
+
+	_assert_true(
 		SaveManager.get_save_count() == 2,
 		"Two new games remain as two independent save files"
 	)
@@ -142,6 +166,11 @@ func _ready() -> void:
 	_assert_true(
 		GameManager.family_money == 32100,
 		"Loading an older file restores its autosaved money"
+	)
+
+	_assert_true(
+		not ItemManager.get_inventory_item_instance(preserved_item_instance_id).is_empty(),
+		"Starting a new game does not erase Item state from the previous save file"
 	)
 
 	var restored_business := BusinessManager.get_business_on_plot("cafe_01")

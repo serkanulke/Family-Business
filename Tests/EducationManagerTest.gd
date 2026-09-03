@@ -35,6 +35,7 @@ func _ready() -> void:
 
 func _run_all_tests() -> void:
 	_test_primary_birthday_event()
+	_test_leap_day_birthday_uses_canonical_age_transition()
 	_test_paid_school_affordability()
 	_test_paid_school_cost_and_bonus()
 	_test_stat_bonus_cap()
@@ -174,6 +175,26 @@ func _test_primary_birthday_event() -> void:
 		String(event_data.get("event_type", "")) == "school_enrollment"
 		and String(event_data.get("education_stage", "")) == "primary_school",
 		"Age 6 creates Primary School enrollment event"
+	)
+
+
+func _test_leap_day_birthday_uses_canonical_age_transition() -> void:
+	_reset_test_world()
+	_set_date(1, 3, 1982)
+	var character := _make_character(1, "1976-02-29")
+	var event_data := EducationManager.get_birthday_education_event(character)
+
+	_assert_true(
+		CharacterManager.get_character_age(character) == 6
+		and String(event_data.get("event_type", "")) == "school_enrollment"
+		and String(event_data.get("education_stage", "")) == "primary_school",
+		"Leap-day Character receives the age-6 Education birthday event on March 1 of a non-leap year"
+	)
+
+	_set_date(28, 2, 1982)
+	_assert_true(
+		not EducationManager.is_character_birthday(character),
+		"Leap-day Character does not age one day early on February 28 of a non-leap year"
 	)
 
 
