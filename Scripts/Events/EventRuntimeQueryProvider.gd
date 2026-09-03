@@ -170,6 +170,12 @@ func get_requirement_value(
 		"has_spouse":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = not get_relation_ids(int(character.get("character_id", 0)), "spouse").is_empty()
+		"relationship_status":
+			if character.is_empty(): return _invalid("Character target is unavailable.")
+			var relationship_status = character.get("relationship_status", null)
+			if typeof(relationship_status) != TYPE_STRING or String(relationship_status).strip_edges().is_empty():
+				return _invalid("Relationship status is unavailable.")
+			actual = String(relationship_status)
 		"family_member_count":
 			actual = get_family_character_ids().size()
 		"employment_status":
@@ -274,6 +280,7 @@ func get_requirement_label(requirement: Dictionary) -> String:
 		return String(requirement.get("stat", "Stat")).replace("_", " ").capitalize()
 	var labels := {
 		"lifestyle_score": "Lifestyle", "family_member_count": "Family members",
+		"relationship_status": "Relationship status",
 		"employment_status": "Employment", "education_stage": "Education stage",
 		"money": "Money", "diamonds": "Diamonds",
 		"house_assignment": "House assignment", "house_level": "House level",

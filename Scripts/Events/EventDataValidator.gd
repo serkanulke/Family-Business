@@ -50,7 +50,7 @@ const RELATIONS: Array[String] = [
 const REQUIREMENT_TYPES: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
-	"family_member_count", "employment_status", "job", "job_tag",
+	"family_member_count", "relationship_status", "employment_status", "job", "job_tag",
 	"education_stage", "school", "school_type", "major", "lifestyle_score",
 	"equipped_item", "item_type",
 	"item_rarity", "money", "diamonds", "house_assignment",
@@ -74,7 +74,7 @@ const BOOLEAN_REQUIREMENTS: Array[String] = [
 const TARGETED_REQUIREMENTS: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
-	"employment_status", "job", "job_tag", "education_stage", "school",
+	"relationship_status", "employment_status", "job", "job_tag", "education_stage", "school",
 	"school_type", "major",
 	"lifestyle_score", "equipped_item", "item_type", "item_rarity",
 	"house_assignment", "house_level", "business_type",
@@ -89,7 +89,7 @@ const SCORE_SOURCES: Array[String] = [
 ]
 const EFFECT_TYPES: Array[String] = [
 	"stat_change", "stat_set", "add_flag", "remove_flag",
-	"relationship_marry", "relationship_divorce", "money_change",
+	"relationship_status_set", "relationship_marry", "relationship_divorce", "money_change",
 	"diamond_change", "accept_job_offer", "reject_job_offer", "job_remove",
 	"salary_increase", "education_enroll", "add_item", "remove_item",
 	"equip_item", "unequip_item", "remove_from_house", "business_upgrade",
@@ -745,6 +745,19 @@ func _validate_requirement(
 			_add(source, event_id, path + ".operator", "Entitlement requirement only supports == and !=.")
 		if typeof(value) != TYPE_STRING or String(value).strip_edges().is_empty():
 			_add(source, event_id, path + ".value", "Entitlement requirement value must be a non-empty entitlement ID String.")
+	elif requirement_type == "relationship_status":
+		if operator not in ["==", "!=", "in", "not_in"]:
+			_add(source, event_id, path + ".operator", "relationship_status supports only ==, !=, in, and not_in.")
+		if operator in ["in", "not_in"]:
+			if typeof(value) != TYPE_ARRAY or value.is_empty():
+				_add(source, event_id, path + ".value", "relationship_status membership requires a non-empty String Array.")
+			else:
+				for status_value in value:
+					if typeof(status_value) != TYPE_STRING or String(status_value).strip_edges().is_empty():
+						_add(source, event_id, path + ".value", "relationship_status membership values must be non-empty Strings.")
+						break
+		elif typeof(value) != TYPE_STRING or String(value).strip_edges().is_empty():
+			_add(source, event_id, path + ".value", "relationship_status value must be a non-empty String.")
 	elif requirement_type == "date":
 		if operator not in ["==", "!=", ">", ">=", "<", "<="]:
 			_add(source, event_id, path + ".operator", "Date requirement uses an incompatible operator.")
@@ -1147,6 +1160,21 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 					event_id,
 					path + ".duration",
 					"add_flag does not support duration. Use schedule_event plus remove_flag for timed story state."
+				)
+		"relationship_status_set":
+			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
+			var relationship_status := _required_string(
+				source,
+				event_id,
+				path + ".value",
+				effect.get("value", null)
+			)
+			if relationship_status in ["married", "divorced"]:
+				_add(
+					source,
+					event_id,
+					path + ".value",
+					"relationship_status_set cannot write manager-owned status '%s'; use relationship_marry or relationship_divorce." % relationship_status
 				)
 		"relationship_marry", "relationship_divorce":
 			_validate_effect_target(source, event_id, path, effect, "primary", participant_names)

@@ -418,7 +418,7 @@ func _test_requirement_validation() -> void:
 
 	for removed_type in [
 		"career_level", "education_level", "relationship_exists",
-		"relationship_status", "relationship_level"
+		"relationship_level"
 	]:
 		var removed := _base_event("removed_requirement_%s" % removed_type, "general")
 		removed["requirements"] = {"all": [{
@@ -469,6 +469,25 @@ func _test_requirement_validation() -> void:
 		invalid_reference,
 		"Unknown statically resolvable data reference is rejected",
 		"Unknown job_id reference"
+	)
+
+	var empty_relationship_status := _base_event(
+		"empty_relationship_status",
+		"relationship"
+	)
+	empty_relationship_status["requirements"] = {
+		"all": [{
+			"type": "relationship_status",
+			"target": "primary",
+			"operator": "==",
+			"value": ""
+		}]
+	}
+	_expect_invalid_event(
+		empty_relationship_status,
+		"relationship_status requirement requires a non-empty String",
+		"relationship_status value must be a non-empty String",
+		"relationship"
 	)
 
 
@@ -613,6 +632,22 @@ func _test_effect_validation() -> void:
 	leaking_flag_feedback["choices"][0]["resolution"]["effects"] = [{"type":"add_flag","target":"primary","flag_id":1001,"feedback":{"mode":"custom","text":"Flag 1001 gained."}}]
 	_expect_invalid_event(leaking_flag_feedback, "Custom feedback cannot expose an internal flag ID", "must not expose the internal flag_id")
 
+	var manager_owned_relationship_status := _base_event(
+		"manager_owned_relationship_status",
+		"relationship"
+	)
+	manager_owned_relationship_status["choices"][0]["resolution"]["effects"] = [{
+		"type": "relationship_status_set",
+		"target": "primary",
+		"value": "married"
+	}]
+	_expect_invalid_event(
+		manager_owned_relationship_status,
+		"relationship_status_set cannot bypass marriage",
+		"use relationship_marry or relationship_divorce",
+		"relationship"
+	)
+
 	var timed_flag := _base_event("unsupported_timed_flag", "general")
 	timed_flag["choices"][0]["resolution"]["effects"] = [{
 		"type": "add_flag",
@@ -726,6 +761,7 @@ func _test_complete_effect_whitelist_and_score_check() -> void:
 	event["participants"] = {
 		"primary": {"type": "character", "source": "trigger"},
 		"target": {"type": "character", "source": "relation", "relation": "spouse", "from": "primary"},
+		"candidate": {"type": "relationship_npc", "source": "relationship_npc"},
 		"house": {"type": "house", "source": "primary_house"},
 		"business": {"type": "business", "source": "owned_business"}
 	}
@@ -814,6 +850,10 @@ func _test_all_requirement_constructs() -> void:
 		"outcomes": [{"outcome_id": "known_outcome", "weight": 1, "effects": []}]
 	}
 	var event := _base_event("all_requirements", "general")
+	event["participants"]["candidate"] = {
+		"type": "relationship_npc",
+		"source": "relationship_npc"
+	}
 	event["requirements"] = {"all": [
 		{"type": "stat", "target": "primary", "stat": "health", "operator": ">=", "value": 50},
 		{"type": "flag", "target": "primary", "operator": "==", "value": 1001},
@@ -825,6 +865,7 @@ func _test_all_requirement_constructs() -> void:
 		{"type": "has_child", "target": "primary", "operator": "==", "value": false},
 		{"type": "has_parent", "target": "primary", "operator": "==", "value": true},
 		{"type": "has_spouse", "target": "primary", "operator": "==", "value": true},
+		{"type": "relationship_status", "target": "candidate", "operator": "==", "value": "dating"},
 		{"type": "family_member_count", "operator": ">=", "value": 2},
 		{"type": "employment_status", "target": "primary", "operator": "==", "value": "employed"},
 		{"type": "job", "target": "primary", "operator": "==", "value": 1001},
@@ -870,7 +911,8 @@ func _all_valid_effects() -> Array:
 		{"type": "stat_set", "target": "primary", "stat": "happiness", "value": 80},
 		{"type": "add_flag", "target": "primary", "flag_id": 1001},
 		{"type": "remove_flag", "target": "primary", "flag_id": 1001},
-		{"type": "relationship_marry", "primary": "primary", "target": "target"},
+		{"type": "relationship_status_set", "target": "candidate", "value": "dating"},
+		{"type": "relationship_marry", "primary": "primary", "target": "candidate"},
 		{"type": "relationship_divorce", "primary": "primary", "target": "target"},
 		{"type": "money_change", "amount": 100},
 		{"type": "diamond_change", "amount": 1},

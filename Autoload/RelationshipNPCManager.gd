@@ -14,6 +14,10 @@ const RELATIONSHIP_NPC_DATA_PATH := \
 const UNIVERSITY_START_AGE := 18
 const MAJOR_SELECTION_AGE := 21
 const DIVORCE_RELATIONSHIP_COOLDOWN_YEARS := 1
+const MANAGER_OWNED_RELATIONSHIP_STATUSES: Array[String] = [
+	"married",
+	"divorced"
+]
 
 var generation_config: Dictionary = {}
 var name_config: Dictionary = {}
@@ -426,6 +430,89 @@ func get_relationship_candidate_ids_for(
 
 	result.sort()
 	return result
+
+
+func can_set_external_relationship_status(
+	character_id: int,
+	status: String
+) -> bool:
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return false
+
+	if String(
+		character.get(
+			"character_type",
+			""
+		)
+	) != "relationship_npc":
+		return false
+
+	if not bool(
+		character.get(
+			"is_alive",
+			true
+		)
+	):
+		return false
+
+	if bool(
+		character.get(
+			"is_player_family",
+			false
+		)
+	):
+		return false
+
+	if character.get(
+		"partner_id",
+		null
+	) != null:
+		return false
+
+	var linked_character_id = character.get(
+		"linked_character_id",
+		null
+	)
+
+	if (
+		linked_character_id == null
+		or int(linked_character_id) <= 0
+	):
+		return false
+
+	var normalized_status := status.strip_edges()
+
+	if normalized_status.is_empty():
+		return false
+
+	if normalized_status in MANAGER_OWNED_RELATIONSHIP_STATUSES:
+		return false
+
+	return true
+
+
+func set_external_relationship_status(
+	character_id: int,
+	status: String
+) -> bool:
+	var normalized_status := status.strip_edges()
+
+	if not can_set_external_relationship_status(
+		character_id,
+		normalized_status
+	):
+		return false
+
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	character["relationship_status"] = normalized_status
+	return true
 
 
 func pick_random_name(

@@ -201,7 +201,7 @@ func _test_all_operators_and_invalid_runtime_values() -> void:
 
 
 func _test_every_requirement_type() -> void:
-	var participants := {"primary": 1, "business": "business_phase2", "house": "house_phase2"}
+	var participants := {"primary": 1, "candidate": 6, "business": "business_phase2", "house": "house_phase2"}
 	var context := {"business_instance_id": "business_phase2", "house_instance_id": "house_phase2"}
 	var status_id := String(HouseManager.get_household_status("house_phase2").get("status_id", ""))
 	var requirements := [
@@ -215,6 +215,7 @@ func _test_every_requirement_type() -> void:
 		{"type":"has_child","target":"primary","operator":"==","value":true},
 		{"type":"has_parent","target":"primary","operator":"==","value":true},
 		{"type":"has_spouse","target":"primary","operator":"==","value":true},
+		{"type":"relationship_status","target":"candidate","operator":"==","value":"candidate"},
 		{"type":"family_member_count","operator":">=","value":5},
 		{"type":"employment_status","target":"primary","operator":"==","value":"employed"},
 		{"type":"job","target":"primary","operator":"==","value":9901},

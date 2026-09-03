@@ -280,8 +280,22 @@ func _test_domain_manager_delegation() -> void:
 	CharacterManager.characters[0].gender = "female"
 	CharacterManager.characters[2].gender = "male"
 	CharacterManager.characters[2].linked_character_id = 1
-	CharacterManager.characters[2].relationship_status = "dating"
+	CharacterManager.characters[2].relationship_status = "candidate"
 	RelationshipNpcManager.relationship_candidate_ids = [3]
+	var status_set := _event(
+		"relationship_status_event",
+		[{"type":"relationship_status_set","target":"target","value":"dating"}]
+	)
+	status_set.participants.target = {"type":"relationship_npc","source":"trigger"}
+	_configure([status_set]); EventManager.activate_chain(status_set.event_id, {"primary":1,"target":3})
+	var status_result := EventManager.resolve_active_event("continue")
+	_assert(
+		status_result.resolved
+		and CharacterManager.characters[2].relationship_status == "dating"
+		and status_result.effect_results[0].before == "candidate"
+		and status_result.effect_results[0].after == "dating",
+		"relationship_status_set delegates narrow external Relationship status mutation"
+	)
 	var marry := _event("relationship_marry_event", [{"type":"relationship_marry","primary":"primary","target":"target"}])
 	marry.participants.target = {"type":"relationship_npc","source":"trigger"}
 	_configure([marry]); EventManager.activate_chain(marry.event_id, {"primary":1,"target":3})

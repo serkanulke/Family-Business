@@ -67,7 +67,7 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 	var effect_type := String(effect.get("type", ""))
 	var plan := {"valid": true, "index": index, "effect": effect.duplicate(true), "type": effect_type}
 	match effect_type:
-		"stat_change", "stat_set", "add_flag", "remove_flag", "accept_job_offer", "reject_job_offer", "job_remove", "salary_increase", "education_enroll", "add_item", "remove_item", "equip_item", "unequip_item", "remove_from_house":
+		"stat_change", "stat_set", "add_flag", "remove_flag", "relationship_status_set", "accept_job_offer", "reject_job_offer", "job_remove", "salary_increase", "education_enroll", "add_item", "remove_item", "equip_item", "unequip_item", "remove_from_house":
 			var character_id := _character_id(effect, "target", participants)
 			if character_id <= 0:
 				return _invalid(index, "target_unavailable", "The target Character is no longer available.")
@@ -91,6 +91,14 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 		"stat_change", "stat_set":
 			if String(effect.get("stat", "")) not in CharacterManager.CHARACTER_STAT_NAMES:
 				return _invalid(index, "stat_unavailable", "The Character stat is unavailable.")
+		"relationship_status_set":
+			var relationship_status := String(effect.get("value", "")).strip_edges()
+			if not RelationshipNpcManager.can_set_external_relationship_status(
+				int(plan["character_id"]),
+				relationship_status
+			):
+				return _invalid(index, "relationship_status_unavailable", "The Relationship status can no longer be changed.")
+			plan["relationship_status"] = relationship_status
 		"relationship_marry":
 			var candidate := CharacterManager.get_character_by_id(int(plan["target_id"]))
 			var partner := CharacterManager.get_character_by_id(int(plan["primary_id"]))
@@ -190,6 +198,19 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			var before := GameManager.diamonds
 			GameManager.set_diamonds(before + int(effect.get("amount", 0)))
 			result.merge({"success": true, "requested_amount": int(effect.get("amount", 0)), "applied_amount": GameManager.diamonds - before, "before": before, "after": GameManager.diamonds}, true)
+		"relationship_status_set":
+			var character := CharacterManager.get_character_by_id(character_id)
+			var before := String(character.get("relationship_status", ""))
+			var after := String(plan.get("relationship_status", ""))
+			result.merge({
+				"success": RelationshipNpcManager.set_external_relationship_status(
+					character_id,
+					after
+				),
+				"target_character_id": character_id,
+				"before": before,
+				"after": after
+			}, true)
 		"relationship_marry": result["success"] = RelationshipNpcManager.make_candidate_family_member(int(plan["target_id"]), int(plan["primary_id"]))
 		"relationship_divorce": result["success"] = RelationshipNpcManager.divorce_characters(int(plan["primary_id"]), int(plan["target_id"]))
 		"accept_job_offer":
@@ -302,6 +323,8 @@ func _item_before(left: Dictionary, right: Dictionary) -> bool:
 func _exclusive_mutation_key(plan: Dictionary) -> String:
 	var effect_type := String(plan.get("type", ""))
 	match effect_type:
+		"relationship_status_set":
+			return "relationship_status:%d" % int(plan.get("character_id", 0))
 		"relationship_marry", "relationship_divorce":
 			var ids := [int(plan.get("primary_id", 0)), int(plan.get("target_id", 0))]
 			ids.sort()
@@ -324,6 +347,7 @@ func _display(effect: Dictionary, result: Dictionary) -> Dictionary:
 		return {"mode": "custom", "text": String(feedback.get("text", "")), "icon_path": feedback.get("icon_path", null)}
 	var text := String(effect.get("type", "")).replace("_", " ").capitalize()
 	match String(effect.get("type", "")):
+		"relationship_status_set": text = "Relationship updated."
 		"accept_job_offer": text = "Accepted %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]
 		"reject_job_offer": text = "Rejected %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]
 		"job_remove": text = "Left %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]

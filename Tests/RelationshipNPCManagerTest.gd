@@ -61,6 +61,7 @@ func _ready() -> void:
 func _run_tests() -> void:
 	_test_age_rules()
 	_test_generation()
+	_test_external_relationship_status_mutation()
 	_test_marriage_conversion()
 	_test_distant_relative_marriage_boundary()
 	_test_global_relationship_settings_persistence()
@@ -156,6 +157,31 @@ func _test_generation() -> void:
 			)
 		).is_empty(),
 		"Candidate respects age rules and receives canonical portrait state"
+	)
+
+
+func _test_external_relationship_status_mutation() -> void:
+	_reset_world()
+
+	var family_character := _make_family_character(30, "male")
+	var candidate: Dictionary = manager.create_relationship_candidate(
+		int(family_character["character_id"])
+	)
+
+	var status_changed: bool = manager.set_external_relationship_status(
+		int(candidate["character_id"]),
+		"dating"
+	)
+	var manager_owned_rejected: bool = not manager.set_external_relationship_status(
+		int(candidate["character_id"]),
+		"married"
+	)
+
+	_assert_true(
+		status_changed
+		and manager_owned_rejected
+		and String(candidate.get("relationship_status", "")) == "dating",
+		"External Relationship status is mutable without bypassing marriage/divorce"
 	)
 
 
