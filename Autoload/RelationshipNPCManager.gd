@@ -364,6 +364,70 @@ func create_relationship_candidate(
 	return candidate
 
 
+func get_relationship_candidate_ids_for(
+	linked_character_id: int = 0
+) -> Array[int]:
+	var result: Array[int] = []
+
+	for candidate_id in relationship_candidate_ids:
+		var candidate := CharacterManager.get_character_by_id(
+			candidate_id
+		)
+
+		if candidate.is_empty():
+			continue
+
+		if String(
+			candidate.get(
+				"character_type",
+				""
+			)
+		) != "relationship_npc":
+			continue
+
+		if String(
+			candidate.get(
+				"relationship_status",
+				""
+			)
+		) != "candidate":
+			continue
+
+		if not bool(
+			candidate.get(
+				"is_alive",
+				true
+			)
+		):
+			continue
+
+		if bool(
+			candidate.get(
+				"is_player_family",
+				false
+			)
+		):
+			continue
+
+		if (
+			linked_character_id > 0
+			and int(
+				candidate.get(
+					"linked_character_id",
+					0
+				)
+			) != linked_character_id
+		):
+			continue
+
+		result.append(
+			candidate_id
+		)
+
+	result.sort()
+	return result
+
+
 func pick_random_name(
 	gender: String
 ) -> String:

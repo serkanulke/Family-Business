@@ -70,6 +70,8 @@ func _run_tests() -> void:
 	_test_every_requirement_type()
 	_test_lifestyle_exact_boundary()
 	_test_job_tag_absent()
+	_test_family_business_counts_as_employment()
+	_test_relationship_candidate_pool_is_manager_owned()
 	_test_participant_sources()
 	_test_group_candidate_preparation_and_validation()
 	_test_registry_runtime_access()
@@ -107,8 +109,26 @@ func _setup_runtime_state() -> void:
 	CharacterManager.characters[1]["partner_id"] = 1
 	CharacterManager.characters[2]["children_ids"] = [1]
 	CharacterManager.characters[3]["parent_ids"] = [1]
+	CharacterManager.characters[5]["character_type"] = "relationship_npc"
 	CharacterManager.characters[5]["relationship_status"] = "candidate"
 	CharacterManager.characters[5]["linked_character_id"] = 1
+
+	var unpooled_relationship_character := _character(
+		8,
+		"Morgan",
+		false,
+		"1960-01-01",
+		70,
+		[],
+		null
+	)
+	unpooled_relationship_character["character_type"] = "relationship_npc"
+	unpooled_relationship_character["relationship_status"] = "candidate"
+	unpooled_relationship_character["linked_character_id"] = 1
+	CharacterManager.characters.append(
+		unpooled_relationship_character
+	)
+
 	RelationshipNpcManager.relationship_candidate_ids = [6]
 
 	ItemManager.catalog = [
@@ -249,6 +269,85 @@ func _test_job_tag_absent() -> void:
 	var requirement := {"all": [{"type":"job_tag","target":"primary","operator":"==","value":"artist"}]}
 	_assert(not evaluator.evaluate(requirement, {"primary":1}).eligible, "Job without event_tags does not satisfy job_tag")
 	CharacterManager.characters[0]["job_id"] = 9901
+
+
+func _test_family_business_counts_as_employment() -> void:
+	var character: Dictionary = CharacterManager.characters[0]
+	var previous_job_id = character.get("job_id", null)
+	var previous_retired := bool(character.get("is_retired", false))
+	var slot: Dictionary = BusinessManager.businesses[0]["slots"][0]
+	var previous_slot_character = slot.get("assigned_character_id", null)
+
+	character["job_id"] = null
+	character["is_retired"] = false
+	slot["assigned_character_id"] = 1
+
+	var employed := evaluator.evaluate(
+		{"all": [{
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "employed"
+		}]},
+		{"primary": 1}
+	)
+	_assert(
+		employed.eligible,
+		"Family Business assignment counts as employed without an external job",
+		_messages(employed)
+	)
+
+	slot["assigned_character_id"] = null
+	var unemployed := evaluator.evaluate(
+		{"all": [{
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "unemployed"
+		}]},
+		{"primary": 1}
+	)
+	_assert(
+		unemployed.eligible,
+		"Character with neither external job nor Family Business assignment is unemployed",
+		_messages(unemployed)
+	)
+
+	slot["assigned_character_id"] = 1
+	character["is_retired"] = true
+	var retired := evaluator.evaluate(
+		{"all": [{
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "retired"
+		}]},
+		{"primary": 1}
+	)
+	_assert(
+		retired.eligible,
+		"Retirement remains authoritative over employment sources",
+		_messages(retired)
+	)
+
+	character["job_id"] = previous_job_id
+	character["is_retired"] = previous_retired
+	slot["assigned_character_id"] = previous_slot_character
+
+
+func _test_relationship_candidate_pool_is_manager_owned() -> void:
+	RelationshipNpcManager.relationship_candidate_ids.append(999999)
+
+	_assert(
+		query_provider.get_relationship_npc_ids(1) == [6],
+		"Relationship Event lookup uses only the RelationshipNPCManager candidate pool"
+	)
+	_assert(
+		query_provider.get_relationship_npc_ids(2).is_empty(),
+		"Relationship candidate lookup respects the manager-owned linked Character"
+	)
+
+	RelationshipNpcManager.relationship_candidate_ids.erase(999999)
 
 
 func _test_participant_sources() -> void:

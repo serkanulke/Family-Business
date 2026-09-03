@@ -64,22 +64,9 @@ func get_relation_ids(character_id: int, relation: String) -> Array[int]:
 
 
 func get_relationship_npc_ids(primary_character_id: int = 0) -> Array[int]:
-	var result: Array[int] = []
-	for value in CharacterManager.characters:
-		if typeof(value) != TYPE_DICTIONARY:
-			continue
-		var character: Dictionary = value
-		if bool(character.get("is_player_family", false)) or not bool(character.get("is_alive", true)):
-			continue
-		if primary_character_id > 0:
-			var linked = character.get("linked_character_id", null)
-			if linked != null and int(linked) != primary_character_id:
-				continue
-		var character_id := int(character.get("character_id", 0))
-		if character_id > 0:
-			result.append(character_id)
-	result.sort()
-	return result
+	return RelationshipNpcManager.get_relationship_candidate_ids_for(
+		primary_character_id
+	)
 
 
 func get_character_house_id(character_id: int) -> String:
@@ -368,7 +355,26 @@ func _character_from_value(value) -> Dictionary:
 func _employment_status(character: Dictionary) -> String:
 	if bool(character.get("is_retired", false)):
 		return "retired"
-	return "employed" if character.get("job_id", null) != null else "unemployed"
+
+	if character.get("job_id", null) != null:
+		return "employed"
+
+	var character_id := int(
+		character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if (
+		character_id > 0
+		and not BusinessManager.get_character_assignment(
+			character_id
+		).is_empty()
+	):
+		return "employed"
+
+	return "unemployed"
 
 
 func _job_for_character(character: Dictionary) -> Dictionary:
