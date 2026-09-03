@@ -1224,7 +1224,173 @@ func is_marriage_allowed_by_settings(
 	):
 		return false
 
+	if not _is_marriage_kinship_allowed(
+		first_character,
+		second_character
+	):
+		return false
+
 	return true
+
+
+func _is_marriage_kinship_allowed(
+	first_character: Dictionary,
+	second_character: Dictionary
+) -> bool:
+	var first_id := int(
+		first_character.get(
+			"character_id",
+			0
+		)
+	)
+	var second_id := int(
+		second_character.get(
+			"character_id",
+			0
+		)
+	)
+
+	if first_id <= 0 or second_id <= 0 or first_id == second_id:
+		return false
+
+	var first_ancestors := _get_ancestor_distances(
+		first_id
+	)
+	var second_ancestors := _get_ancestor_distances(
+		second_id
+	)
+
+	if (
+		first_ancestors.has(second_id)
+		or second_ancestors.has(first_id)
+	):
+		return false
+
+	var has_common_ancestor := false
+	var closest_branch_depth := 999999
+
+	for ancestor_id_value in first_ancestors:
+		var ancestor_id := int(ancestor_id_value)
+
+		if not second_ancestors.has(ancestor_id):
+			continue
+
+		has_common_ancestor = true
+		closest_branch_depth = mini(
+			closest_branch_depth,
+			mini(
+				int(first_ancestors[ancestor_id]),
+				int(second_ancestors[ancestor_id])
+			)
+		)
+
+	if not has_common_ancestor:
+		return true
+
+	if not GameManager.allow_distant_relative_marriage:
+		return false
+
+	# A shared ancestor at depth 1 means siblings/aunt-niece style
+	# relationships; depth 2 includes first cousins and first-cousin
+	# removals. Second cousins first share an ancestor at depth 3.
+	return closest_branch_depth >= 3
+
+
+func _get_ancestor_distances(
+	character_id: int
+) -> Dictionary:
+	var result: Dictionary = {}
+	var queue: Array[Dictionary] = []
+
+	var character := CharacterManager.get_character_by_id(
+		character_id
+	)
+
+	if character.is_empty():
+		return result
+
+	for parent_id in _get_parent_ids(character):
+		queue.append({
+			"character_id": parent_id,
+			"depth": 1
+		})
+
+	while not queue.is_empty():
+		var entry: Dictionary = queue.pop_front()
+		var ancestor_id := int(
+			entry.get(
+				"character_id",
+				0
+			)
+		)
+		var depth := int(
+			entry.get(
+				"depth",
+				0
+			)
+		)
+
+		if ancestor_id <= 0 or ancestor_id == character_id:
+			continue
+
+		if (
+			result.has(ancestor_id)
+			and int(result[ancestor_id]) <= depth
+		):
+			continue
+
+		result[ancestor_id] = depth
+
+		var ancestor := CharacterManager.get_character_by_id(
+			ancestor_id
+		)
+
+		if ancestor.is_empty():
+			continue
+
+		for parent_id in _get_parent_ids(ancestor):
+			queue.append({
+				"character_id": parent_id,
+				"depth": depth + 1
+			})
+
+	return result
+
+
+func _get_parent_ids(
+	character: Dictionary
+) -> Array[int]:
+	var result: Array[int] = []
+	var parent_ids_value = character.get(
+		"parent_ids",
+		[]
+	)
+
+	if typeof(parent_ids_value) != TYPE_ARRAY:
+		return result
+
+	for parent_id_value in parent_ids_value:
+		var parent_id := 0
+
+		match typeof(parent_id_value):
+			TYPE_INT:
+				parent_id = int(parent_id_value)
+			TYPE_FLOAT:
+				if is_equal_approx(
+					float(parent_id_value),
+					floor(float(parent_id_value))
+				):
+					parent_id = int(parent_id_value)
+			TYPE_STRING:
+				var text := String(parent_id_value)
+
+				if text.is_valid_int():
+					parent_id = int(text)
+
+		if parent_id > 0 and parent_id not in result:
+			result.append(parent_id)
+
+	return result
 
 
 func _pick_candidate_gender(

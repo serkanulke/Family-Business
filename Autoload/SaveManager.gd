@@ -273,9 +273,6 @@ func create_save_snapshot() -> Dictionary:
 		"metadata": metadata,
 		"game_manager": {
 			"lifespan_setting": GameManager.lifespan_setting,
-			"allow_same_sex_marriage": GameManager.allow_same_sex_marriage,
-			"allow_distant_relative_marriage": GameManager.allow_distant_relative_marriage,
-			"allow_ex_spouse_remarriage": GameManager.allow_ex_spouse_remarriage,
 			"family_money": GameManager.family_money,
 			"diamonds": GameManager.diamonds,
 			"family_name": GameManager.family_name
@@ -402,24 +399,6 @@ func apply_save_snapshot(
 	):
 		GameManager.lifespan_setting = "normal"
 
-	GameManager.allow_same_sex_marriage = bool(
-		game_state.get(
-			"allow_same_sex_marriage",
-			true
-		)
-	)
-	GameManager.allow_distant_relative_marriage = bool(
-		game_state.get(
-			"allow_distant_relative_marriage",
-			false
-		)
-	)
-	GameManager.allow_ex_spouse_remarriage = bool(
-		game_state.get(
-			"allow_ex_spouse_remarriage",
-			false
-		)
-	)
 	GameManager.family_money = maxi(
 		int(
 			game_state.get(

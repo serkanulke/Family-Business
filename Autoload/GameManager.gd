@@ -33,6 +33,9 @@ const VALID_LIFESPAN_SETTINGS: Array[String] = [
 const STARTING_FAMILY_MONEY := 15000
 const STARTING_DIAMONDS := 0
 
+const GLOBAL_SETTINGS_PATH := "user://family_business_settings.cfg"
+const RELATIONSHIP_SETTINGS_SECTION := "relationship"
+
 
 var lifespan_setting: String = "normal"
 var allow_same_sex_marriage: bool = true
@@ -42,6 +45,10 @@ var allow_ex_spouse_remarriage: bool = false
 var family_money: int = 0
 var diamonds: int = 0
 var family_name: String = ""
+
+
+func _ready() -> void:
+	load_global_relationship_settings()
 
 
 func set_lifespan_setting(value: String) -> void:
@@ -71,7 +78,8 @@ func has_lifespan_setting() -> bool:
 
 
 func set_same_sex_marriage_enabled(
-	value: bool
+	value: bool,
+	persist: bool = true
 ) -> void:
 	if allow_same_sex_marriage == value:
 		return
@@ -81,9 +89,13 @@ func set_same_sex_marriage_enabled(
 		allow_same_sex_marriage
 	)
 
+	if persist:
+		save_global_relationship_settings()
+
 
 func set_distant_relative_marriage_enabled(
-	value: bool
+	value: bool,
+	persist: bool = true
 ) -> void:
 	if allow_distant_relative_marriage == value:
 		return
@@ -93,9 +105,13 @@ func set_distant_relative_marriage_enabled(
 		allow_distant_relative_marriage
 	)
 
+	if persist:
+		save_global_relationship_settings()
+
 
 func set_ex_spouse_remarriage_enabled(
-	value: bool
+	value: bool,
+	persist: bool = true
 ) -> void:
 	if allow_ex_spouse_remarriage == value:
 		return
@@ -104,6 +120,93 @@ func set_ex_spouse_remarriage_enabled(
 	ex_spouse_remarriage_setting_changed.emit(
 		allow_ex_spouse_remarriage
 	)
+
+	if persist:
+		save_global_relationship_settings()
+
+
+func save_global_relationship_settings(
+	path: String = GLOBAL_SETTINGS_PATH
+) -> bool:
+	var config := ConfigFile.new()
+
+	if FileAccess.file_exists(path):
+		var load_result := config.load(path)
+
+		if load_result != OK:
+			push_warning(
+				"Global settings file could not be read; "
+				+ "relationship settings will overwrite it."
+			)
+			config = ConfigFile.new()
+
+	config.set_value(
+		RELATIONSHIP_SETTINGS_SECTION,
+		"allow_same_sex_marriage",
+		allow_same_sex_marriage
+	)
+	config.set_value(
+		RELATIONSHIP_SETTINGS_SECTION,
+		"allow_distant_relative_marriage",
+		allow_distant_relative_marriage
+	)
+	config.set_value(
+		RELATIONSHIP_SETTINGS_SECTION,
+		"allow_ex_spouse_remarriage",
+		allow_ex_spouse_remarriage
+	)
+
+	var save_result := config.save(path)
+
+	if save_result != OK:
+		push_warning(
+			"Global relationship settings could not be saved: "
+				+ path
+		)
+		return false
+
+	return true
+
+
+func load_global_relationship_settings(
+	path: String = GLOBAL_SETTINGS_PATH
+) -> bool:
+	if not FileAccess.file_exists(path):
+		return true
+
+	var config := ConfigFile.new()
+	var load_result := config.load(path)
+
+	if load_result != OK:
+		push_warning(
+			"Global relationship settings could not be loaded: "
+				+ path
+		)
+		return false
+
+	allow_same_sex_marriage = bool(
+		config.get_value(
+			RELATIONSHIP_SETTINGS_SECTION,
+			"allow_same_sex_marriage",
+			allow_same_sex_marriage
+		)
+	)
+	allow_distant_relative_marriage = bool(
+		config.get_value(
+			RELATIONSHIP_SETTINGS_SECTION,
+			"allow_distant_relative_marriage",
+			allow_distant_relative_marriage
+		)
+	)
+	allow_ex_spouse_remarriage = bool(
+		config.get_value(
+			RELATIONSHIP_SETTINGS_SECTION,
+			"allow_ex_spouse_remarriage",
+			allow_ex_spouse_remarriage
+		)
+	)
+
+	return true
 
 
 func set_family_name(

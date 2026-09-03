@@ -39,6 +39,7 @@ func _ready() -> void:
 	_test_remarriage_reuses_same_character_id()
 	_test_same_sex_setting_blocks_only_new_marriage()
 	_test_existing_same_sex_marriage_survives_setting_change()
+	_test_save_snapshot_does_not_own_relationship_settings()
 
 	print("")
 	print("========================================")
@@ -97,10 +98,12 @@ func _prepare_test_runtime() -> void:
 	TimeManager.is_paused = true
 
 	GameManager.set_same_sex_marriage_enabled(
-		true
+		true,
+		false
 	)
 	GameManager.set_ex_spouse_remarriage_enabled(
-		true
+		true,
+		false
 	)
 
 	var family_parent := _make_character(
@@ -412,6 +415,7 @@ func _test_cooldown_completion_allows_returning_candidate() -> void:
 
 func _test_remarriage_reuses_same_character_id() -> void:
 	GameManager.set_ex_spouse_remarriage_enabled(
+		false,
 		false
 	)
 
@@ -423,7 +427,8 @@ func _test_remarriage_reuses_same_character_id() -> void:
 	)
 
 	GameManager.set_ex_spouse_remarriage_enabled(
-		true
+		true,
+		false
 	)
 
 	var remarried: bool = (
@@ -498,6 +503,7 @@ func _test_same_sex_setting_blocks_only_new_marriage() -> void:
 	CharacterManager.characters.append(target)
 
 	GameManager.set_same_sex_marriage_enabled(
+		false,
 		false
 	)
 
@@ -507,7 +513,8 @@ func _test_same_sex_setting_blocks_only_new_marriage() -> void:
 	)
 
 	GameManager.set_same_sex_marriage_enabled(
-		true
+		true,
+		false
 	)
 
 	var allowed: bool = relationship_manager.make_candidate_family_member(
@@ -523,6 +530,7 @@ func _test_same_sex_setting_blocks_only_new_marriage() -> void:
 
 func _test_existing_same_sex_marriage_survives_setting_change() -> void:
 	GameManager.set_same_sex_marriage_enabled(
+		false,
 		false
 	)
 
@@ -541,6 +549,68 @@ func _test_existing_same_sex_marriage_survives_setting_change() -> void:
 	_assert_true(
 		valid,
 		"Disabling Same-sex Marriage does not break an existing marriage"
+	)
+
+
+func _test_save_snapshot_does_not_own_relationship_settings() -> void:
+	GameManager.set_same_sex_marriage_enabled(
+		false,
+		false
+	)
+	GameManager.set_distant_relative_marriage_enabled(
+		true,
+		false
+	)
+	GameManager.set_ex_spouse_remarriage_enabled(
+		true,
+		false
+	)
+
+	var snapshot := SaveManager.create_save_snapshot()
+	var game_state_value = snapshot.get(
+		"game_manager",
+		{}
+	)
+	var game_state: Dictionary = (
+		game_state_value
+		if typeof(game_state_value) == TYPE_DICTIONARY
+		else {}
+	)
+
+	var omitted_from_new_save := (
+		not game_state.has(
+			"allow_same_sex_marriage"
+		)
+		and not game_state.has(
+			"allow_distant_relative_marriage"
+		)
+		and not game_state.has(
+			"allow_ex_spouse_remarriage"
+		)
+	)
+
+	# Simulate a legacy save carrying the old per-save fields. Loading it must
+	# ignore those values and preserve the current global settings.
+	game_state["allow_same_sex_marriage"] = true
+	game_state["allow_distant_relative_marriage"] = false
+	game_state["allow_ex_spouse_remarriage"] = false
+	snapshot["game_manager"] = game_state
+
+	var applied := SaveManager.apply_save_snapshot(
+		snapshot
+	)
+
+	var globals_preserved := (
+		not GameManager.allow_same_sex_marriage
+		and GameManager.allow_distant_relative_marriage
+		and GameManager.allow_ex_spouse_remarriage
+	)
+
+	_assert_true(
+		omitted_from_new_save
+		and applied
+		and globals_preserved,
+		"Save files neither own nor restore global Relationship settings"
 	)
 
 
@@ -598,7 +668,8 @@ func _restore_runtime_state() -> void:
 				"same_sex",
 				true
 			)
-		)
+		),
+		false
 	)
 	GameManager.set_distant_relative_marriage_enabled(
 		bool(
@@ -606,7 +677,8 @@ func _restore_runtime_state() -> void:
 				"distant",
 				false
 			)
-		)
+		),
+		false
 	)
 	GameManager.set_ex_spouse_remarriage_enabled(
 		bool(
@@ -614,5 +686,6 @@ func _restore_runtime_state() -> void:
 				"ex_spouse",
 				false
 			)
-		)
+		),
+		false
 	)

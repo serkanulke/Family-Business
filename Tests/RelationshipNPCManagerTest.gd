@@ -10,6 +10,11 @@ const RELATIONSHIP_NPC_MANAGER_SCRIPT := preload(
 var manager: Node
 var saved_characters: Array
 var saved_next_character_id: int
+var saved_relationship_settings: Dictionary = {}
+
+const TEST_GLOBAL_SETTINGS_PATH := (
+	"user://family_business_relationship_settings_test.cfg"
+)
 
 
 func _ready() -> void:
@@ -21,11 +26,28 @@ func _ready() -> void:
 
 	saved_characters = CharacterManager.characters.duplicate(true)
 	saved_next_character_id = CharacterManager.next_character_id
+	saved_relationship_settings = {
+		"same_sex": GameManager.allow_same_sex_marriage,
+		"distant": GameManager.allow_distant_relative_marriage,
+		"ex_spouse": GameManager.allow_ex_spouse_remarriage
+	}
 
 	_run_tests()
 
 	CharacterManager.characters = saved_characters
 	CharacterManager.next_character_id = saved_next_character_id
+	GameManager.set_same_sex_marriage_enabled(
+		bool(saved_relationship_settings["same_sex"]),
+		false
+	)
+	GameManager.set_distant_relative_marriage_enabled(
+		bool(saved_relationship_settings["distant"]),
+		false
+	)
+	GameManager.set_ex_spouse_remarriage_enabled(
+		bool(saved_relationship_settings["ex_spouse"]),
+		false
+	)
 
 	print(
 		"Relationship NPC tests: ",
@@ -40,6 +62,8 @@ func _run_tests() -> void:
 	_test_age_rules()
 	_test_generation()
 	_test_marriage_conversion()
+	_test_distant_relative_marriage_boundary()
+	_test_global_relationship_settings_persistence()
 	_test_fertility()
 	_test_adoption_rule()
 
@@ -73,6 +97,19 @@ func _make_family_character(
 
 	CharacterManager.characters.append(character)
 
+	return character
+
+
+func _make_family_character_with_parents(
+	age: int,
+	gender: String,
+	parent_ids: Array
+) -> Dictionary:
+	var character := _make_family_character(
+		age,
+		gender
+	)
+	character["parent_ids"] = parent_ids.duplicate()
 	return character
 
 
@@ -124,6 +161,10 @@ func _test_generation() -> void:
 
 func _test_marriage_conversion() -> void:
 	_reset_world()
+	GameManager.set_same_sex_marriage_enabled(
+		true,
+		false
+	)
 
 	var family_character := _make_family_character(30, "male")
 	var candidate: Dictionary = manager.create_relationship_candidate(
@@ -145,6 +186,217 @@ func _test_marriage_conversion() -> void:
 		and int(family_character["partner_id"])
 			== int(candidate["character_id"]),
 		"Marriage converts candidate into playable family member"
+	)
+
+
+func _test_distant_relative_marriage_boundary() -> void:
+	_reset_world()
+
+	GameManager.set_same_sex_marriage_enabled(
+		true,
+		false
+	)
+
+	var root := _make_family_character_with_parents(
+		80,
+		"female",
+		[]
+	)
+	var branch_a := _make_family_character_with_parents(
+		60,
+		"male",
+		[int(root["character_id"])]
+	)
+	var branch_b := _make_family_character_with_parents(
+		59,
+		"female",
+		[int(root["character_id"])]
+	)
+	var first_cousin_a := _make_family_character_with_parents(
+		40,
+		"female",
+		[int(branch_a["character_id"])]
+	)
+	var first_cousin_b := _make_family_character_with_parents(
+		39,
+		"male",
+		[int(branch_b["character_id"])]
+	)
+	var second_cousin_a := _make_family_character_with_parents(
+		20,
+		"male",
+		[int(first_cousin_a["character_id"])]
+	)
+	var second_cousin_b := _make_family_character_with_parents(
+		21,
+		"female",
+		[int(first_cousin_b["character_id"])]
+	)
+	var third_generation_a := _make_family_character_with_parents(
+		18,
+		"female",
+		[int(second_cousin_a["character_id"])]
+	)
+	var third_generation_b := _make_family_character_with_parents(
+		18,
+		"male",
+		[int(second_cousin_b["character_id"])]
+	)
+	var unrelated := _make_family_character_with_parents(
+		30,
+		"male",
+		[]
+	)
+
+	GameManager.set_distant_relative_marriage_enabled(
+		false,
+		false
+	)
+
+	var unrelated_allowed: bool = manager.is_marriage_allowed_by_settings(
+		second_cousin_a,
+		unrelated
+	)
+	var second_cousins_blocked_when_disabled: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			second_cousin_a,
+			second_cousin_b
+		)
+	)
+
+	GameManager.set_distant_relative_marriage_enabled(
+		true,
+		false
+	)
+
+	var direct_ancestor_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			root,
+			branch_a
+		)
+	)
+	var siblings_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			branch_a,
+			branch_b
+		)
+	)
+	var aunt_nephew_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			branch_b,
+			first_cousin_a
+		)
+	)
+	var first_cousins_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			first_cousin_a,
+			first_cousin_b
+		)
+	)
+	var first_cousin_once_removed_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			first_cousin_a,
+			second_cousin_b
+		)
+	)
+	var first_cousin_twice_removed_blocked: bool = not (
+		manager.is_marriage_allowed_by_settings(
+			first_cousin_a,
+			third_generation_b
+		)
+	)
+	var second_cousins_allowed: bool = (
+		manager.is_marriage_allowed_by_settings(
+			second_cousin_a,
+			second_cousin_b
+		)
+	)
+	var second_cousin_once_removed_allowed: bool = (
+		manager.is_marriage_allowed_by_settings(
+			third_generation_a,
+			second_cousin_b
+		)
+	)
+
+	_assert_true(
+		unrelated_allowed
+		and second_cousins_blocked_when_disabled
+		and direct_ancestor_blocked
+		and siblings_blocked
+		and aunt_nephew_blocked
+		and first_cousins_blocked
+		and first_cousin_once_removed_blocked
+		and first_cousin_twice_removed_blocked
+		and second_cousins_allowed
+		and second_cousin_once_removed_allowed,
+		"Distant Relative Marriage allows second cousins and more distant only"
+	)
+
+
+func _test_global_relationship_settings_persistence() -> void:
+	if FileAccess.file_exists(
+		TEST_GLOBAL_SETTINGS_PATH
+	):
+		DirAccess.remove_absolute(
+			ProjectSettings.globalize_path(
+				TEST_GLOBAL_SETTINGS_PATH
+			)
+		)
+
+	GameManager.set_same_sex_marriage_enabled(
+		false,
+		false
+	)
+	GameManager.set_distant_relative_marriage_enabled(
+		true,
+		false
+	)
+	GameManager.set_ex_spouse_remarriage_enabled(
+		true,
+		false
+	)
+
+	var saved := GameManager.save_global_relationship_settings(
+		TEST_GLOBAL_SETTINGS_PATH
+	)
+
+	GameManager.set_same_sex_marriage_enabled(
+		true,
+		false
+	)
+	GameManager.set_distant_relative_marriage_enabled(
+		false,
+		false
+	)
+	GameManager.set_ex_spouse_remarriage_enabled(
+		false,
+		false
+	)
+
+	var loaded := GameManager.load_global_relationship_settings(
+		TEST_GLOBAL_SETTINGS_PATH
+	)
+
+	var values_restored := (
+		not GameManager.allow_same_sex_marriage
+		and GameManager.allow_distant_relative_marriage
+		and GameManager.allow_ex_spouse_remarriage
+	)
+
+	if FileAccess.file_exists(
+		TEST_GLOBAL_SETTINGS_PATH
+	):
+		DirAccess.remove_absolute(
+			ProjectSettings.globalize_path(
+				TEST_GLOBAL_SETTINGS_PATH
+			)
+		)
+
+	_assert_true(
+		saved
+		and loaded
+		and values_restored,
+		"Relationship Gameplay settings persist globally outside save files"
 	)
 
 
