@@ -398,6 +398,24 @@ func _test_requirement_validation() -> void:
 		"Unsupported requirement type"
 	)
 
+	var item_flag := _base_event(
+		"unsupported_item_flag",
+		"general"
+	)
+	item_flag["requirements"] = {
+		"all": [{
+			"type": "item_flag",
+			"target": "primary",
+			"operator": "==",
+			"value": 1001
+		}]
+	}
+	_expect_invalid_event(
+		item_flag,
+		"Unsupported Item flag requirement is rejected",
+		"Unsupported requirement type 'item_flag'"
+	)
+
 	for removed_type in [
 		"career_level", "education_level", "relationship_exists",
 		"relationship_status", "relationship_level"
@@ -818,7 +836,6 @@ func _test_all_requirement_constructs() -> void:
 		{"type": "equipped_item", "target": "primary", "operator": "==", "value": ITEM_ID},
 		{"type": "item_type", "target": "primary", "operator": "==", "value": "accessory"},
 		{"type": "item_rarity", "target": "primary", "operator": "==", "value": "common"},
-		{"type": "item_flag", "target": "primary", "operator": "==", "value": 1001},
 		{"type": "money", "operator": ">=", "value": 100},
 		{"type": "diamonds", "operator": ">=", "value": 1},
 		{"type": "house_assignment", "target": "primary", "operator": "==", "value": true},

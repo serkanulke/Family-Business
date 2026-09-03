@@ -197,7 +197,7 @@ func get_requirement_value(
 		"lifestyle_score":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = ItemManager.get_lifestyle_score(int(character.get("character_id", 0)))
-		"equipped_item", "item_type", "item_rarity", "item_flag":
+		"equipped_item", "item_type", "item_rarity":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = _equipped_item_values(int(character.get("character_id", 0)), requirement_type)
 			match_mode = "membership"
@@ -294,7 +294,7 @@ func get_value_label(requirement: Dictionary, value) -> String:
 			return String(EducationManager.get_school_by_id(int(value)).get("school_name", value))
 		"major":
 			return String(EducationManager.get_major_by_id(int(value)).get("major_name", value))
-		"flag", "item_flag":
+		"flag":
 			return _flag_display_name(value)
 		"equipped_item":
 			return String(ItemManager.get_item_definition(String(value)).get("display_name", value))
@@ -407,10 +407,6 @@ func _equipped_item_values(character_id: int, requirement_type: String) -> Array
 			"equipped_item": result.append(String(item.get("item_id", "")))
 			"item_type": result.append(String(item.get("slot", "")))
 			"item_rarity": result.append(String(item.get("rarity", "")))
-			"item_flag":
-				for key in ["flag_ids", "item_flags", "flags"]:
-					for value in _as_array(item.get(key, [])):
-						if not result.has(value): result.append(value)
 	return result
 
 

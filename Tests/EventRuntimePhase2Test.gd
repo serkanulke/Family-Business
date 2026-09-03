@@ -68,6 +68,7 @@ func _run_tests() -> void:
 	_test_recursive_logic()
 	_test_all_operators_and_invalid_runtime_values()
 	_test_every_requirement_type()
+	_test_item_flag_is_unsupported_at_runtime()
 	_test_lifestyle_exact_boundary()
 	_test_job_tag_absent()
 	_test_family_business_counts_as_employment()
@@ -132,7 +133,7 @@ func _setup_runtime_state() -> void:
 	RelationshipNpcManager.relationship_candidate_ids = [6]
 
 	ItemManager.catalog = [
-		_item_definition("item_accessory", "Silk Scarf", "accessory", "rare", 20, [1001]),
+		_item_definition("item_accessory", "Silk Scarf", "accessory", "rare", 20),
 		_item_definition("item_outfit", "Tailored Outfit", "outfit", "epic", 20),
 		_item_definition("item_vehicle", "City Car", "vehicle", "common", 19)
 	]
@@ -226,7 +227,6 @@ func _test_every_requirement_type() -> void:
 		{"type":"equipped_item","target":"primary","operator":"==","value":"item_accessory"},
 		{"type":"item_type","target":"primary","operator":"==","value":"accessory"},
 		{"type":"item_rarity","target":"primary","operator":"==","value":"rare"},
-		{"type":"item_flag","target":"primary","operator":"==","value":1001},
 		{"type":"money","operator":">=","value":50000},
 		{"type":"diamonds","operator":">=","value":10},
 		{"type":"house_assignment","target":"primary","operator":"==","value":true},
@@ -254,6 +254,36 @@ func _test_every_requirement_type() -> void:
 		"type":"entitlement","operator":"==","value":"missing_event_pack"
 	}]}, participants, context)
 	_assert(not missing_entitlement.eligible and String(missing_entitlement.failure_reasons[0].message).contains("Missing Event Pack"), "Missing entitlement cleanly returns a readable locked reason")
+
+
+func _test_item_flag_is_unsupported_at_runtime() -> void:
+	var participants := {
+		"primary": 1
+	}
+	var requirement := {
+		"type": "item_flag",
+		"target": "primary",
+		"operator": "==",
+		"value": 1001
+	}
+	var result := evaluator.evaluate(
+		{
+			"all": [
+				requirement
+			]
+		},
+		participants
+	)
+
+	_assert(
+		not result.eligible
+		and _reason_code(
+			result,
+			"runtime_value_unavailable"
+		),
+		"Unsupported item_flag requirement cannot fall back to Item data",
+		_messages(result)
+	)
 
 
 func _test_lifestyle_exact_boundary() -> void:
@@ -538,8 +568,21 @@ func _character(id: int, name: String, family: bool, birth_date: String, stat: i
 	}
 
 
-func _item_definition(id: String, name: String, slot: String, rarity: String, lifestyle: int, flags: Array = []) -> Dictionary:
-	return {"id":id,"display_name":name,"slot":slot,"rarity":rarity,"lifestyle_value":lifestyle,"is_heirloom":true,"flag_ids":flags.duplicate()}
+func _item_definition(
+	id: String,
+	name: String,
+	slot: String,
+	rarity: String,
+	lifestyle: int
+) -> Dictionary:
+	return {
+		"id": id,
+		"display_name": name,
+		"slot": slot,
+		"rarity": rarity,
+		"lifestyle_value": lifestyle,
+		"is_heirloom": true
+	}
 
 
 func _stat(operator: String, value) -> Dictionary:

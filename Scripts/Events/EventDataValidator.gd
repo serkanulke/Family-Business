@@ -53,7 +53,7 @@ const REQUIREMENT_TYPES: Array[String] = [
 	"family_member_count", "employment_status", "job", "job_tag",
 	"education_stage", "school", "school_type", "major", "lifestyle_score",
 	"equipped_item", "item_type",
-	"item_rarity", "item_flag", "money", "diamonds", "house_assignment",
+	"item_rarity", "money", "diamonds", "house_assignment",
 	"house_level", "household_status", "household_perk", "business_owned",
 	"business_type", "business_level", "business_role", "event_seen",
 	"event_completed", "event_not_completed", "choice_made",
@@ -77,7 +77,7 @@ const TARGETED_REQUIREMENTS: Array[String] = [
 	"employment_status", "job", "job_tag", "education_stage", "school",
 	"school_type", "major",
 	"lifestyle_score", "equipped_item", "item_type", "item_rarity",
-	"item_flag", "house_assignment", "house_level", "business_type",
+	"house_assignment", "house_level", "business_type",
 	"business_level", "business_role"
 ]
 const RESOLUTION_MODES: Array[String] = [
@@ -774,7 +774,7 @@ func _validate_requirement(
 			_validate_reference(source, event_id, path + ".value", value, _school_ids, "school_id")
 		"major":
 			_validate_reference(source, event_id, path + ".value", value, _major_ids, "major_id")
-		"flag", "item_flag":
+		"flag":
 			_validate_flag_reference(source, event_id, path + ".value", value)
 		"equipped_item":
 			_validate_reference(source, event_id, path + ".value", value, _item_ids, "item id")
