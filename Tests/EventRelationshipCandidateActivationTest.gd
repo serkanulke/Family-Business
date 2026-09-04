@@ -121,10 +121,15 @@ func _run_tests() -> void:
 		married,
 		"One of several candidates may be selected for marriage"
 	)
+	var second_candidate_after_marriage := (
+		CharacterManager.get_character_by_id(second_candidate_id)
+	)
 	_assert(
-		not CharacterManager.get_character_by_id(second_candidate_id).is_empty()
+		not second_candidate_after_marriage.is_empty()
+		and second_candidate_after_marriage.get("linked_character_id", null) == null
+		and not RelationshipNpcManager.relationship_candidate_ids.has(second_candidate_id)
 		and RelationshipNpcManager.get_relationship_candidate_ids_for(1).is_empty(),
-		"Other candidates persist but stop being eligible while the primary Character is married"
+		"Marriage cuts the primary Character's links to all unselected Relationship NPCs"
 	)
 
 	var blocked_chain: Dictionary = EventManager.activate_chain(
@@ -145,10 +150,14 @@ func _run_tests() -> void:
 		"The selected spouse can later divorce through the canonical manager"
 	)
 	_assert(
-		RelationshipNpcManager.get_relationship_candidate_ids_for(1).has(
+		not RelationshipNpcManager.get_relationship_candidate_ids_for(1).has(
 			second_candidate_id
-		),
-		"A preserved candidate becomes available again when the primary Character is free and eligible"
+		)
+		and CharacterManager.get_character_by_id(second_candidate_id).get(
+			"linked_character_id",
+			null
+		) == null,
+		"A cleared Relationship NPC link does not return after the selected marriage later ends"
 	)
 
 	var resumed_chain: Dictionary = EventManager.activate_chain(
@@ -156,12 +165,9 @@ func _run_tests() -> void:
 		{"primary": 1, "target": second_candidate_id}
 	)
 	_assert(
-		bool(resumed_chain.get("queued", false))
-		and EventManager.active_event != null
-		and int(EventManager.active_event.participants.get("target", 0)) == second_candidate_id,
-		"The same preserved candidate can resume by exact ID after eligibility returns"
+		not bool(resumed_chain.get("queued", false)),
+		"A Relationship NPC whose link was cleared by marriage cannot resume by exact ID"
 	)
-	EventManager.cancel_active_event()
 
 	var character_count_before := CharacterManager.characters.size()
 	var candidate_count_before := RelationshipNpcManager.relationship_candidate_ids.size()

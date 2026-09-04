@@ -490,10 +490,15 @@ func _is_candidate_pair_currently_eligible(
 			0
 		)
 	)
+	var candidate_linked_character_id_value = candidate.get(
+		"linked_character_id",
+		null
+	)
 
 	if (
 		linked_character_id <= 0
-		or int(candidate.get("linked_character_id", 0)) != linked_character_id
+		or candidate_linked_character_id_value == null
+		or int(candidate_linked_character_id_value) != linked_character_id
 		or not is_character_relationship_eligible(linked_character)
 	):
 		return false
@@ -1061,6 +1066,11 @@ func make_candidate_family_member(
 		candidate_id
 	)
 
+	_clear_other_relationship_links_for_partner(
+		candidate_id,
+		partner_id
+	)
+
 	_place_married_candidate_in_partner_house(
 		candidate_id,
 		partner_id
@@ -1083,6 +1093,42 @@ func can_make_candidate_family_member(candidate_id: int, partner_id: int) -> boo
 		if not GameManager.allow_ex_spouse_remarriage or not _is_relationship_cooldown_finished(candidate):
 			return false
 	return is_marriage_allowed_by_settings(candidate, partner)
+
+
+func _clear_other_relationship_links_for_partner(
+	selected_candidate_id: int,
+	partner_id: int
+) -> void:
+	if selected_candidate_id <= 0 or partner_id <= 0:
+		return
+
+	for character_value in CharacterManager.characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+
+		var character: Dictionary = character_value
+		var character_id := int(
+			character.get("character_id", 0)
+		)
+
+		if character_id <= 0 or character_id == selected_candidate_id:
+			continue
+		if String(character.get("character_type", "")) != "relationship_npc":
+			continue
+		if bool(character.get("is_player_family", false)):
+			continue
+		if character.get("partner_id", null) != null:
+			continue
+
+		var linked_character_id_value = character.get(
+			"linked_character_id",
+			null
+		)
+		if linked_character_id_value == null or int(linked_character_id_value) != partner_id:
+			continue
+
+		character["linked_character_id"] = null
+		relationship_candidate_ids.erase(character_id)
 
 
 func _place_married_candidate_in_partner_house(
