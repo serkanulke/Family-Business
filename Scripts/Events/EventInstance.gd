@@ -79,6 +79,10 @@ static func from_dictionary(value: Dictionary) -> EventInstance:
 	return instance
 
 
+func get_resolved_content() -> Dictionary:
+	return EventPresentationResolver.resolve_instance_content(self)
+
+
 func mark_active(date_text: String) -> void:
 	status = "active"
 	started_date = date_text

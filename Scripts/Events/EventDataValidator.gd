@@ -14,6 +14,7 @@ const ROOT_KEYS: Array[String] = [
 const SELECTION_MODES: Array[String] = [
 	"weighted_one", "weighted_multiple", "all_eligible"
 ]
+const SAVE_SELECTION_SCOPE := "save"
 const TRIGGER_TYPES: Array[String] = [
 	"system", "calendar", "manual", "chain", "scheduled"
 ]
@@ -387,6 +388,23 @@ func _validate_pool(
 	if not selection_mode.is_empty() and selection_mode not in SELECTION_MODES:
 		_add(source, "", path + ".selection_mode", "Unsupported pool selection_mode '%s'." % selection_mode)
 
+	var selection_scope := ""
+	if pool.has("selection_scope"):
+		if typeof(pool["selection_scope"]) != TYPE_STRING or String(pool["selection_scope"]) != SAVE_SELECTION_SCOPE:
+			_add(source, "", path + ".selection_scope", "selection_scope may only be 'save' when present.")
+		else:
+			selection_scope = String(pool["selection_scope"])
+
+	if pool.has("activation_chance"):
+		if not _is_number(pool["activation_chance"]):
+			_add(source, "", path + ".activation_chance", "activation_chance must be a number from 0.0 through 1.0.")
+		elif float(pool["activation_chance"]) < 0.0 or float(pool["activation_chance"]) > 1.0:
+			_add(source, "", path + ".activation_chance", "activation_chance must be between 0.0 and 1.0 inclusive.")
+		if selection_scope != SAVE_SELECTION_SCOPE:
+			_add(source, "", path + ".activation_chance", "activation_chance is only valid for selection_scope = 'save'.")
+	elif selection_scope == SAVE_SELECTION_SCOPE:
+		_add(source, "", path + ".activation_chance", "Save-scoped random pools require activation_chance.")
+
 	if pool.has("max_events") and pool["max_events"] != null:
 		if not _is_integer_number(pool["max_events"]) or int(pool["max_events"]) <= 0:
 			_add(source, "", path + ".max_events", "max_events must be a positive integer or null.")
@@ -394,6 +412,9 @@ func _validate_pool(
 			_add(source, "", path + ".max_events", "weighted_one pools may only use max_events = 1.")
 	elif selection_mode == "weighted_multiple":
 		_add(source, "", path + ".max_events", "weighted_multiple pools require a positive max_events value.")
+
+	if selection_scope == SAVE_SELECTION_SCOPE and (not pool.has("max_events") or pool["max_events"] == null):
+		_add(source, "", path + ".max_events", "Save-scoped random pools require an explicit positive max_events cap.")
 
 	if pool_id.is_empty():
 		return
@@ -1297,11 +1318,40 @@ func _validate_cross_document_references() -> void:
 		var trigger_value = event.get("trigger", {})
 		if typeof(trigger_value) == TYPE_DICTIONARY:
 			_validate_pool_reference(source, event_id, "trigger.pool_id", trigger_value.get("pool_id", null))
+		_validate_save_scoped_pool_usage(source, event_id, event)
 
 		_validate_event_history_references(source, event_id, event.get("requirements", {}), "requirements")
 		_validate_event_flow_references(source, event_id, event)
 
 	_validate_event_flow_cycles()
+
+
+func _validate_save_scoped_pool_usage(source: String, event_id: String, event: Dictionary) -> void:
+	var pool_ids: Array[String] = []
+	var event_pool = event.get("pool_id", null)
+	if typeof(event_pool) == TYPE_STRING and not String(event_pool).is_empty():
+		pool_ids.append(String(event_pool))
+	var trigger_value = event.get("trigger", {})
+	if typeof(trigger_value) == TYPE_DICTIONARY:
+		var trigger_pool = trigger_value.get("pool_id", null)
+		if typeof(trigger_pool) == TYPE_STRING and not String(trigger_pool).is_empty() and String(trigger_pool) not in pool_ids:
+			pool_ids.append(String(trigger_pool))
+
+	var trigger_type := String(event.get("trigger", {}).get("type", ""))
+	for pool_id in pool_ids:
+		var pool_record = validated_pools_by_id.get(pool_id, {})
+		if typeof(pool_record) != TYPE_DICTIONARY:
+			continue
+		var definition = pool_record.get("definition", {})
+		if typeof(definition) != TYPE_DICTIONARY or String(definition.get("selection_scope", "")) != SAVE_SELECTION_SCOPE:
+			continue
+		if trigger_type not in ["system", "calendar"]:
+			_add(
+				source,
+				event_id,
+				"pool_id",
+				"Save-scoped random pools may only be used by automatic system or calendar Events."
+			)
 
 
 func _validate_pool_reference(source: String, event_id: String, path: String, value) -> void:

@@ -582,22 +582,30 @@ func _select_and_queue_with_automatic_character_fanout(
 	runtime_context: Dictionary,
 	occurrence: Dictionary
 ) -> Dictionary:
+	# A bound primary represents a concrete gameplay fact (for example a job
+	# offer, retirement, or death) and must keep the existing direct path.
 	if _get_trigger_primary_character_id(runtime_context) > 0:
 		return _select_and_queue(events, runtime_context, occurrence)
 
-	var global_events: Array = []
-	var character_events: Array = []
+	var ordinary_events: Array = []
+	var save_scoped_events: Array = []
 	for event_value in events:
 		if typeof(event_value) != TYPE_DICTIONARY:
 			continue
+		var event: Dictionary = event_value
+		if _uses_save_scoped_pool(event):
+			save_scoped_events.append(event)
+		else:
+			ordinary_events.append(event)
+
+	var global_events: Array = []
+	var character_events: Array = []
+	for event_value in ordinary_events:
 		var event: Dictionary = event_value
 		if _requires_trigger_primary_character(event):
 			character_events.append(event)
 		else:
 			global_events.append(event)
-
-	if character_events.is_empty():
-		return _select_and_queue(global_events, runtime_context, occurrence)
 
 	var aggregate := {
 		"occurrence": occurrence.duplicate(true),
@@ -612,30 +620,36 @@ func _select_and_queue_with_automatic_character_fanout(
 			_select_and_queue(global_events, runtime_context, occurrence, "", false)
 		)
 
-	for character_id_value in runtime_service.query_provider.get_family_character_ids():
-		var character_id := int(character_id_value)
-		var character_context := _runtime_context_for_primary_character(
-			runtime_context,
-			character_id
-		)
-		var character_occurrence := _make_occurrence(
-			String(occurrence.get("trigger_type", "")),
-			String(occurrence.get("semantic_event", "")),
-			character_context,
-			"%s:character:%d" % [
-				String(occurrence.get("occurrence_id", "")),
+	if not character_events.is_empty():
+		for character_id_value in runtime_service.query_provider.get_family_character_ids():
+			var character_id := int(character_id_value)
+			var character_context := _runtime_context_for_primary_character(
+				runtime_context,
 				character_id
-			],
-			String(occurrence.get("source", ""))
-		)
+			)
+			var character_occurrence := _character_occurrence(
+				occurrence,
+				character_context,
+				character_id
+			)
+			_merge_selection_result(
+				aggregate,
+				_select_and_queue(
+					character_events,
+					character_context,
+					character_occurrence,
+					"",
+					false
+				)
+			)
+
+	if not save_scoped_events.is_empty():
 		_merge_selection_result(
 			aggregate,
-			_select_and_queue(
-				character_events,
-				character_context,
-				character_occurrence,
-				"",
-				false
+			_select_and_queue_save_scoped(
+				save_scoped_events,
+				runtime_context,
+				occurrence
 			)
 		)
 
@@ -643,6 +657,171 @@ func _select_and_queue_with_automatic_character_fanout(
 		_activate_next_event()
 	_emit_queue_state()
 	return aggregate
+
+
+func _select_and_queue_save_scoped(
+	events: Array,
+	runtime_context: Dictionary,
+	occurrence: Dictionary
+) -> Dictionary:
+	var candidates_by_pool: Dictionary = {}
+	var results: Array = []
+
+	for event_value in events:
+		if typeof(event_value) != TYPE_DICTIONARY:
+			continue
+		var event: Dictionary = event_value
+		var pool_id := _event_pool_id(event)
+		if pool_id.is_empty():
+			continue
+
+		if _requires_trigger_primary_character(event):
+			for character_id_value in runtime_service.query_provider.get_family_character_ids():
+				var character_id := int(character_id_value)
+				var character_context := _runtime_context_for_primary_character(
+					runtime_context,
+					character_id
+				)
+				var availability := runtime_service.get_availability(
+					String(event.get("event_id", "")),
+					character_context
+				)
+				results.append(availability)
+				if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+					continue
+				var character_occurrence := _character_occurrence(
+					occurrence,
+					character_context,
+					character_id
+				)
+				_append_save_scoped_candidate(
+					candidates_by_pool,
+					pool_id,
+					event,
+					availability,
+					character_occurrence
+				)
+		else:
+			var availability := runtime_service.get_availability(
+				String(event.get("event_id", "")),
+				runtime_context
+			)
+			results.append(availability)
+			if String(availability.get("status", "")) == EventRuntimeService.AVAILABLE:
+				_append_save_scoped_candidate(
+					candidates_by_pool,
+					pool_id,
+					event,
+					availability,
+					occurrence
+				)
+
+	var selected_candidates: Array = []
+	for pool_id_value in candidates_by_pool:
+		var pool_id := String(pool_id_value)
+		var selection_occurrence_key := _selection_occurrence_key(occurrence, pool_id)
+		if _processed_selection_occurrences.has(selection_occurrence_key):
+			continue
+		_processed_selection_occurrences[selection_occurrence_key] = true
+
+		var pool_record := registry.get_pool(pool_id)
+		var pool_definition = pool_record.get("definition", {})
+		if typeof(pool_definition) != TYPE_DICTIONARY:
+			continue
+		if not pool_selector.passes_activation(pool_definition):
+			continue
+		selected_candidates.append_array(
+			pool_selector.select(pool_definition, candidates_by_pool[pool_id])
+		)
+
+	var queued: Array = []
+	var selected_event_ids: Array = []
+	for candidate_value in selected_candidates:
+		if typeof(candidate_value) != TYPE_DICTIONARY:
+			continue
+		var candidate: Dictionary = candidate_value
+		var event_value = candidate.get("event", {})
+		var availability_value = candidate.get("availability", {})
+		var occurrence_value = candidate.get("occurrence", {})
+		if typeof(event_value) != TYPE_DICTIONARY or typeof(availability_value) != TYPE_DICTIONARY or typeof(occurrence_value) != TYPE_DICTIONARY:
+			continue
+		var event: Dictionary = event_value
+		selected_event_ids.append(String(event.get("event_id", "")))
+		var instance := _queue_available_event(
+			event,
+			availability_value,
+			occurrence_value,
+			null,
+			false
+		)
+		if instance != null:
+			queued.append(instance.to_dictionary())
+
+	return {
+		"occurrence": occurrence.duplicate(true),
+		"results": results,
+		"selected_event_ids": selected_event_ids,
+		"queued_instances": queued
+	}
+
+
+func _append_save_scoped_candidate(
+	candidates_by_pool: Dictionary,
+	pool_id: String,
+	event: Dictionary,
+	availability: Dictionary,
+	occurrence: Dictionary
+) -> void:
+	if not candidates_by_pool.has(pool_id):
+		candidates_by_pool[pool_id] = []
+	var candidates: Array = candidates_by_pool[pool_id]
+	candidates.append({
+		"event_id": String(event.get("event_id", "")),
+		"weight": float(event.get("weight", 0.0)),
+		"exclusive_group": event.get("exclusive_group", null),
+		"event": event.duplicate(true),
+		"availability": availability.duplicate(true),
+		"occurrence": occurrence.duplicate(true)
+	})
+	candidates_by_pool[pool_id] = candidates
+
+
+func _uses_save_scoped_pool(event: Dictionary) -> bool:
+	var pool_id := _event_pool_id(event)
+	if pool_id.is_empty():
+		return false
+	var pool_record := registry.get_pool(pool_id)
+	var pool_definition = pool_record.get("definition", {})
+	return (
+		typeof(pool_definition) == TYPE_DICTIONARY
+		and String(pool_definition.get("selection_scope", "")) == "save"
+	)
+
+
+func _event_pool_id(event: Dictionary) -> String:
+	var event_pool_id = event.get("pool_id", null)
+	if event_pool_id == null:
+		var trigger_value = event.get("trigger", {})
+		if typeof(trigger_value) == TYPE_DICTIONARY:
+			event_pool_id = trigger_value.get("pool_id", "")
+	return "" if event_pool_id == null else String(event_pool_id)
+
+
+func _character_occurrence(
+	occurrence: Dictionary,
+	character_context: Dictionary,
+	character_id: int
+) -> Dictionary:
+	return _make_occurrence(
+		String(occurrence.get("trigger_type", "")),
+		String(occurrence.get("semantic_event", "")),
+		character_context,
+		"%s:character:%d" % [
+			String(occurrence.get("occurrence_id", "")),
+			character_id
+		],
+		String(occurrence.get("source", ""))
+	)
 
 
 func _requires_trigger_primary_character(event: Dictionary) -> bool:

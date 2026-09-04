@@ -62,8 +62,9 @@ func _test_all_production_category_files_load() -> void:
 		and registry.is_valid
 		and registry.files_by_category.size() == 12
 		and registry.get_events_for_category("education", true).size() == 5
-		and registry.get_events_for_category("age_lifecycle", true).size() == 2,
-		"All production category files load with mandatory Education and Age / Lifecycle Events",
+		and registry.get_events_for_category("age_lifecycle", true).size() == 2
+		and registry.get_events_for_category("job_offer", true).size() == 1,
+		"All production category files load with mandatory Education, Age / Lifecycle, and Job Offer Events",
 		registry.get_diagnostic_text()
 	)
 

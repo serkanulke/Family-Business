@@ -2,5 +2,88 @@
   "schema_version": 1,
   "category": "job_offer",
   "pools": [],
-  "events": []
+  "events": [
+    {
+      "event_id": "job_offer_external_offer",
+      "category": "job_offer",
+      "domain": "career",
+      "subtype": "external_job_offer",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 200,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "job_offer_requested"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "repeatable"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "Job Offer",
+        "subtitle": null,
+        "description": "{company_name} has offered {character_name} a position as {job}. They are offering a salary of {salary}."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "accept_offer",
+          "title": "Accept Offer",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "accept_job_offer",
+                "target": "primary"
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "decline_offer",
+          "title": "Decline Offer",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "reject_job_offer",
+                "target": "primary"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
 }

@@ -41,6 +41,15 @@ func _is_integer_value(value) -> bool:
 	return false
 
 
+func passes_activation(pool: Dictionary) -> bool:
+	var chance := float(pool.get("activation_chance", 1.0))
+	if chance <= 0.0:
+		return false
+	if chance >= 1.0:
+		return true
+	return random.randf() < chance
+
+
 func select(pool: Dictionary, eligible_events: Array) -> Array:
 	var mode := String(pool.get("selection_mode", ""))
 	var candidates := _dictionary_events(eligible_events)
