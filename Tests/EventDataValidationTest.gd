@@ -61,8 +61,9 @@ func _test_all_production_category_files_load() -> void:
 		loaded
 		and registry.is_valid
 		and registry.files_by_category.size() == 12
-		and registry.get_events_for_category("education", true).size() == 5,
-		"All production category files load with the five mandatory Education Events",
+		and registry.get_events_for_category("education", true).size() == 5
+		and registry.get_events_for_category("age_lifecycle", true).size() == 2,
+		"All production category files load with mandatory Education and Age / Lifecycle Events",
 		registry.get_diagnostic_text()
 	)
 
@@ -73,7 +74,7 @@ func _test_all_production_category_files_load() -> void:
 			break
 	_assert_true(
 		all_categories_indexed,
-		"Empty production categories still receive category lookups"
+		"All production categories receive category lookups"
 	)
 
 
