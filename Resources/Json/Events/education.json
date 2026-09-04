@@ -2,5 +2,1168 @@
   "schema_version": 1,
   "category": "education",
   "pools": [],
-  "events": []
+  "events": [
+    {
+      "event_id": "education_primary_school_choice",
+      "category": "education",
+      "domain": "education",
+      "subtype": "primary_school_choice",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "education_stage_due",
+        "parameters": {
+          "event_type": "school_enrollment",
+          "education_stage": "primary_school"
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "==",
+            "value": 6
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "Primary School",
+        "subtitle": null,
+        "description": "It is time to choose a primary school."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "primary_public",
+          "title": "Public Primary School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 1001,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 1001,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Public Primary School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "primary_private",
+          "title": "Private Primary School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 1002,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 1002,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Private Primary School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "primary_prestige",
+          "title": "Prestige Primary School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 1003,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 1003,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Prestige Primary School."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "event_id": "education_middle_school_choice",
+      "category": "education",
+      "domain": "education",
+      "subtype": "middle_school_choice",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "education_stage_due",
+        "parameters": {
+          "event_type": "school_transition",
+          "education_stage": "middle_school"
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "==",
+            "value": 12
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "Middle School",
+        "subtitle": null,
+        "description": "It is time to choose a middle school."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "middle_public",
+          "title": "Public Middle School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 2001,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 2001,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Public Middle School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "middle_private",
+          "title": "Private Middle School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 2002,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 2002,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Private Middle School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "middle_prestige",
+          "title": "Prestige Middle School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 2003,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 2003,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Prestige Middle School."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "event_id": "education_high_school_choice",
+      "category": "education",
+      "domain": "education",
+      "subtype": "high_school_choice",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "education_stage_due",
+        "parameters": {
+          "event_type": "school_transition",
+          "education_stage": "high_school"
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "==",
+            "value": 15
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "High School",
+        "subtitle": null,
+        "description": "It is time to choose a high school."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "high_public",
+          "title": "Public High School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 3001,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 3001,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Public High School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "high_private",
+          "title": "Private High School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 3002,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 3002,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Private High School."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "high_prestige",
+          "title": "Prestige High School",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 3003,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 3003,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Prestige High School."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "event_id": "education_university_choice",
+      "category": "education",
+      "domain": "education",
+      "subtype": "university_choice",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "education_stage_due",
+        "parameters": {
+          "event_type": "university_choice",
+          "education_stage": "university"
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "==",
+            "value": 18
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "University",
+        "subtitle": null,
+        "description": "Choose whether to attend university and, if so, which university."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "university_public",
+          "title": "Public University",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 4001,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 4001,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Public University."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "university_private",
+          "title": "Private University",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 4002,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 4002,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Private University."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "university_prestige",
+          "title": "Prestige University",
+          "requirements": {
+            "all": [
+              {
+                "type": "education_enrollment_available",
+                "target": "primary",
+                "school_id": 4003,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_enroll",
+                "target": "primary",
+                "school_id": 4003,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Enrolled in Prestige University."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "skip_university",
+          "title": "Do Not Attend University",
+          "requirements": {
+            "all": []
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_decline_university",
+                "target": "primary",
+                "feedback": {
+                  "mode": "custom",
+                  "text": "University declined."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "event_id": "education_major_selection",
+      "category": "education",
+      "domain": "education",
+      "subtype": "major_selection",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "system",
+        "event": "education_stage_due",
+        "parameters": {
+          "event_type": "major_selection",
+          "education_stage": "university"
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "==",
+            "value": 21
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "Choose a Major",
+        "subtitle": null,
+        "description": "Select an available university major."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "major_5001",
+          "title": "Medicine",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5001,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5001,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Medicine."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5002",
+          "title": "Business & Finance",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5002,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5002,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Business & Finance."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5003",
+          "title": "Computer Science",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5003,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5003,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Computer Science."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5004",
+          "title": "Fine Arts & Design",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5004,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5004,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Fine Arts & Design."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5005",
+          "title": "Law & Politics",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5005,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5005,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Law & Politics."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5006",
+          "title": "Architecture & Civil Engineering",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5006,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5006,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Architecture & Civil Engineering."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5007",
+          "title": "Sports Science & Kinesiology",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5007,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5007,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Sports Science & Kinesiology."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5008",
+          "title": "Aerospace & Aviation Science",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5008,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5008,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Aerospace & Aviation Science."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5009",
+          "title": "Marine Science & Oceanography",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5009,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5009,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Marine Science & Oceanography."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5010",
+          "title": "Agricultural Sciences & Biotechnology",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5010,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5010,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Agricultural Sciences & Biotechnology."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5011",
+          "title": "Media & Communications",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5011,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5011,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Media & Communications."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5012",
+          "title": "Archeology & Cultural Heritage",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5012,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5012,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Archeology & Cultural Heritage."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5013",
+          "title": "Behavioral Sciences & Profiling",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5013,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5013,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Behavioral Sciences & Profiling."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5014",
+          "title": "Leadership & Public Administration",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5014,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5014,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Leadership & Public Administration."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5015",
+          "title": "Hospitality, Culinary Arts & Luxury Management",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5015,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5015,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected Hospitality, Culinary Arts & Luxury Management."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "major_5016",
+          "title": "General Studies",
+          "requirements": {
+            "all": [
+              {
+                "type": "major_available",
+                "target": "primary",
+                "major_id": 5016,
+                "operator": "==",
+                "value": true
+              }
+            ]
+          },
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "education_select_major",
+                "target": "primary",
+                "major_id": 5016,
+                "feedback": {
+                  "mode": "custom",
+                  "text": "Selected General Studies."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
 }

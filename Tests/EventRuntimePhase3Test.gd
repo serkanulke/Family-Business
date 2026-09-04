@@ -118,6 +118,7 @@ func _test_automatic_character_fanout() -> void:
 	system_event.participants = {
 		"primary":{"type":"character","source":"trigger"}
 	}
+	system_event["pool_id"] = null
 	system_event.behavior.blocking = false
 	_configure([system_event])
 	var system_result := EventManager.dispatch_system_trigger(

@@ -723,7 +723,13 @@ func _select_and_queue(
 			continue
 		var pool_id := forced_pool_id
 		if pool_id.is_empty():
-			pool_id = String(event.get("pool_id", event.get("trigger", {}).get("pool_id", "")))
+			var event_pool_id = event.get("pool_id", null)
+			if event_pool_id == null:
+				var trigger_value = event.get("trigger", {})
+				if typeof(trigger_value) == TYPE_DICTIONARY:
+					event_pool_id = trigger_value.get("pool_id", "")
+			if event_pool_id != null:
+				pool_id = String(event_pool_id)
 		if pool_id.is_empty():
 			unpooled.append(event)
 		else:

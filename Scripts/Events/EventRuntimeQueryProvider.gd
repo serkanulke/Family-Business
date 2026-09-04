@@ -210,6 +210,32 @@ func get_requirement_value(
 		"major":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = character.get("major_id", null)
+		"education_enrollment_available":
+			if character.is_empty(): return _invalid("Character target is unavailable.")
+			var school_id_value = requirement.get("school_id", null)
+			if typeof(school_id_value) not in [TYPE_INT, TYPE_FLOAT]:
+				return _invalid("School reference is unavailable.")
+			actual = EducationManager.can_enroll_character_in_school(
+				int(character.get("character_id", 0)),
+				int(school_id_value)
+			)
+		"major_available":
+			if character.is_empty(): return _invalid("Character target is unavailable.")
+			var major_id_value = requirement.get("major_id", null)
+			if typeof(major_id_value) not in [TYPE_INT, TYPE_FLOAT]:
+				return _invalid("Major reference is unavailable.")
+			var character_id := int(character.get("character_id", 0))
+			actual = (
+				EducationManager.is_current_education_event(
+					character_id,
+					"major_selection",
+					"university"
+				)
+				and EducationManager.is_major_available_for_character(
+					character_id,
+					int(major_id_value)
+				)
+			)
 		"lifestyle_score":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = ItemManager.get_lifestyle_score(int(character.get("character_id", 0)))
@@ -292,6 +318,8 @@ func get_requirement_label(requirement: Dictionary) -> String:
 		"lifestyle_score": "Lifestyle", "family_member_count": "Family members",
 		"relationship_status": "Relationship status",
 		"employment_status": "Employment", "education_stage": "Education stage",
+		"education_enrollment_available": "School option",
+		"major_available": "Major option",
 		"money": "Money", "diamonds": "Diamonds",
 		"house_assignment": "House assignment", "house_level": "House level",
 		"household_status": "Household Status", "household_perk": "Household Perk",

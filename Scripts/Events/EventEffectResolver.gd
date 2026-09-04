@@ -67,7 +67,7 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 	var effect_type := String(effect.get("type", ""))
 	var plan := {"valid": true, "index": index, "effect": effect.duplicate(true), "type": effect_type}
 	match effect_type:
-		"stat_change", "stat_set", "add_flag", "remove_flag", "relationship_status_set", "accept_job_offer", "reject_job_offer", "job_remove", "salary_increase", "education_enroll", "add_item", "remove_item", "equip_item", "unequip_item", "remove_from_house":
+		"stat_change", "stat_set", "add_flag", "remove_flag", "relationship_status_set", "accept_job_offer", "reject_job_offer", "job_remove", "salary_increase", "education_enroll", "education_decline_university", "education_select_major", "add_item", "remove_item", "equip_item", "unequip_item", "remove_from_house":
 			var character_id := _character_id(effect, "target", participants)
 			if character_id <= 0:
 				return _invalid(index, "target_unavailable", "The target Character is no longer available.")
@@ -132,6 +132,37 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 				return _invalid(index, "education_enrollment_unavailable", "School enrollment is no longer available.")
 			plan["school_id"] = school_id
 			plan["domain_cost"] = int(EducationManager.get_school_by_id(school_id).get("base_cost", 0))
+		"education_decline_university":
+			var character_id := int(plan["character_id"])
+			var character := CharacterManager.get_character_by_id(character_id)
+			if (
+				character.is_empty()
+				or not bool(character.get("is_alive", true))
+				or not bool(character.get("is_player_family", false))
+				or CharacterManager.get_character_age(character) != 18
+				or not EducationManager.is_current_education_event(
+					character_id,
+					"university_choice",
+					"university"
+				)
+			):
+				return _invalid(index, "education_decline_unavailable", "University decline is no longer available.")
+		"education_select_major":
+			var character_id := int(plan["character_id"])
+			var major_id := int(effect.get("major_id", 0))
+			if (
+				not EducationManager.is_current_education_event(
+					character_id,
+					"major_selection",
+					"university"
+				)
+				or not EducationManager.is_major_available_for_character(
+					character_id,
+					major_id
+				)
+			):
+				return _invalid(index, "education_major_unavailable", "Major selection is no longer available.")
+			plan["major_id"] = major_id
 		"add_item":
 			if ItemManager.get_item_definition(String(effect.get("item_id", ""))).is_empty():
 				return _invalid(index, "item_unavailable", "The Item definition is unavailable.")
@@ -245,7 +276,37 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			var company_id := "" if company_id_value == null else String(company_id_value)
 			result["success"] = CareerManager.increase_external_salary(character_id, int(effect.get("amount", 0)))
 			result.merge({"target_character_id": character_id, "job_id": job_id, "company_id": company_id, "job_name": String(CareerManager.get_job_by_id(job_id).get("job_name", "")), "company_name": String(CareerManager.get_company_by_id(company_id).get("company_name", "")), "before": before, "after": int(character.get("salary", before)), "requested_amount": int(effect.get("amount", 0)), "applied_amount": int(character.get("salary", before)) - before}, true)
-		"education_enroll": result["success"] = EducationManager.enroll_character_in_school(character_id, int(plan["school_id"]))
+		"education_enroll":
+			result["success"] = EducationManager.enroll_character_in_school(
+				character_id,
+				int(plan["school_id"])
+			)
+			result.merge({
+				"target_character_id": character_id,
+				"school_id": int(plan["school_id"]),
+				"school_name": String(
+					EducationManager.get_school_by_id(
+						int(plan["school_id"])
+					).get("school_name", "")
+				)
+			}, true)
+		"education_decline_university":
+			result["success"] = EducationManager.decline_university(character_id)
+			result["target_character_id"] = character_id
+		"education_select_major":
+			result["success"] = EducationManager.select_major(
+				character_id,
+				int(plan["major_id"])
+			)
+			result.merge({
+				"target_character_id": character_id,
+				"major_id": int(plan["major_id"]),
+				"major_name": String(
+					EducationManager.get_major_by_id(
+						int(plan["major_id"])
+					).get("major_name", "")
+				)
+			}, true)
 		"add_item":
 			var instance := ItemManager.create_item_instance(String(effect.get("item_id", "")))
 			result.merge({"success": not instance.is_empty(), "target_character_id": character_id, "item_id": String(effect.get("item_id", "")), "instance_id": String(instance.get("instance_id", ""))}, true)
@@ -331,7 +392,8 @@ func _exclusive_mutation_key(plan: Dictionary) -> String:
 			return "relationship:%d:%d" % [ids[0], ids[1]]
 		"accept_job_offer", "reject_job_offer", "job_remove", "salary_increase":
 			return "career:%d" % int(plan.get("character_id", 0))
-		"education_enroll": return "education:%d" % int(plan.get("character_id", 0))
+		"education_enroll", "education_decline_university", "education_select_major":
+			return "education:%d" % int(plan.get("character_id", 0))
 		"remove_from_house": return "house:%d" % int(plan.get("character_id", 0))
 		"business_upgrade": return "business:%s" % String(plan.get("business_id", ""))
 		"queue_event": return "queue:%s" % String(plan.get("effect", {}).get("event_id", ""))

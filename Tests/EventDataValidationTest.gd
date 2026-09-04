@@ -61,9 +61,8 @@ func _test_all_production_category_files_load() -> void:
 		loaded
 		and registry.is_valid
 		and registry.files_by_category.size() == 12
-		and registry.events_by_id.is_empty()
-		and registry.pools_by_id.is_empty(),
-		"All 12 empty production category files load successfully",
+		and registry.get_events_for_category("education", true).size() == 5,
+		"All production category files load with the five mandatory Education Events",
 		registry.get_diagnostic_text()
 	)
 
@@ -885,6 +884,8 @@ func _test_all_requirement_constructs() -> void:
 		{"type": "school", "target": "primary", "operator": "==", "value": 1001},
 		{"type": "school_type", "target": "primary", "operator": "==", "value": "public"},
 		{"type": "major", "target": "primary", "operator": "==", "value": 5001},
+		{"type": "education_enrollment_available", "target": "primary", "school_id": 1001, "operator": "==", "value": true},
+		{"type": "major_available", "target": "primary", "major_id": 5001, "operator": "==", "value": true},
 		{"type": "lifestyle_score", "target": "primary", "operator": ">=", "value": 60},
 		{"type": "equipped_item", "target": "primary", "operator": "==", "value": ITEM_ID},
 		{"type": "item_type", "target": "primary", "operator": "==", "value": "accessory"},
@@ -933,6 +934,8 @@ func _all_valid_effects() -> Array:
 		{"type": "job_remove", "target": "primary"},
 		{"type": "salary_increase", "target": "primary", "amount": 100},
 		{"type": "education_enroll", "target": "primary", "school_id": 1001},
+		{"type": "education_decline_university", "target": "primary"},
+		{"type": "education_select_major", "target": "primary", "major_id": 5001},
 		{"type": "add_item", "target": "primary", "item_id": ITEM_ID},
 		{"type": "remove_item", "target": "primary", "item_id": ITEM_ID},
 		{"type": "equip_item", "target": "primary", "item_id": ITEM_ID},

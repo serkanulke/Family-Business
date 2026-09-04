@@ -54,7 +54,8 @@ const REQUIREMENT_TYPES: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
 	"family_member_count", "relationship_status", "employment_status", "job", "job_tag",
-	"education_stage", "school", "school_type", "major", "lifestyle_score",
+	"education_stage", "school", "school_type", "major",
+	"education_enrollment_available", "major_available", "lifestyle_score",
 	"equipped_item", "item_type",
 	"item_rarity", "money", "diamonds", "house_assignment",
 	"house_level", "household_status", "household_perk", "business_owned",
@@ -72,13 +73,13 @@ const NUMERIC_REQUIREMENTS: Array[String] = [
 ]
 const BOOLEAN_REQUIREMENTS: Array[String] = [
 	"is_alive", "is_family_member", "has_child", "has_parent", "has_spouse",
-	"business_owned"
+	"business_owned", "education_enrollment_available", "major_available"
 ]
 const TARGETED_REQUIREMENTS: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
 	"is_family_member", "has_child", "has_parent", "has_spouse",
 	"relationship_status", "employment_status", "job", "job_tag", "education_stage", "school",
-	"school_type", "major",
+	"school_type", "major", "education_enrollment_available", "major_available",
 	"lifestyle_score", "equipped_item", "item_type", "item_rarity",
 	"house_assignment", "house_level", "business_type",
 	"business_level", "business_role"
@@ -94,8 +95,9 @@ const EFFECT_TYPES: Array[String] = [
 	"stat_change", "stat_set", "add_flag", "remove_flag",
 	"relationship_status_set", "relationship_marry", "relationship_divorce", "money_change",
 	"diamond_change", "accept_job_offer", "reject_job_offer", "job_remove",
-	"salary_increase", "education_enroll", "add_item", "remove_item",
-	"equip_item", "unequip_item", "remove_from_house", "business_upgrade",
+	"salary_increase", "education_enroll", "education_decline_university",
+	"education_select_major", "add_item", "remove_item", "equip_item",
+	"unequip_item", "remove_from_house", "business_upgrade",
 	"queue_event", "schedule_event", "cancel_scheduled_event"
 ]
 const FORBIDDEN_EXECUTABLE_KEYS: Array[String] = [
@@ -806,6 +808,24 @@ func _validate_requirement(
 			_validate_reference(source, event_id, path + ".value", value, _school_ids, "school_id")
 		"major":
 			_validate_reference(source, event_id, path + ".value", value, _major_ids, "major_id")
+		"education_enrollment_available":
+			_validate_reference(
+				source,
+				event_id,
+				path + ".school_id",
+				requirement.get("school_id", null),
+				_school_ids,
+				"school_id"
+			)
+		"major_available":
+			_validate_reference(
+				source,
+				event_id,
+				path + ".major_id",
+				requirement.get("major_id", null),
+				_major_ids,
+				"major_id"
+			)
 		"flag":
 			_validate_flag_reference(source, event_id, path + ".value", value)
 		"equipped_item":
@@ -1214,6 +1234,11 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 		"education_enroll":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_reference(source, event_id, path + ".school_id", effect.get("school_id", null), _school_ids, "school_id")
+		"education_decline_university":
+			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
+		"education_select_major":
+			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
+			_validate_reference(source, event_id, path + ".major_id", effect.get("major_id", null), _major_ids, "major_id")
 		"add_item", "remove_item", "equip_item", "unequip_item":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_reference(source, event_id, path + ".item_id", effect.get("item_id", null), _item_ids, "item id")
