@@ -1,183 +1,216 @@
 # Family Business Architecture
 
-## Scope and Evidence
+**Repository baseline audited:** `main` at `d22047481c4c0f15161b197ae2dda881bc99b54a` (4 September 2026)  
+**Gameplay authority:** canonical GDD v3.8  
+**Purpose:** describe current technical ownership and boundaries. This file does not redefine gameplay.
 
-This document describes the repository state inspected through 2026-09-02 on branch `main`, including the current working-tree Item List / Shop, Map, property modal, House, Character portrait/genetics, and Event System Phase 1–5C integrations. It is based on `project.godot`, the GDScript files, JSON resources, scenes, UI files, and test scenes present in the working tree. It does not reproduce or reinterpret the canonical GDD.
+## 1. Product Shape
 
-The working tree already contained modified and untracked project assets before these support documents were added. Those files were inspected as current repository state and were not changed by this documentation task.
+- Godot 4.7 project, Android/mobile target.
+- Reference viewport: 1080 × 1920, portrait.
+- Startup scene: `Scenes/MainMenu/MainMenu.tscn`.
+- Core runtime is manager/autoload driven.
+- Static definitions live primarily under `Resources/Json/`.
+- Mutable state is owned by managers and serialized by `SaveManager`.
+- Family Business is Event-driven and must not be expanded into an autonomous simulation framework.
 
-## Project Shape
+## 2. Autoload Order
 
-- Engine configuration: Godot 4.7, mobile renderer, Jolt Physics.
-- Display baseline: 1080 x 1920 with `canvas_items` stretch and `expand` aspect.
-- Startup scene: `res://Scenes/MainMenu/MainMenu.tscn`.
-- Gameplay scene: `res://Scenes/Main/Main.tscn`; it owns the persistent Family Tree instance, lazily instantiates the Map screen, and owns the single shared top/navigation HUD.
-- Persistent runtime state is held by autoload managers and serialized by `SaveManager` to `user://saves`.
-- Static gameplay data is primarily loaded from `res://Resources/Json` into manager-owned arrays and dictionaries. `EventDataRegistry` remains the sole static Event-definition source; the `EventManager` Autoload composes it with session runtime services rather than duplicating definition or domain state.
+Current `project.godot` order:
 
-## Repository Layout
+1. `GameManager`
+2. `TimeManager`
+3. `CharacterManager`
+4. `EducationManager`
+5. `CareerManager`
+6. `HouseManager`
+7. `EconomyManager`
+8. `BusinessManager`
+9. `NPCManager`
+10. `RelationshipNpcManager`
+11. `ItemManager`
+12. `EventManager`
+13. `SaveManager`
 
-| Path | Observed responsibility |
-| --- | --- |
-| `Autoload/` | Global gameplay state and manager logic. |
-| `Resources/Json/` | Static definitions, empty seed collections, and several currently unreferenced data files. |
-| `Resources/Json/Events/` | The 12 approved Event category roots. Phase 1 leaves their production `pools` and `events` arrays empty. |
-| `Scenes/` | Main menu, new-game modal, load-game UI, main gameplay root, family tree, character nodes, and business modal scenes. |
-| `UI/CharacterCard/` | Runtime-built, scrollable Character Card overlay and its manager-backed presentation script. |
-| `UI/ItemListShop/` | Reusable Accessory/Outfit/Vehicle Item List bottom sheet, display-only item cards, information panel, filter bar, and filename/path-based Accessory category classifier. |
-| `Scripts/FamilyTree/` | Family-tree layout, rendering, character nodes, link nodes, and camera behavior. |
-| `Scripts/Map/` | Authored Map screen integration, explicit screen/camera activation, fixed rectangular camera input, an editor-only boundary guide, and reusable property/tag helpers. |
-| `Scripts/Events/` | Event definition registry/validator; requirement, participant, availability, and manual-discovery services; EventInstance lifecycle; calendar-trigger evaluation; pool selection; and runtime repeat/cooldown state. |
-| `Scripts/Time/` | Shared Gregorian game-calendar arithmetic used by `TimeManager` and Event timing. |
-| `UI/Map/` | Reusable floating property-tag scene used by map properties. |
-| `Scripts/UI/Business/` | Business modal, manager-to-UI adapter, and worker-flow connector. |
-| `UI/Business/WorkerSelection/` | Worker source selection and candidate assignment flow. |
-| `Tests/` | Standalone Godot test scenes and scripts for manager logic and UI integration. |
-| `Resources/` | Fonts, icons, portraits, school images, and building images. |
-| `Data/Saves/` | Present but empty in the inspected tree; runtime saves use `user://saves` instead. |
-| `Themes/` | Business modal, Character Card, and Item List / Shop theme resources. |
+Later managers may depend on earlier managers. Do not reorder autoloads without checking `_ready()` and runtime dependencies.
 
-Several directories under `Scenes/` remain empty, including building/manager-oriented placeholders. There is still no Event scene/UI; Phase 3 adds backend orchestration only.
+## 3. Manager Ownership
 
-## Static Event Data Boundary
+### GameManager
+Owns global gameplay settings, family identity, pooled Money/Diamonds, and new-game orchestration.
 
-`EventDataRegistry` is an explicitly constructed `RefCounted`, not an Autoload. Its production entry point reads exactly the 12 approved files under `Resources/Json/Events/`, parses them safely, invokes the common validator, and publishes lookups only when the complete supplied set is valid. A failed load retains file/category/Event/path diagnostics but does not expose a partially valid registry. Successful registries provide global `event_id` and `pool_id` lookup plus category and pool Event indexes.
+### TimeManager
+Owns the Gregorian game date, pause/play/speed state, and date-change signals. Calendar helpers are shared with Event timing.
 
-`EventDataValidator` owns Phase 1 static checks: root/category/schema integrity; pools; all five trigger families and calendar date forms; participant declarations and selection metadata; recursive requirements and operator/value/reference compatibility; repeat/cooldown and the Family Agency per-Event 60-calendar-month rule; presentation resource references and scene-owned style rejection; costs, choices, deterministic/weighted/score-check resolutions; the approved effect whitelist; Event-flow references; and statically detectable queue/schedule cycles. It indexes authoritative IDs from the existing Job, School, Major, Flag, Item, Business Type, House, Household Status, and Household Perk JSON definitions. Optional `Job.json.event_tags` is validated when present and remains valid when absent.
+### CharacterManager
+Owns full Character records for player-family members and external Relationship candidates. It owns age/life stage, retirement/pension, death, parent/child/spouse links, current Character stats/flags, active skin-tone genetics, portrait variant identity, and full-Character creation.
 
-The registry additionally builds read-only runtime indexes by domain and manual source and can filter enabled definitions while preserving the Phase 1 atomic-load behavior. It remains the only Event-definition database.
+### EducationManager
+Owns school enrollment, school costs/bonuses, education stage state, university choice, major selection, graduation state, and the factual birthday-driven Education requests.
 
-## Event Runtime Eligibility Boundary — Phase 2
+### CareerManager
+Owns external Job/Company eligibility, active Job Offers, unemployed/employed offer cadence and probabilities, Job/Company selection, offer salary, accept/reject, external employment mutation, removal, and salary increase.
 
-The Phase 2 runtime is explicitly constructed and Autoload-free. `EventRuntimeService` composes the existing `EventDataRegistry`, `EventRuntimeQueryProvider`, `RequirementEvaluator`, `EventParticipantResolver`, and replaceable availability/history/entitlement query providers. It exposes definition/category/domain/manual-source/pool access, direct and pool manual discovery, structured availability, and final activation-time revalidation. Manual pool discovery returns eligible definitions and never performs weighted/random selection.
+### HouseManager
+Owns House instances, role/resident assignment, capacity, Household Score/Status/Perks, House upgrades, Unhoused detection/penalty integration, and House cleanup.
 
-`EventRuntimeQueryProvider` reads current authoritative state from `CharacterManager`, `CareerManager`, `EducationManager`, `RelationshipNpcManager`, `ItemManager`, `GameManager`, `HouseManager`, `BusinessManager`, and `TimeManager`; it does not copy their mutable state. `RequirementEvaluator` is the one shared recursive `all`/`any`/`none` engine for every approved requirement type and operator. Its result contains an eligibility boolean plus structured, player-readable failure reasons. Exact Lifestyle checks call `ItemManager.get_lifestyle_score`; House status/perks and Business state use their owning managers.
+### EconomyManager
+Owns currently implemented family-economy settlement helpers such as external salary payment, family-business settlement, House monthly expenses, and the 1.40 new-construction multiplier.
 
-`EventParticipantResolver` resolves trigger, player-selected, relationship, existing Relationship NPC, primary-House, owned-family-Business, and provided-context sources. Player-selected groups receive candidate eligibility/reasons, min/max and duplicate enforcement, and confirmation-time revalidation. Resolved runtime participants are IDs; family Businesses remain family-owned contexts. Ordinary Character participants must remain alive. The one narrow trigger exception is a system Event listening to `character_died`: its primary trigger Character remains a valid resolved participant after canonical death has committed, so death/Funeral-chain content can observe the dead Character without weakening ordinary activation-time revalidation.
+**Known implementation gap:** GDD v3.8 defines Economy Index as an active time-based multiplier for applicable Money expenses, including school enrollment cost. The current EconomyManager does not yet calculate/advance/apply Economy Index, and EducationManager currently consumes `School.json.base_cost` directly. This is an implementation gap, not an open design permission to remove Economy Index.
 
-`EventHistoryQueryProvider`, `EntitlementQueryProvider`, and `EventAvailabilityStateProvider` remain replaceable contracts. Entitlement remains neutral. `EventManager` now supplies `EventStoryHistory` plus repeat/cooldown state, so story requirements and availability locks read the same Phase 4 runtime state before and after save/load.
+### BusinessManager
+Owns family-business type lookup, family-business instances, purchase/upgrade, slots, staffing, worker performance, income/expense, and business map/modal visual lookup.
 
-`EventInstance` stores runtime identity, definition link/version, trigger and lifecycle dates/status, resolved participant IDs/context, selected choice/outcome IDs, applied `EffectResult` records, and optional source-instance ID. Instance IDs use the session-local deterministic `evt_00000001` format. Display copy remains in `EventDataRegistry`.
+### NPCManager
+Owns lightweight Worker NPC generation, availability, retirement, and Worker NPC records used for family-business staffing.
 
-Phase 2 remains read-only toward gameplay. Its public discovery and availability APIs are preserved; Phase 3 composes them through the orchestrator described below.
+### RelationshipNpcManager
+Owns Relationship candidate generation/config use, relationship eligibility helpers, marriage family-entry, divorce/remarriage cleanup/cooldown, donor/adoption helpers, and active candidate indexing. Relationship candidates themselves are full Character records in CharacterManager.
 
-## Event Runtime Orchestration — Phase 3
+### ItemManager
+Owns stable item-definition lookup, family ItemInstances, equipment, expiration, exact Lifestyle Score, purchases, and monthly slot-specific shop stock.
 
-`EventManager` is an Autoload after `ItemManager` and before `SaveManager`. It constructs the production registry and Phase 2 runtime services, then owns only session Event timing state: trigger-occurrence identities, the active/queued instances, deterministic runtime IDs, scheduled records, repeat completion keys, cooldown records, and selection/deduplication ledgers. Static Event definitions stay in `EventDataRegistry`; Character, House, Business, economy, education, career, relationship, and item state remain in their authoritative managers.
+### EventManager
+Owns Event orchestration only: trigger dispatch, random/save-level pool evaluation, queue/active/scheduled runtime, repeat/cooldown, resolution/effect orchestration, story history, and Event save state. It does not become a second Character/Education/Career/House/Business/etc. model.
 
-The public trigger boundary supports all five families. `dispatch_system_trigger` accepts semantic names and occurrence context without exposing raw Godot signal paths to JSON. Minimal adapters translate canonical Character birth/death/age/life-stage/retirement, Education due/major requests and successful enrollment/graduation, Career offer/request/acceptance/removal operations, House state/upgrade, and family-Business creation/upgrade/role signals. Phases 5A, 5B, and 5C complete the Education, external-Career, and lifecycle/death backend adapters; Relationship and other domain-flow migration remain later Phase 5 work.
+### SaveManager
+Owns save/load of mutable manager state and Event runtime state.
 
-`TimeManager.date_changed` drives Event-defined calendar cadence and scheduled-due processing. `GameCalendar` is the shared Gregorian helper for day/week/month/year addition, leap years, month-end clamping, comparison, and ordinal conversion; `TimeManager.advance_day` now uses the same month-length rules. Calendar definitions own their daily, weekly, monthly, yearly, exact-date, or date-window cadence, and an occurrence ledger prevents repeat evaluation of the same cadence occurrence.
+## 4. Event Architecture
 
-`EventPoolSelector` filters before seeded weighted selection and implements `weighted_one`, no-duplicate `weighted_multiple`, `all_eligible`, `max_events`, and weight-based mutually exclusive groups. Priority affects only the stable queue order. `EventManager` revalidates a queued instance before activation, keeps one active presentation instance, prevents duplicate occurrences, and exposes queue/lifecycle signals for later UI. The first blocking Event captures the exact prior paused/running state and x1/x2/x3 multiplier; queued blocking work remains paused, and the state is restored only after blocking work clears.
+### Static layer
 
-Completion is the explicit Phase 3 commit point for all seven repeat modes and all six cooldown scopes. Cancellation and expiry do not consume repeat eligibility or start cooldown. Calendar cooldowns use real days/weeks/months/years, including normalized Character pairs, month-end clamping, and leap dates. Scheduled records use deterministic `sched_00000001` IDs, retain resolved participants/context/source instance, and are revalidated for definition, enabled state, participant validity, requirements, repeat, cooldown, and affordability when due; stale entries expire without gameplay mutation.
+`EventDataRegistry` loads the approved category files under `Resources/Json/Events/`. `EventDataValidator` validates the shared schema, references, requirements, participants, repeat/cooldown, resolution/effects, and graph references.
 
-## Event Resolution, Effects, and Persistence — Phase 4
+Current category roots:
 
-`EventManager.resolve_active_event` revalidates the active Event, selected choice, participant/context bindings, requirements, and combined Event/choice costs immediately before resolution. `EventResolutionResolver` implements deterministic, seeded weighted (including requirement-based modifiers), and deterministic score-check outcomes. `EventEffectResolver` preflights the complete approved effect list before committing cost or mutation, delegates gameplay changes to the owning managers, emits actual applied `EffectResult` data, and owns only temporary Event-added flag expiry records and Event-flow coordination.
+- `relationship`
+- `education`
+- `job_offer`
+- `career`
+- `household`
+- `lifestyle`
+- `family_agency`
+- `age_lifecycle`
+- `business`
+- `health`
+- `finance`
+- `general`
 
-`EventStoryHistory` stores terminal runtime instances with stable IDs, dates, participant/context bindings, choice, outcome, results, and chain source, and implements the story-history requirement provider. Successful completion is the single history/repeat/cooldown commit point. Cancellation/expiry are history-visible but do not consume repeat eligibility or start cooldown.
+`job_offer` remains a separate category/file for now; gameplay domain is Career.
 
-The Event runtime has symmetric JSON-compatible export/import for active/queued/scheduled instances, story history, repeat/cooldown records, temporary flags, deterministic counters/RNG state, occurrence ledgers, queue order, and blocking-pause ownership. RNG seed/state values are decimal Strings so all 64 bits survive JSON. Import reconstructs runtime objects without replaying effects, re-selection, or domain creation. Missing active/queued definitions reject the Event subsection rather than substituting content; restored schedules still follow normal due-time revalidation and expiry. `reset_runtime_state` clears every Event-owned state surface.
+### Runtime layer
 
-`SaveManager` version 6 stores this state once under `event_system`. On load it first releases any current Event-owned pause, restores Time and Characters, restores Houses and Businesses, then runs retirement normalization so its canonical Business-slot cleanup can see restored assignments; Items and the other authoritative domains follow, and Event state imports last. Numeric Character flag IDs are normalized after JSON parsing. The generic life-stage/retirement normalization helpers emit no Phase 5C lifecycle semantics, so restoration can correct legacy domain state without inventing gameplay occurrences. Version 2–5 saves start with a truthful empty Event runtime. A missing or malformed version 6 Event subsection logs a diagnostic and resets only Event state while preserving the accepted gameplay snapshot. Event lifecycle autosaves are deferred, so synchronous resolution is captured only before or after its complete effect chain, never halfway through it. No Event UI or production Event definitions are added.
+Event runtime uses:
 
-## Education Semantic Adapter — Phase 5A
+- `EventRuntimeService`
+- `EventRuntimeQueryProvider`
+- `RequirementEvaluator`
+- `EventParticipantResolver`
+- `EventPoolSelector`
+- `EventResolutionResolver`
+- `EventEffectResolver`
+- `EventStoryHistory`
+- `EventInstance`
+- `EventPresentationResolver`
 
-`EducationManager` remains the sole Education gameplay authority. Its existing birthday detector, ordered `education_event_queue`, current-event validation, pause ownership, school choice, one-time School.json cost/stat application, university decline, major selection, expected-graduation schedule, and graduation mutation are unchanged. Two narrow post-success domain signals expose only completed enrollment and graduation operations. They contain stable Character/School identity; EventManager resolves the associated School/Character data through the authoritative managers.
+The runtime queries canonical managers instead of copying their mutable state.
 
-`EventManager` keeps the existing `education_stage_due` bridge for `education_event_requested` and `major_selection_requested`. Successful enrollment now maps to `school_enrolled` with `character_id`, `school_id`, `education_stage`, and `school_type`; successful graduation maps to `school_graduated` with `character_id`, `school_id`, `education_stage`, `graduation_date`, and `major_id` only when present. Occurrence IDs use the semantic name plus stable IDs/date, and normal Event duplicate protection prevents one domain operation from queueing the same Event twice. Failed domain operations and save deserialization emit no Education semantic occurrence.
+### Random pacing
 
-The legacy Education queue/request/pause path is intentionally retained as the current interaction/presentation contract until the later Education Event UI migration. No concrete player-facing Education signal consumer was found in the current scene/script tree beyond autosave/Event adapters/tests, but removing this contract before the replacement UI exists is outside Phase 5A. Production Event category files remain empty, so these semantic dispatches do not independently pause time or mutate Education state. No `major_selected`, university-decline, transfer, dropout, Education Level, or instant-graduation semantic/gameplay system is introduced.
+Ordinary random Events use save-scoped pacing. `EventManager` gathers eligible Event+Character candidates for a save-scoped pool, evaluates one pool activation roll, then performs relative weighted selection. Family size enlarges the candidate set but does not multiply activation rolls.
 
-## Career Semantic Adapter — Phase 5B
+`EventPoolSelector.passes_activation()` applies `activation_chance`. `weight` is used only for relative selection after activation.
 
-`CareerManager` remains the sole external-employment authority. Existing eligibility, Job.json requirement checks, Company/Job compatibility, five unemployed probability brackets, seven-day unemployed cooldown, monthly employed advancement roll, higher-salary/different-Job filtering, random Job-first/Company-second selection, `active_job_offers`, canonical Job.json salary, acceptance validation, rejection, removal, and salary-increase behavior are unchanged. The existing `job_offer_requested` signal continues to expose the stored authoritative offer. Two narrow post-success signals expose completed acceptance with previous/new employment data and completed external-job removal with previous employment data; failed operations emit neither.
+Factual/system Events are not suppressed by ordinary random pacing.
 
-`EventManager` maps the existing request to `job_offer_requested`, successful unemployed acceptance to `job_started`, successful employed replacement to `job_changed`, and successful external removal to `job_lost`. Context comes directly from CareerManager's authoritative operation, primary binds to the affected Character, and occurrence IDs use stable Character/Job/Company/date values. EventManager does not store offers, select Jobs/Companies, accept/reject twice, calculate salary, or mutate Business staffing. A follow-up Career Event raised during another Event's `accept_job_offer` effect enters the ordinary Phase 3 queue and activates only after the source Event completes.
+### Factual core flows
 
-`SaveManager` version 6 already stores `CareerManager.active_job_offers` and restores it by direct assignment before importing the separate Event runtime. Load therefore replays none of the four Career semantics. Existing deferred autosave wiring remains unchanged: `job_offer_requested` is already observed, Event queue/lifecycle changes use the existing coalesced request path, and no second Career-specific autosave route was added. No player-facing Job Offer scene or signal consumer was found outside tests/autosave/Event adapters, so Phase 5B creates no presentation and does not route anything to generic Event UI. Production Event JSON remains empty and Job `event_tags` remain unauthored.
+Education due, Job Offer request, Retirement, and confirmed death/Farewell are factual/core flows. Their owning manager creates the fact; EventManager presents/orchestrates it.
 
-Phase 5C keeps age, birthdays, life stages, retirement/pension, lifespan selection, health adjustment, death probability, `is_alive`, and `death_date` authoritative in `CharacterManager`. Normal date processing captures pre-transition stage/retirement state, runs the existing life-stage and retirement mutations in their original order, emits `age_reached`, `life_stage_changed`, and `character_retired` only for real post-transition occurrences, then runs the unchanged death check. New-game time reset suppresses lifecycle semantics until the old Character roster is cleared. Retirement delegates only slot mutation to `BusinessManager.remove_character_from_any_slot` after pension/salary state is final; ordinary staffing remains player-controlled. `EventManager` maps those domain signals to `age_reached`, `life_stage_changed`, and `retired`, preserves the existing `character_died` and `character_born` adapters, and performs no lifecycle or Business mutation.
+Job Offer is intentionally special:
 
-## Autoload Managers
+`CareerManager offer generation -> job_offer_requested -> one generic Job Offer Event -> Accept/Decline -> CareerManager mutation`
 
-Autoload order in `project.godot` is significant because later managers use earlier ones during `_ready()` and at runtime.
+CareerManager's existing daily/monthly offer probability logic remains authoritative.
 
-| Autoload name | File | Observed responsibility and collaborations |
-| --- | --- | --- |
-| `GameManager` | `Autoload/GameManager.gd` | Global settings, family name, money and diamonds, plus new-game orchestration. Resets time and characters, creates the starting character, and assigns an external company when applicable. |
-| `TimeManager` | `Autoload/TimeManager.gd` | Gregorian simulation date, shared calendar helpers, pause/play, x1/x2/x3 speed, and `date_changed` signaling. Starts paused. |
-| `CharacterManager` | `Autoload/CharacterManager.gd` | Loads characters, majors, and jobs; owns playable and relationship-character records; calculates age/life stage; handles creation, skin-tone genetics, parent links, retirement, pensions, death checks, canonical full-Character portrait discovery/resolution, narrow clamp-aware stat/flag mutations used by Events, and numeric flag-ID normalization after JSON restore. It emits post-transition birthday/life-stage/retirement signals only from normal date processing and delegates the canonical retirement slot cleanup to `BusinessManager`. |
-| `EducationManager` | `Autoload/EducationManager.gd` | Loads schools; queues birthday education events; handles enrollment, cost/stat effects, graduation, university choice, major selection, and time pause/resume around queued events; exposes non-mutating enrollment eligibility for atomic Event preflight and emits narrow post-success enrollment/graduation domain signals. |
-| `CareerManager` | `Autoload/CareerManager.gd` | Loads companies; matches jobs and companies; checks eligibility; generates, accepts, and rejects external job offers; maintains offer cooldowns; exposes narrow external-job removal and salary-increase operations without touching family-business assignments; emits post-success acceptance/removal domain facts for the Phase 5B Event adapter. |
-| `HouseManager` | `Autoload/HouseManager.gd` | Loads House levels, role/scoring/status definitions, and Household Perks; owns family House instances, ownership, level, roles, residents, role-relative performance, status/perk queries, Unhoused state, monthly Happiness penalties, death cleanup, and save restoration. |
-| `EconomyManager` | `Autoload/EconomyManager.gd` | Applies the shared new-construction multiplier, pays eligible external salaries, settles family-business income/expense, and charges owned-House fixed expenses on the first day of a month. |
-| `BusinessManager` | `Autoload/BusinessManager.gd` | Loads family-business instances and type definitions; creates and upgrades businesses; manages family/Worker NPC slots; computes worker performance and monthly business results; resolves independent static map and modal visual paths by business type; exposes canonical next-upgrade cost/validity for Event preflight. |
-| `NPCManager` | `Autoload/NPCManager.gd` | Owns the separate Worker NPC pool; generates workers from configuration, filters and ranks candidates, detects assignment, and retires workers. |
-| `RelationshipNpcManager` | `Autoload/RelationshipNPCManager.gd` | Creates relationship candidates as character records, generates their education/career history, converts candidates into family members, handles divorce/remarriage rules (including departing external-spouse Business and House cleanup), and creates biological/donor/adopted children through `CharacterManager`. |
-| `ItemManager` | `Autoload/ItemManager.gd` | Loads the generated stable item catalog, owns the shared family inventory and character-specific equipment assignments, creates separate Accessory/Outfit/Vehicle monthly stocks, validates purchases, creates/removes canonical inventory instances, removes expired items, calculates equipped-item Lifestyle, and exposes equipment/ownership queries. |
-| `EventManager` | `Autoload/EventManager.gd` | Loads the static Event registry; adapts semantic domain signals including Phase 5A Education, Phase 5B Career, and Phase 5C Character age/life-stage/retirement/death/birth bridges; selects/queues/schedules Events; resolves choices/outcomes; coordinates preflighted manager-owned effects; owns Event story history, EffectResults, temporary Event-added flag durations, repeat/cooldown state, deterministic runtime export/import, pause contract, and future-UI signals. It does not own domain gameplay state. |
-| `SaveManager` | `Autoload/SaveManager.gd` | Saves and restores the version 6 manager snapshot including the one `event_system` payload, restores Event state after referenced domains, migrates older saves to empty Event state, creates dynamic save IDs, lists/deletes saves, and requests deferred autosaves from gameplay/Event lifecycle signals. |
+### Presentation data
 
-## Runtime Flow
+`EventPresentationResolver` currently resolves player-facing Event content from canonical runtime data. Supported dynamic tags are:
 
-1. The main-menu scene starts the application and pauses simulation time.
-2. A new game is created through `NewGameModal` and `GameManager`; a selected gender/skin tone and generated names feed `CharacterManager`.
-3. Managers load static JSON definitions during `_ready()` and keep mutable gameplay state in memory.
-4. `TimeManager.date_changed` drives lifecycle, education, career, Worker NPC, economy, Event calendar cadence, and scheduled Event due checks.
-5. Manager signals update the family-tree HUD and trigger deferred autosaves.
-6. `SaveManager` serializes manager state as version 6 JSON under `user://saves` and restores it without emitting ordinary gameplay signals mid-load. Version 2–5 snapshots remain loadable; missing House state in versions 2–4 is migrated to one deterministic starting House, version 3 global item stock is migrated into slot-specific arrays, and versions 2–5 receive an empty Event runtime. Version 6 imports `event_system` only after its referenced domain state exists.
+- `{character_name}`
+- `{job}`
+- `{company_name}`
+- `{salary}`
 
-Full-Character portraits are centralized in `CharacterManager`. Starting characters, relationship candidates, biological newborns, donor-conceived children, and adopted children all resolve through the same `Male/Female + skin tone + life stage + portrait_variant_id` path helpers. The selected variant persists across life-stage changes when the destination counterpart exists; otherwise the manager selects another eligible variant while excluding same-gender persisted parent variants. Family Tree, Character Card, and business staffing consumers continue to call `get_avatar_path()`/`get_avatar_texture()`, so they receive the same normalized result without owning path rules.
+Unknown/unresolved tags remain visible rather than being silently deleted.
 
-Save loading runs portrait normalization after character ID and parent-link normalization. Legacy `Man`/`Woman` paths are converted to `Male`/`Female`, a missing variant is recovered from the filename when possible, and missing/empty canonical pools warn and use the existing `default_avatar.png` rather than crossing gender, skin, or life-stage folders. `avatar_theme` remains stored for future compatible use but is not part of the current base portrait lookup.
+There is not yet a complete shared player-facing Event modal/presentation scene wired for all production Event categories.
 
-## UI and Scene Boundaries
+## 5. Production Event Content
 
-- `Scenes/MainMenu/MainMenu.tscn` provides Continue, Load Game, New Game, and Settings controls. Continue and Load Game are connected to `SaveManager`; New Game opens `NewGameModal`. Settings currently emits a signal only.
-- `Scenes/LoadGame/LoadGameScreen.tscn` replaces its three legacy example slots at runtime with save summaries from `SaveManager`.
-- `Scenes/Main/Main.tscn` owns a persistent `FamilyTreeScreen`, lazily instantiates `UI/Map.tscn`, instances one `MainHUD`, and owns one shared instance of the Business, Buy Building, House, and Buy House modals on a dedicated modal CanvasLayer. Screen changes explicitly toggle content visibility/processing and the two independent Camera2D nodes, then update the shared navigation active state without rebuilding either screen.
-- `MainHUD` is the extracted existing Family Tree global UI implementation. It owns the one Date, Money, Diamond, Shop, Settings, and three-tab bottom navigation presentation. `FamilyTreeScreen` retains only its screen-specific time controls. Lifestyle remains visual-only because no Lifestyle screen exists.
-- `FamilyTreeScreen` instances `CharacterCard` once and opens that same instance when a canonical or reference portrait emits `character_selected`; no scene change or Family Tree replacement occurs. The Character Card scene uses CanvasLayer 30 above the Family Tree HUD layer, with a Full Rect `CharacterCardModal` input-blocking Control, a 76% black dim layer, and a separate centered/inset panel containing the existing scrollable content.
-- `CharacterCard` reads existing character, portrait, career, education, relationship, event-log, family-business, and ItemManager data without introducing a second character model. Its Lifestyle stars, equipped count, and three item-slot thumbnails are derived from the selected character's equipped ItemInstances; each thumbnail resolves the catalog definition's existing `image_path`. It listens to `ItemManager.equipment_changed` for the selected character, so Wear/Replace/Unequip updates the slot presentation without per-frame polling or reopening the card. Accessory/Outfit/Vehicle controls emit `item_slot_requested(character_id, slot)` whether they show an empty icon or thumbnail; `FamilyTreeScreen` routes that context into its single `ItemListBottomSheet` instance, hides the Character Card while the sheet is open, and restores the same card context after close. Cosmetic class labels remain hidden because no class-label resolver is defined.
-- `ItemListBottomSheet` is a CanvasLayer 40 overlay above the Character Card. It owns a Full Rect input blocker, 76% dim layer, cream rounded sheet beginning at y=320 in the 1080 x 1920 reference viewport, and a vertical ScrollContainer with two-column item grids. One reusable instance is reopened with a fresh `target_character_id` and `slot_context`; Accessory, Outfit, and Vehicle arrays are filtered before rendering, and only Accessory exposes the Ring/Glasses/Watch/Necklace filter bar.
-- The Item List / Shop UI remains presentation and interaction routing rather than owning gameplay state. `ItemListShopCard` emits mode-specific Buy/Wear/Unequip actions; `FamilyTreeScreen` preserves character and slot context and delegates the operation to `ItemManager`. `ItemManager.get_owned_items(slot)` projects the shared family inventory as currently available items by subtracting the family-wide equipped `instance_id` set; it never removes equipped instances from `family_inventory` and never filters by catalog `item_id`. The sheet defensively applies the same instance-level exclusion to bound/preview data, refreshes after inventory, equipment, or monthly-stock signals, and computes counts after this projection. Test-only bound/preview data explicitly replaces the production provider and cannot become production state.
-- Accessory conceptual filtering uses `AccessoryCategoryClassifier` over canonical resource paths, item IDs, and display names. It does not add a persistent `subtype` field or change save/data schemas. Item durability presentation is derived from `purchase_date` and `expiration_date`; Heirloom items bypass that progress calculation and retain their independent rarity.
-- `Scripts/Items/ItemCatalogGenerator.gd` scans the existing `Resources/Items` slot/rarity folders and writes stable definitions to `Resources/Json/ItemCatalog.json` through the explicit editor/development entry point `GenerateItemCatalog.gd`. Catalog generation is not run when a shop opens or a save loads. It deterministically calculates GDD v3.4 Money and Diamond prices from slot, rarity, Lifestyle, lifespan, and Heirloom status; the generated catalog records `pricing_status = configured_gdd_v3_4`.
-- `ItemManager` holds three monthly stock arrays under one manager-owned state: Accessory, Outfit, and Vehicle each select up to six distinct candidates from their own pool. `TimeManager.date_changed` triggers refresh only on day 1, purchase removes the item only from its slot stock without same-month refill, and `SaveManager` persists all arrays plus their shared month key. New-game initialization creates the current month's stock before the automatic save.
-- Purchase validation checks stock membership and both canonical GameManager balances before any deduction, creates an ItemInstance reference, and prevents a repeated signal from purchasing an already removed stock item. Equip validation enforces character, slot, inventory, expiration, and single-owner constraints. Lifestyle is the equipped Accessory + Outfit + Vehicle definition values capped at 100; expiration clears both inventory and any character assignment.
-- `Scripts/FamilyTree/FamilyTreeLayout.gd` derives positions and visible relationship links from `parent_ids`, `partner_id`, and family membership without mutating character data.
-- `Scenes/UI/Business/BusinessModal.tscn` uses a data adapter and connector to display manager state, upgrade a business, and open family/Worker NPC assignment sheets. Its header contains the type's `modal_visual_path`, title, and level without a second type/building icon. A missing modal asset leaves the image empty without using the map asset as a fallback. Upgrade affordability is reflected by the shared approved cream disabled CTA treatment while the backend remains authoritative.
-- `Scenes/UI/Business/BuyBuildingModal.tscn` is the reusable pre-purchase presentation for an authored, ready-made family-business property. It binds the selected type's Level 1 display name, maximum gross, fixed expense, runtime slot count, `modal_visual_path`, and unmultiplied acquisition cost through `BusinessManager`. The approved compact gradient-header card and cream bordered disabled CTA retain the visible price. It revalidates plot occupancy and affordability immediately before calling `BusinessManager.create_business_instance(type_id, property_id, false)`, keeps failed attempts local to the modal, and emits only the successful business instance/plot IDs upward. It neither owns map selection nor mutates save data directly.
-- `Scenes/UI/House/HouseModal.tscn` is the reusable owned-House management overlay. It resolves one stable `house_instance_id`, displays level/combined occupancy/status/expense/perks from `HouseManager`, builds role and resident rows from static definitions and runtime assignments, and refreshes from House signals rather than polling. Its House-specific assignment sheet accepts only playable family Characters, shows selected-role performance, validates before replacement, and exposes `Remove from House` inside the sheet. The nested information modal uses the approved gradient/cream/card language, one X close action, and 20 px-or-larger explanation copy; it blocks the House Modal while preserving the underlying layer when closed.
-- `Scenes/UI/House/BuyHouseModal.tscn` handles unowned ready-made House properties using the same compact header, summary-card, information-card, and CTA system as `BuyBuildingModal`. It binds the Level 1 capacity, expense, and 25,000 acquisition cost, delegates validation and state creation to `HouseManager`, and hands the purchased instance to the shared House Modal.
-- `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites under the organized `MapWorld` layers. Its 68 authored interactive parents are `MapProperty` nodes with explicit stable `property_id`, category, footprint, and family-business type metadata: 52 family businesses, 10 houses, and 6 land plots. Their existing Sprite2D children remain the visual source; no building sprite, transform, TileSet, or artwork is recreated. `Decorative` remains a separate non-interactive Node2D container.
-- The Map authoring boundary is the fixed rectangular world `Rect2(0, 0, 6200, 4200)`. `MapBoundaryGuide` draws that rectangle only in the editor and is hidden at runtime.
-- `MapCamera` keeps a fixed zoom, ignores wheel and multi-touch zoom gestures, pans from desktop left-mouse drag or one-finger touch drag at exported sensitivity `2.0`, and clamps the camera center using the current viewport size so the view cannot move beyond the fixed rectangle. `MapScreen.set_screen_active()` makes it current only while Map is active and disables its input/camera state when Map is hidden.
-- `MapProperty` supports both runtime-generated visuals and authored-existing visuals. Authored mode reuses a referenced Sprite2D without changing its texture, position, or scale; it derives the footprint south anchor from the Sprite2D texture rect and full transform, then creates only the Area2D/collision diamond and floating `MapPropertyTag`. The collision polygon itself comes from `MapCoordinateHelper`'s 200 x 100 true 2:1 main-grid footprint helper, so scaled visuals such as Cruise keep their authored display scale while retaining the approved logical footprint. For family businesses, Houses, and Land, that geometry remains available but is never input-pickable: the complete floating Property Tag is the sole selection target.
-- `MapPropertyTag` is a 240 x 92 reusable card with a 24 px Roboto SemiBold title and 20 px Roboto Medium state line. Its shared family-business/House/Land pointer handler consumes mouse/touch input before `MapCamera._unhandled_input`, preserves the 14 px tap-versus-drag threshold, and emits only a tag tap. Owned businesses derive occupied and total counts directly from their runtime slot dictionaries; an occupied count below the current slot total applies the warning style, while full staffing and unowned `For Sale` use the normal style.
-- `MapScreen` registers the authored `MapProperty` children once, rejects empty or duplicate IDs, exposes safe property-data lookup, and routes each Property Tag's `selected(property_id)` signal through one `property_selected(property_id)` signal. It subscribes to Business and House state signals and refreshes the affected authored property by its stable plot/property ID. `Main` opens the correct owned Business/House management instance or the matching ready-made purchase modal; Land selection reaches `Main` through its tag but the deferred Land purchase/construction flow still opens no modal. All property modals suspend Map camera input and refresh the shared HUD/tag state on completion or close. Ownership state remains manager-owned rather than duplicated in UI.
+Current production content on the audited baseline:
 
-## Important System Boundaries
+- Education: 5 core factual Events.
+- Age / Lifecycle: 2 core factual Events — Retirement and Farewell.
+- Job Offer: 1 generic factual Event.
+- Career: empty production category; next authoring target.
+- Remaining categories: no production content yet.
 
-### Worker NPCs and Relationship NPCs
+Backend architecture should be changed only when real production authoring exposes a concrete blocker.
 
-These are separate systems:
+## 6. Map and Property Architecture
 
-- Worker NPCs are lightweight records owned by `NPCManager`, use string IDs such as `npc_000001`, store stats inside a nested `stats` dictionary, and exist for family-business staffing.
-- Relationship NPCs are full character dictionaries owned in `CharacterManager.characters`, use integer `character_id` values, and are tracked by `RelationshipNpcManager.relationship_candidate_ids` while they are candidates.
+- Map uses an authored 2:1 isometric TileMap/TileMapLayer foundation.
+- Main tile reference: 200 × 100.
+- Detail grid reference: 50 × 25 aligned to the same axes/origin.
+- Map composition is manually authored; runtime does not randomly generate city placement.
+- Ground/roads/environment are separate from building sprites.
+- Property tags are independent UI/interaction objects.
+- Family-business visuals are static across levels and resolved from `BusinessTypes.json` through `map_visual_path` and `modal_visual_path`.
+- House level artwork behavior is still an explicit GDD open decision; code/art must not invent replacement level art.
 
-### Family Businesses and External Companies
+## 7. Character / NPC Boundary
 
-- Family-owned business instances are owned by `BusinessManager` and staffed through business slots.
-- Ordinary family-Business staffing remains player-controlled. Canonical age-65 retirement is an automatic exception: `CharacterManager` commits retirement, then delegates removal of only that Character's current slot to the existing `BusinessManager` public operation.
-- External career companies are static definitions loaded by `CareerManager` from `Companies.json` and referenced through `company_id` on character records.
-- Assigning a family member to a family-business slot interacts with external career state; the two concepts are not the same data model.
+### Full Characters
+Player-family members and Relationship candidates share the full Character model. Relationship candidates have `is_player_family = false` until marriage.
 
-## Tests Present
+### Worker NPCs
+Worker NPCs are lightweight staffing records in NPCManager. They are not playable Characters and do not use the playable Education/Career/Relationship pipeline.
 
-The repository contains standalone test scenes for character/family creation, parent links, relationship candidates and divorce/remarriage, Worker NPC generation/assignment/retirement, business and House rules/economy, House modal/rendering, education, career offers, save/load behavior, the family-tree layout/camera/UI, authored map validation/rendering, new-game selection, and property modal integration.
+Do not merge these two models.
 
-The Character Card, Main/Family Tree/Map integration, Item List / Shop, business, and Map tests executed for the current working tree are recorded in `DEVELOPMENT_STATUS.md`.
+## 8. Static Config and Legacy Data Boundary
+
+The presence of a JSON file is not enough to make it authoritative.
+
+- `GameData.json`: current file is stale/unconsumed. Its intended role as gameplay configuration is valid, but it mixes mutable save state and obsolete values. Redesign before reconnecting.
+- `Avatar.json`: stale/unconsumed schema from the older portrait-theme model. Future purchasable avatar themes remain a product idea, but this file must not be reconnected as-is.
+- `RelationshipNPC.json` (uppercase): empty legacy collection with no current runtime consumer.
+- `relationship_npc.json` (lowercase): active generation/config source for RelationshipNpcManager.
+- `npc.json`: active Worker NPC generation/config source.
+- Name lists are duplicated between active NPC configs; a shared `Names.json` migration is planned but not implemented yet.
+
+## 9. Save Boundary
+
+Mutable per-save state stays in manager snapshots and Event runtime state. Static JSON must not contain changing values such as:
+
+- current game date
+- current family Money
+- next runtime IDs
+- active assignments
+- active Event instances
+
+Configuration migration must keep this distinction.
+
+## 10. Change Discipline
+
+Before adding architecture:
+
+1. Confirm the gameplay need in GDD.
+2. Inspect the current owning manager.
+3. Prefer a narrow helper/delegation over a new manager/state model.
+4. Preserve existing factual/core flows.
+5. Add/adjust tests.
+6. Update architecture/schema/status docs only for changes actually implemented.

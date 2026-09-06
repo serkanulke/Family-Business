@@ -1,316 +1,176 @@
 # Family Business Development Status
 
-## Snapshot
+**Audited gameplay baseline:** `main` at `d22047481c4c0f15161b197ae2dda881bc99b54a`  
+**Audit date:** 4 September 2026  
+**Engine:** Godot 4.7  
+**Gameplay authority:** canonical GDD v3.8
 
-- Inspected: 2026-09-02
-- Branch: `main`
-- HEAD: `aeca183` (`phase 5b`, 2026-09-02)
-- Engine configuration: Godot 4.7
-- Startup scene: `Scenes/MainMenu/MainMenu.tscn`
-
-This status is derived only from files present in the inspected working tree. Unrelated files were preserved. Fresh Character Card, Item List / Shop, Map, property modal, House, and Event System Phase 1–4 validation results are recorded below; other test scenes remain inventory evidence unless separately noted.
+This document reports repository reality. It does not create gameplay decisions.
 
 ## Status Definitions
 
-- **Implemented:** executable manager or UI behavior and integration are present in the repository; related tests often exist.
-- **Partial:** substantial code exists, but the player-facing flow, broader integration, or scene coverage is incomplete.
-- **Not implemented / not found:** only a stub, data-only placeholder, visual-only control, or no consuming code was found. This is a repository observation, not a statement about GDD scope.
+- **Implemented** — executable behavior is present in current code/data and has a working integration/test path.
+- **Partial** — substantial implementation exists but an approved player-facing or data integration remains incomplete.
+- **Missing / known gap** — approved design exists but the current repository does not yet implement it.
+- **Legacy / inactive** — file/data remains in the repo but is not a current gameplay authority.
 
 ## Implemented
 
-| System | Repository evidence |
+### Core runtime
+- Autoload manager structure through SaveManager is active.
+- Gregorian calendar/time state is active.
+- New game, starting Character creation, save/load, pooled family Money/Diamonds, and multiple manager state restoration exist.
+- Character age/life-stage, retirement/pension, health-adjusted death, family links, current portrait selection, and active skin-tone genetics exist.
+
+### Education backend
+- School loading, birthday stage requests, compulsory stage handling, university choice, major selection, graduation, School cost/stat application, and Education event integration helpers exist.
+- Production Education Event file contains 5 core factual Events.
+
+### Career / Job Offer backend
+- CareerManager owns Job/Company eligibility, unemployed daily offer chances, seven-day unemployed offer cooldown, employed monthly better-offer checks, active offers, accept/reject, external job replacement/removal, and salary mutation.
+- Production Job Offer uses one generic factual Event.
+- Dynamic Job Offer presentation resolution is implemented through `{character_name}`, `{job}`, `{company_name}`, `{salary}`.
+- Dedicated Job Offer production tests passed locally: **11 passed / 0 failed**.
+- Event Phase 1 regression passed locally after Job Offer update: **89 / 0**.
+- Event Phase 3 regression passed locally after Job Offer update: **123 / 0**.
+
+### Age / Lifecycle production Events
+- Retirement factual Event exists.
+- Confirmed death opens the factual Farewell Event with Private / Small / Large Farewell choices and approved Money costs.
+- No separate funeral-state system exists.
+
+### Event backend core
+- Static registry/validator exists.
+- Runtime requirement/participant resolution exists.
+- All five trigger families exist.
+- Queue, priority, repeat, cooldown, scheduling, save/load, resolution, effects, story history, and EffectResult behavior exist.
+- Save-scoped ordinary random Event pacing is implemented.
+- Random pacing regression passed locally: **8 / 0**.
+- Ordinary random family size expands candidates without multiplying pool activation rolls.
+- `weight` is relative selection weight only.
+
+### Relationship backend
+- Relationship candidates are full Characters.
+- Candidate generation/history, family entry, marriage, divorce, remarriage cooldown, donor/adoption helpers, candidate indexing, and marriage cleanup exist.
+- Production Relationship Event content is not yet authored.
+
+### House / Household backend
+- Five House levels, roles, role/resident capacity, Household Score/Status, Household Perks, Unhoused handling, upgrade and House economy hooks exist.
+- Owned/unowned House Map flows and House management UI exist.
+
+### Family Business / Worker NPC backend
+- The approved 12 family-business types are configured.
+- Purchase, instance creation, upgrades, slots, staffing, Worker NPC assignment/replacement, performance tiers, income/fixed expense settlement, and independent map/modal visuals exist.
+- Business artwork does not change by level.
+- Worker NPC generation, availability, retirement, and staffing records exist.
+
+### Items / Lifestyle backend
+- Stable Item catalog definitions, family inventory, ItemInstances, equipment, exact Lifestyle Score, expiration, purchases, and monthly slot-specific shop stock exist.
+- Item List / Shop bottom-sheet flow exists.
+- Dedicated Lifestyle gameplay screen and production Lifestyle Event content are not yet complete.
+
+### Map / property infrastructure
+- Authored isometric Map scene and property-tag interaction infrastructure exist.
+- City placement is manually authored rather than generated randomly.
+- Business/House purchase/management flows are connected for authored properties.
+- Land construction flow remains separate/incomplete.
+
+## Production Event Progress
+
+| Category | Status |
 | --- | --- |
-| Core game and family state | `GameManager` owns settings, family name, money, diamonds, and new-game orchestration. |
-| Simulation time | `TimeManager` advances a shared Gregorian calendar, including leap years, and supports pause plus x1/x2/x3 speed; family-tree HUD controls are connected. |
-| Starting character creation | New-game modal selects gender and skin tone, resolves a canonical Male/Female + skin + YoungAdult portrait, persists `portrait_variant_id`, generates names, creates a young-adult character, initializes family state, and enters the gameplay scene. |
-| Character lifecycle | Age is derived from birth date; life stages, retirement, pension, health-adjusted death checks, skin-only active genetics, biological children, donor conception, adoption, persistent portrait variants, and life-stage portrait transitions exist. Canonical age-65 retirement removes the Character's current Family Business assignment through the existing BusinessManager operation after pension/salary state is final. |
-| Parent/family model | Integer parent/partner/child links, legacy parent migration, family membership, and child finalization exist. |
-| Relationship NPC backend | Candidate generation, education/career history, family conversion, marriage eligibility, divorce, cooldown, returning candidates, remarriage, and child routes exist. |
-| Family tree | Runtime layout, spouse/parent relationships, reference links, character nodes, pan/zoom bounds, HUD, family-name binding, and manager-signal refresh exist. |
-| Character Card | A scrollable 1080 x 1920 overlay modal opens above the existing Family Tree instance; Family Tree and its CanvasLayer HUD remain visible through a 76% black dim layer but cannot receive pointer/touch input. The inset panel preserves the supplied Profile, Attributes, Lifestyle/Items, Education/Career, and Event History hierarchy. X hides the overlay without scene reload; background clicks do not close it. Accessory/Outfit/Vehicle controls show empty slot icons or edge-to-edge, rounded-clipped equipped ItemInstance thumbnails, live-refresh from `equipment_changed`, and pass character ID plus distinct slot context to the reusable Item List bottom sheet. |
-| Item List / Shop UI | A CanvasLayer 40, full-screen input-blocking bottom sheet opens at reference y=320 above the Family Tree/Character Card. It provides manager-backed Current Balance, Equipped/Owned/More Items hierarchy, two-column reusable SHOP/OWNED/EQUIPPED cards, empty Equipped presentation, information panel, accessory-only conceptual filters, computed Show X More expansion, and vertical scrolling. The shared information panel uses identical icon plus left-aligned title/description rows, centers each icon against its complete text block, and places thin dividers only between its three sections. Owned renders only unequipped/available family ItemInstances by subtracting family-wide equipped `instance_id` values; equipped instances remain in the canonical family inventory. Scrim tap and `ui_cancel` close only this sheet; one instance is reused without stale character/slot/filter state. Shared card layout reserves the durability row for permanent Heirlooms, keeping Buy/Wear/Unequip baselines fixed while showing no durability content. |
-| Item catalog, pricing, inventory, equipment, and monthly shop backend | `ItemCatalogGenerator` scans 261 existing PNGs into stable definitions with deterministic Lifestyle, lifespan, Money, Legendary Diamond, and Heirloom Diamond values. `ItemManager` owns shared family inventory, single-owner character-slot assignments, expiration, Lifestyle calculation, purchase validation, and three persisted monthly stocks with independent six-item limits. Family Tree binds the sheet to this manager for production Buy/Wear/Unequip and balance refresh. |
-| Education backend | School loading, birthday event queue, enrollment/cost/stat changes, stage graduation, university decline, major choice, and graduation checks exist. |
-| External career backend | Company/job loading, requirement matching, unemployment and advancement offer pools, cooldowns, offer acceptance/rejection, and company assignment exist. |
-| Economy backend | Monthly external salary payments, family-business settlement, fixed expenses, and family-money updates exist. |
-| Family-business backend | The approved 12-type roster is fully configured. Type loading, acquisition cost, instance creation, plot occupancy, upgrades, slots, family/Worker NPC assignment and replacement, performance tiers, income, expense, net profit, and independent static map/modal visual resolution exist. Runtime instances contain no visual variant state. |
-| Worker NPC backend | Config-driven generation, age filters, candidate ranking, availability, slot assignment, retirement, and business-income contribution exist as a system separate from Relationship NPCs. |
-| Business staffing modal flow | Business data adapter, financial/staff display, upgrade action, worker-type choice, candidate sheets, assignment, replacement, and integration tests exist. The adapter uses only `modal_visual_path`; missing modal assets are handled without crashing or falling back to map art. The redundant small business-type icon is removed from every Business Modal header, and unaffordable upgrades use the approved disabled CTA presentation. |
-| Family-business purchase modal flow | Authored family-business selection routes `Property Tag -> MapProperty -> MapScreen -> Main`. Owned plots open the shared BusinessModal; unowned plots open one shared BuyBuildingModal. The approved purchase card binds authoritative Level 1 gross potential, fixed expense, slot count, ready-made acquisition cost, and `modal_visual_path`; insufficient funds keep the price visible inside the cream bordered disabled CTA. The modal revalidates plot/funds and delegates creation to `BusinessManager`. Success refreshes the Map tag and shared HUD, then opens BusinessModal for the new instance. |
-| House backend and economy | `HouseManager` loads the five canonical levels and four roles, owns Map-linked House instances, combined role/resident capacity, role-relative tiers, importance-weighted hidden score, five statuses, Head-derived data-driven perks, Unhoused queries/monthly -2 Happiness, upgrades, ready-made/new-construction costs, death cleanup, and state-change signals. Monthly fixed expenses run through the existing first-day economy cycle with same-date protection. |
-| House Modal and property flow | The shared 1080×1920 House Modal binds an exact owned House instance and renders the approved identity/level/capacity, status, expense, text-only perk tags, role cards, resident management, next upgrade, and functional information overlay. The information overlay now uses one approved X close action and 20 px-or-larger explanatory copy. A House-only playable-family bottom sheet supports Assign/Replace, role-relative tier evidence, cancellation, and `Remove from House`. House selection uses only the floating Property Tag; the building footprint/sprite cannot open it. Unowned authored Houses open the Buy Building-derived ready-made House purchase modal; owned Houses open management. `house_01` is the deterministic free starting House. |
-| Save/load/autosave | Version 6 adds one canonical `event_system` payload restored after authoritative domain state. Versions 2–5 migrate to clean Event state without invented history; missing/corrupt version 6 Event payloads reset only that subsection with diagnostics. Existing House/Item migrations remain compatible. Unique save IDs, dynamic save listing, Continue/Load Game flows, delete API, and deferred autosaves tied to manager and Event lifecycle signals exist. |
-| Main menu and load-game UI | Main menu, new-game modal, runtime save-slot list, continue/load navigation, and gameplay scene transitions exist. |
-| Authored Map and runtime infrastructure | `UI/Map.tscn` contains manually authored TileMapLayer ground/road/environment content and building sprites inside a `6200 x 4200` rectangular MapWorld. All 68 authored interactive parents use explicit MapProperty metadata: 52 family businesses, 10 houses, and 6 land plots. Authored-existing visual mode reuses each original Sprite2D and adds only tag/interaction children. Business, House, and Land property selection is exclusively through the floating Property Tag; all building footprint collisions remain non-pickable. The fixed-zoom camera supports desktop mouse and one-finger touch drag; wheel zoom remains disabled. TileSets, artwork, and all 68 interactive Sprite2D position/scale/texture records remain unchanged. |
-| Family Tree / Map navigation | Main owns the persistent Family Tree, lazily created and reused Map, and one shared Main HUD. Screen changes now explicitly isolate visibility, processing, CanvasLayer state, and the active Camera2D: only the active screen camera remains enabled/current. Date/Money/Diamond and navigation do not duplicate, while Family Tree time controls remain Family Tree-only. |
-| Event System Phase 1 static data foundation | All 12 approved empty category files exist under `Resources/Json/Events/`. Autoload-free `EventDataRegistry` and `EventDataValidator` provide safe JSON loading, atomic global/category/pool lookup publication, source/Event/path diagnostics, complete Phase 1 static schema/reference/effect/graph validation, Family Agency per-Event cooldown enforcement, and optional `Job.event_tags` validation. No production Event content was authored. |
-| Event System Phase 2 runtime eligibility backend | Runtime services provide indexed definition lookup, immutable-in-practice Event instances, recursive live requirement evaluation with structured failure reasons, authoritative manager-backed queries for all 47 approved requirement types, participant candidate resolution/revalidation, direct and pool-based manual discovery, and non-mutating availability checks. The Phase 2 APIs remain intact and are composed by Phase 3. |
-| Event System Phase 3 timing/orchestration backend | `EventManager` is registered after `ItemManager` and before `SaveManager`. It implements semantic system dispatch with minimal truthful manager adapters, Event-defined Gregorian calendar cadence, all five trigger families, seeded pools/exclusive groups, priority/stable queueing, duplicate suppression, blocking pause/restore, all repeat and cooldown modes/scopes, deterministic scheduling, and due-date revalidation/expiry. Completion commits session repeat/cooldown state; cancellation/expiry do not. Runtime export is serializable, but no Event save integration, effect/outcome resolution, final story history, UI, or production content exists. |
-| Event System Phase 4A resolution/effects/history backend | Active Event and choice requirements/costs are revalidated at resolution. Deterministic, weighted/modifier, and score-check outcomes; atomic effect preflight; the D-154–D-158 manager-aligned effect whitelist; clamp-aware/custom EffectResults; temporary flags; story history requirements; Event-flow effects; and symmetric in-memory runtime export/import/reset are implemented. `SaveManager`, save version 5, UI, Phase 5 adapters, and production content are unchanged. |
-| Event System Phase 4B persistence/migration backend | `SaveManager` version 6 stores `EventManager.export_runtime_state()` once under `event_system` and imports it after Characters/Houses/Businesses/Items and other domains. Active/queued/scheduled identities, order/bindings, history, all repeat/cooldown scopes, temporary flags, counters, occurrence ledgers, full-width RNG state, and blocking pause ownership survive JSON/disk round trips without effect replay. Version 2–5 and missing/corrupt Event payloads recover safely. Phase 4 is COMPLETE. |
-| Event System Phase 5A Education backend adapter | Existing `education_stage_due` mapping is preserved. Successful canonical enrollment/graduation now emit narrow EducationManager domain signals that EventManager maps to `school_enrolled`/`school_graduated` with authoritative Character, School, stage/type, date, and applicable major context. Failed operations and save restore emit nothing; EventManager duplicates no cost, bonus, state, or graduation behavior. Legacy Education queue/request/pause behavior remains intentionally operational until its later Event UI replacement. |
-| Event System Phase 5B external Career backend adapter | The existing authoritative `job_offer_requested` offer is mapped after `active_job_offers` storage. Narrow post-success CareerManager acceptance/removal signals map unemployed acceptance to `job_started`, employed replacement to `job_changed`, and external removal to `job_lost`, with stable primary/context/occurrence identity. Failed acceptance/removal and save restore emit nothing. CareerManager still exclusively owns offer generation, probabilities, cooldowns, selection, active offers, validation, acceptance/rejection, external unemployment, and salary mutation. |
-| Event System Phase 5C lifecycle/death backend adapter | Normal CharacterManager date processing emits narrow post-transition `age_reached`, `life_stage_changed`, and `character_retired` signals after existing canonical mutations. EventManager maps them to `age_reached`, `life_stage_changed`, and `retired`, and the existing `character_died`/`character_born` bridges are verified. Death Events retain the already-dead primary trigger Character without weakening ordinary living-participant revalidation. Save restoration/legacy retirement normalization emits none of the four lifecycle semantics. No Funeral state/UI/content is added. |
+| Education | **Complete core production set** — 5 factual Events |
+| Age / Lifecycle | **Complete core production set** — Retirement + Farewell |
+| Job Offer | **Complete core production set** — 1 generic factual Event |
+| Career | **Next** — production content not authored yet |
+| Relationship | Not authored |
+| Household | Not authored |
+| Business | Not authored |
+| Health | Not authored |
+| Finance | Not authored |
+| General | Not authored |
+| Lifestyle | Not authored |
+| Family Agency | Not authored |
 
-## Partial
+The Event backend should not be broadly refactored while authoring these categories. Fix it only when real production content exposes a concrete blocker.
 
-| System | Missing or limited integration observed |
-| --- | --- |
-| Overall gameplay shell | Family Tree and Map are integrated. Lifestyle remains a visual navigation entry because no Lifestyle screen exists. |
-| Education player flow | The Phase 5A semantic backend adapter is implemented, while the existing EducationManager queue/request/pause interaction contract is intentionally retained. No player-facing Education choice scene or concrete signal consumer was found outside tests/autosave/Event adapters, and generic Event Education presentation migration remains unimplemented. |
-| Career player flow | Phase 5B adapts the Career backend to common Event semantics, but no player-facing offer scene or signal consumer was found outside tests/autosave/Event adapters. Generic Job Offer Event presentation migration remains unimplemented. |
-| Relationship player flow | Candidate/family logic is extensive, but no player-facing relationship event or candidate-selection UI was found. |
-| Event System | Phases 1–4 plus Phase 5A Education, Phase 5B external-Career, and Phase 5C lifecycle/death adaptation are implemented. Phase 5D and all later domain adapters are not started. Event UI, Education/Job Offer/lifecycle presentation migration, Funeral UI/state, participant-selection UI, Job event-tag authoring, and production Event content remain unimplemented. The overall Event System is therefore still partial. |
-| Settings | Settings values and setter methods exist in `GameManager`, and menu/HUD settings visuals exist, but no settings screen or connected editing flow was found. |
-| Building visuals | Manually placed building and road artwork exists in `UI/Map.tscn`. Gameplay wiring does not recreate or reposition authored Sprite2D visuals; the before/after interactive Sprite2D position/scale/texture manifest remains identical. |
-| Land construction flow | House ownership and ready-made purchase are implemented. The approved 2×2/4×4 Land purchase-to-construction selection flow remains deferred; House backend already exposes the shared 1.40 new-construction cost for that later integration. |
-| Legacy Bookshop save migration | Bookshop is removed from current `BusinessTypes.json` and authored map data. No GDD decision identifies how an already purchased Bookshop in an older save should be converted or compensated, so existing save records are preserved as unsupported legacy instances rather than silently deleted or mapped to an unrelated type. |
-| Lifestyle class label | Equipped-item Lifestyle score and star presentation are implemented. The optional cosmetic class label remains hidden because no canonical label resolver/text set was found; this does not block Lifestyle gameplay. |
-| Playable portrait asset coverage | Canonical discovery/resolution and missing-asset fallback are implemented, but the inspected asset tree contains only `Male/Mixed/YoungAdult/character_001.png` and `Female/Light/YoungAdult/character_001.png`. The other gender/skin/life-stage pools are absent, so affected Characters correctly use `default_avatar.png` and log development warnings until matching assets are supplied. |
+## Partial / Missing Approved Work
 
-## Not Implemented / Not Found
+### Shared player-facing Event presentation
+- `EventPresentationResolver` exists and can resolve current dynamic Job Offer tokens.
+- A complete shared production Event modal/presentation layer consuming active Event content/choices/effect feedback is still incomplete.
 
-| Area | Repository evidence |
-| --- | --- |
-| Lifestyle screen | The family-tree HUD draws a Lifestyle navigation entry, but no Lifestyle scene, script, or click behavior was found. |
-| General Flag system | `Flag.json` and character `flag_ids` exist, and House perks now consume the approved musician/painter IDs through `HouseholdPerks.json`; no broader flag-award/removal manager or other flag-driven gameplay was found. |
-| `GameData.json` runtime integration | The file exists, but no code or scene reference was found. Active state is held by autoload managers and save snapshots. |
-| `Avatar.json` integration | The file exists, but no code or scene reference was found; current portrait resolution uses resource paths and `CharacterManager`. |
-| `RelationshipNPC.json` integration | The empty uppercase-named collection exists, but no code or scene reference was found. Relationship candidates are stored in `CharacterManager.characters`. |
-| Event category content | The 12 production category roots intentionally contain empty `pools` and `events` arrays; production Event definitions/copy/art/weights/effects/tag assignments have not been authored or approved in this phase. |
+### Career production Events
+- CareerManager backend is implemented.
+- `career.json` has no production Career Events yet.
+- Production random Career balance values such as activation chances and salary-increase amounts must come from approved design/content decisions; do not invent them.
 
-## Test Inventory
+### Relationship Event content
+- Backend exists; production Event chains/content remain to be authored.
+- Exact Relationship Event probabilities/weights/cooldowns remain GDD open content decisions.
 
-The repository contains 53 `.tscn` test scenes covering:
+### Lifestyle / Family Agency
+- Event backend supports manual flows.
+- Full production screens/content remain incomplete.
 
-- business manager, economy, modal integration, family and Worker NPC assignment;
-- Worker NPC generation, slot rules, and retirement;
-- career eligibility/offers and education events;
-- relationship candidates, marriage/divorce/remarriage, adoption/donor conception, and parent links;
-- family-tree layout, complex structures, relationship display, camera, pan bounds, runtime UI, and main-scene integration;
-- new-game character selection and dynamic/runtime save behavior.
-- portrait-folder mapping, skin-only genetics, persistent variants, parent exclusions, aging, legacy path recovery, donor/adoption behavior, and missing-asset safety;
-- Character Card data binding, GDD Lifestyle star thresholds, item-slot signal routing, and Family Tree modal integration;
-- Item List / Shop slot isolation, Accessory conceptual filters, card pricing/presentation, durability derivation, interaction context, modal behavior, scroll/expand behavior, and rendered reference comparison.
-- Event Phase 1 production-category loading; valid schema representation; malformed roots; duplicate IDs; pools/triggers/calendar dates; participants; every requirement family and canonical stat/reference checks; repeat/cooldown and Family Agency limits; presentation/costs; all resolution/effect families; Event-flow references/cycles; and optional Job event tags.
-- Event Phase 2 recursive live requirements and all operators; all 47 approved runtime requirement types; participant sources, cardinality, duplicate prevention, and revalidation; manual direct/pool discovery; availability states and readable reasons; minimal Event-instance creation; and proof that discovery/activation does not mutate gameplay state.
-- Event Phase 3 Gregorian calendar math/cadence; all trigger families; semantic occurrence context; seeded pool/exclusive selection; stable-priority queueing and deduplication; blocking pause restoration; every repeat mode and cooldown scope/unit; Agency cooldown isolation/durations; scheduling/revalidation/expiry; serializable runtime shape; and proof that no gameplay effect executes.
+### Land construction
+- Plot assets/infrastructure exist.
+- Complete purchase -> choose build -> construction flow is not yet finished.
 
-Fresh Character portrait/genetics migration validation on 2026-08-25:
+## Critical Known Gameplay Gap: Economy Index
 
-- Godot 4.7.1 editor/project scan completed with exit code 0 and no script parse error.
-- `Tests/PortraitGeneticsMigrationTest.tscn`: 22 passed / 0 failed.
-- `Tests/NewGameCharacterSelectionTest.tscn`: 18 passed / 0 failed.
-- `Tests/ParentModelTest.tscn`: 3 passed / 0 failed.
-- `Tests/FamilyCreationTest.tscn`: 5 passed / 0 failed.
-- `Tests/RelationshipNPCManagerTest.tscn`: 5 passed / 0 failed.
-- `Tests/RelationshipDivorceRemarriageTest.tscn`: 8 passed / 0 failed.
-- `Tests/FamilyTreeRelationshipDisplayTest.tscn`: 7 passed / 0 failed.
-- `Tests/FamilyTreeLayoutTest.tscn`: 5 passed / 0 failed.
-- `Tests/FamilyTreeComplexStructureTest.tscn`: 5 passed / 0 failed.
-- `Tests/CharacterCardTest.tscn`: 85 passed / 0 failed.
-- `Tests/FamilyCandidateTest.tscn`: 7 passed / 0 failed.
-- `Tests/WorkerAssignmentFlowTest.tscn`: 7 passed / 0 failed.
-- `Tests/DynamicSaveManagerTest.tscn`: 19 passed / 0 failed.
-- `Tests/FamilyTreeVisualTest.tscn` and `Tests/FamilyTreeVisualUITest.tscn` completed their headless smoke runs without a script/runtime crash; these visual scenes do not print assertion totals.
-- Expected warnings identify absent canonical portrait pools and confirm fallback to the existing default avatar. The ordinary Windows root-certificate-store warning remains unrelated to gameplay.
+GDD v3.8 states that Economy Index is a DECIDED time-based multiplier that prevents applicable Money expenses from remaining nominally fixed across decades.
 
-Fresh Character Card validation on 2026-08-20:
+Current code does **not** implement that approved rule:
 
-- Godot editor/project scan completed with exit code 0 and registered `CharacterCard` without a parse error.
-- `Tests/CharacterCardTest.tscn`: 85 passed / 0 failed in the current headless regression run. Coverage includes CanvasLayer ordering, Full Rect modal root, 0.76 dim opacity, inset panel, modal-only scroll ownership, pointer blocking, background-click behavior, X-button close, manager-backed opening, Accessory/Outfit/Vehicle thumbnail resolution, zero-inset slot fill, shared rounded clipping, cover behavior, empty-slot fallback, live equip/unequip refresh, slot click context, and preservation of the same Family Tree scene instance.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 7 passed / 0 failed, including Family Tree to Map and Map to Family Tree process/input isolation.
-- Real-renderer capture mode passed 86 / 86 and wrote `Tests/Artifacts/character_card_item_thumbnail.png`. The 1080 x 1920 output keeps the three-slot layout, shows edge-to-edge real Accessory and Outfit PNGs with the Vehicle empty icon, preserves slot radius/border, and leaves each full slot button clickable.
+- `EconomyManager` has no current Economy Index calculation/advance logic.
+- `EducationManager` currently uses `School.json.base_cost` directly rather than applying current Economy Index.
+- `GameData.json` contains old `economy_index` / `economy_growth_rate` fields but is not consumed.
 
-Fresh Item List / Shop validation on 2026-08-20:
+This must be treated as missing implementation. Do not classify Economy Index as removed or optional.
 
-- Godot project parsing completed with exit code 0 and registered the new Item List / Shop scenes and scripts without parse errors.
-- `Tests/ItemListShopTest.tscn`: 109 passed / 0 failed in the current headless behavior run. Coverage includes the three slot routes and strict scope separation, family-wide equipped-instance exclusion from Owned, post-filter counts, filters, empty/equipped states, shared left-aligned information rows, icon/text-block centering, two information dividers, section dividers, circular information icons, rounded dashed empty frame and tint, vertically centered durability content, scrim/Cancel close behavior, context restoration, shared-owned/monthly-shop boundaries, scrolling, Heirloom durability-space reservation, equal action baselines in all three modes, price presentation, and exact interaction context.
-- Rendered capture mode: 111 passed / 0 failed using the real renderer. The refreshed 1080 x 1920 captures `Tests/Artifacts/item_list_shop_reference_recreation.png` and `Tests/Artifacts/item_list_shop_empty_equipped.png` confirm the left-aligned information columns, block-centered icons, visible separators, and existing reference styling.
-- `Tests/ItemManagerTest.tscn`: 189 passed / 0 failed. Coverage includes deterministic 261-item generation; detailed Common/Rare/Epic/Legendary/Heirloom pricing components and interpolation boundaries; three independent stocks; production sheet binding; balance rejection and deduction; duplicate-Buy prevention; ItemInstance dates; save v4 and v3 migration; instance-ID Owned projection; two instances of one definition; replace/unequip projection; family-wide equipped detection; cross-character ownership; Lifestyle cap; calendar durability; expiration cleanup; and Heirloom permanence.
-- `Tests/DynamicSaveManagerTest.tscn`: 17 passed / 0 failed with real `user://` writes after the Save version 4 slot-stock integration.
-- The renderer reported no Item List / Shop runtime error. The headless run still prints the existing Windows root-certificate-store warning, which is unrelated to this UI.
+The exact growth rate/cadence and any additional expense categories not already explicitly included/excluded remain GDD OD-019 content decisions.
 
-Fresh Map infrastructure validation on 2026-08-25:
+## Static Config / Legacy Data Status
 
-- Godot 4.7 editor/project scan completed without Map-related parser or missing-resource errors.
-- `Tests/MapScreenTest.tscn`: 8 passed / 0 failed. Coverage confirms the empty hierarchy, absence of TileMapLayer/TileSet/static Map data/local HUD, fixed rectangular `6200 x 4200` limits, unlocked startup, all-edge clamping, fixed zoom, desktop left-mouse drag, one-finger touch drag, and sensitivity `2.0`.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 9 passed / 0 failed. Coverage confirms one shared top/navigation HUD, Map/Family Tree active states, Family Tree-only time controls, real Main input dispatch to Map camera, repeated screen reuse, and no duplicate UI accumulation.
-- Real-renderer 1080 x 1920 capture `Tests/Artifacts/map_empty_navigation.png` confirms the existing 800 x 144 Family Tree navigation presentation with Map active against the empty authoring canvas.
+### `GameData.json`
+**Legacy schema, valid intended purpose, no current runtime integration.**
 
-Fresh Business Type migration validation on 2026-08-25:
+The original purpose — keeping tunable gameplay defaults/config outside hardcoded code — remains valid. The file cannot be reconnected as-is because it mixes stale config with mutable save state and obsolete values.
 
-- Godot 4.7 editor/project scan completed with exit code 0 and registered `MapProperty`, `BusinessModal`, and `BusinessModalDataAdapter` without parser errors.
-- `Tests/BusinessManagerTest.tscn`: 25 passed / 0 failed. Coverage includes the exact unique 12-type roster, Bookshop removal, full five-level schema integrity, absent legacy visual fields, independent map/modal resolvers, level-independent map paths, simplified runtime instances, generic Auto Service/Hotel/Cruise purchase-construction-upgrade-slot lifecycles, and Cruise-versus-Stadium cost/expense comparisons.
-- `Tests/BusinessEconomyTest.tscn`: 8 passed / 0 failed; existing performance tiers, gross, fixed expense, net, and monthly settlement behavior remains unchanged.
-- `Tests/BusinessModalIntegrationTest.tscn`: 2 passed / 0 failed; the adapter uses `modal_visual_path` at Levels 1 and 5, and an absent modal PNG leaves the image empty without a map-art fallback or crash.
-- `Tests/FamilyCandidateTest.tscn`, `Tests/WorkerAssignmentFlowTest.tscn`, `Tests/WorkerNPCRetirementTest.tscn`, and `Tests/WorkerNPCSlotTest.tscn`: 28 passed / 0 failed after removing obsolete visual state from their runtime fixtures.
-- Supplemental `Tests/MapScreenTest.tscn`: 7 passed / 1 failed because its empty-map assertion conflicts with the already-authored `TileMapLayer` content currently present in `UI/Map.tscn`. The Business Type migration did not modify Map layout or that test.
+### `Avatar.json`
+**Legacy/inactive.**
 
-Fresh Map runtime bugfix validation on 2026-08-28:
+It belongs to an older purchasable avatar-theme/portrait model and points to obsolete asset paths. Current Character portrait selection does not consume it. Future avatar-theme product work requires a new schema compatible with the current portrait system.
 
-- Real editor F5 from `Scenes/MainMenu/MainMenu.tscn` reproduced the original failures before the repair: Map drag changed the Map camera position but the viewport still used the Family Tree camera; returning to Family Tree left building sprites visible through non-CanvasItem grouping nodes.
-- `Tests/MapScreenTest.tscn`: 9 passed / 0 failed. Coverage confirms the authored layer structure, continuous CanvasItem visibility containers, fixed `6200 x 4200` limits, all-edge clamping, fixed zoom, mouse drag, one-finger touch drag, and sensitivity `2.0`.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 9 passed / 0 failed. Coverage now checks the actual viewport camera, disables the inactive camera, verifies MapWorld/Backdrop/building canvas items are hidden on Family Tree, and confirms screen/HUD instance reuse.
-- Post-fix editor F5 and Remote Scene Tree verification confirmed visible two-axis Map pan, unchanged wheel zoom, clean Map to Family Tree rendering, repeated Map/Family Tree reuse with one MapScreen and one shared HUD, and no new parser/runtime, invalid-path, null-instance, or duplicate-signal errors. Family Tree camera code was not modified.
+### `RelationshipNPC.json`
+**Legacy/inactive uppercase empty collection.**
 
-Fresh authored Map property/gameplay-routing validation on 2026-08-28:
+No current runtime consumer was found. Active Relationship generation uses lowercase `relationship_npc.json`.
 
-- Canonical GDD v3.6 D-131 through D-136 and the approved footprint table were checked before implementation; the implemented footprints match the canonical values, and School/Skyscrapers remain non-interactive `city_decor`.
-- Godot 4.7 editor/project scan completed with exit code 0 and no Map property, Main, or BusinessModal parser/resource errors.
-- `Tests/MapScreenTest.tscn`: 19 passed / 0 failed. Coverage includes the 52/10/6 category counts, unique stable IDs, authoritative business type IDs, authored-existing and runtime-generated visual modes, no decorative interaction, no duplicate Sprite2D creation, transformed south-anchor collisions including scaled Cruise, Business/House/Land selection, drag-threshold suppression, tag refresh, camera bounds, pan, and fixed zoom.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 11 passed / 0 failed. Coverage includes Family Tree/Map reuse and render isolation plus owned-business modal routing, unowned-business/House no-modal behavior, and one shared modal instance.
-- `Tests/DynamicSaveManagerTest.tscn`: 19 passed / 0 failed with real `user://` writes; a business using `plot_id = "cafe_01"` retained the same stable Map link after save/load.
-- The 68 interactive Sprite2D position/scale/texture manifest remained byte-for-byte equivalent before and after wiring (SHA-256 `8D4E91E1991DD1243DF9CA63821B378CA9C5C07D41E4EFD838C3DCED9DA7CCE9`).
+### Duplicated names
+`npc.json` and `relationship_npc.json` currently duplicate first-name lists. A shared `Names.json` cleanup is planned but not implemented yet.
 
-Fresh Buy Building Modal validation on 2026-08-29:
+## Documentation Status
 
-- Canonical GDD v3.6 Section 11.2 was checked before implementation. The modal uses the ready-made Level 1 base cost; it does not apply the 1.40 new-construction multiplier. Potential income is the Level 1 maximum gross from active slot contributions, and monthly expense is the Level 1 fixed expense.
-- Godot 4.7.1 editor scan and `Scenes/Main/Main.tscn` startup smoke both completed with exit code 0 and no BuyBuildingModal/Main parser, missing-resource, null-instance, or runtime error. The restricted headless editor still reported its environment-only certificate/editor-settings warnings.
-- `Tests/BuyBuildingModalTest.tscn`: 22 passed / 0 failed. Coverage includes full-screen input blocking, reusable centered scene structure, all 12 authoritative business-type bindings, independent modal visuals, Hospital Level 1 values, insufficient funds, X-without-purchase, correct instance/plot/slot creation, single deduction, success signal, and duplicate-request prevention.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 15 passed / 0 failed. Coverage includes owned versus unowned routing, House/Land exclusion, one shared instance of each business modal, Map-pan blocking while BuyBuildingModal is open, success refresh of Map tag and shared money HUD, and automatic transition to the existing BusinessModal.
-- Regression suites passed: `MapScreenTest` 19/19, `BusinessManagerTest` 25/25, `BusinessEconomyTest` 8/8, `BusinessModalIntegrationTest` 2/2, and `DynamicSaveManagerTest` 19/19 with real `user://` writes. Stable `plot_id` save/load behavior remains intact.
-- Real-renderer 1080 x 1920 captures `Tests/Artifacts/buy_building_modal_hospital.png` and `Tests/Artifacts/buy_building_modal_after_purchase.png` verify the dimmed authored Map composition, Hospital purchase presentation, post-purchase balance change, and automatic owned BusinessModal handoff.
+The previous repo docs were based mainly on the 2 September Event phase snapshot and were stale. This documentation refresh aligns:
 
-Fresh MapPropertyTag readability, interaction, and staffing-state validation on 2026-08-29:
+- `AGENTS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/CONVERSATION_MEMORY.md`
+- `docs/DATA_SCHEMA.md`
+- `docs/DEVELOPMENT_STATUS.md`
+- `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`
+- `docs/EVENT_SYSTEM_SPEC.md`
+- `docs/MAP_ART_STANDARD.md`
+- `docs/PENDING_DECISIONS.md`
 
-- Canonical GDD v3.6 business staffing and reusable Map property-tag requirements were checked before implementation. The work adds no gameplay value, ownership rule, or save field.
-- `MapPropertyTag` now renders a 24 px title and 20 px state line in a 240 x 92 full-card target. Understaffed owned businesses use the warning treatment; fully staffed owned businesses and unowned `For Sale` properties use the normal treatment. House and Land state/selection behavior is unchanged.
-- Business footprint diamonds remain generated from their authored visuals but are no longer input-pickable. A full tag-card tap routes the stable property ID, a drag beyond 14 px does not select, and consumed tag pointer events do not reach Map camera pan.
-- `MapScreen` now reacts to the existing `BusinessManager` family-character slot, Worker NPC slot, business-created, and business-upgraded signals. It resolves the stable `plot_id` and re-reads current runtime slots, so assignment and removal update the displayed count without reopening Map; `Main` also refreshes after shared-modal close as a safe boundary fallback.
-- `Tests/MapScreenTest.tscn`: 27 passed / 0 failed. New coverage checks effective 24/20 px rendering, real-viewport full-card business selection, disabled business-footprint selection, unchanged House/Land routing, tag drag suppression, real viewport input isolation from Map pan, `0/3 -> 1/3 -> 3/3 -> 2/3` event-driven staffing refresh, warning/normal transitions, unowned `For Sale`, and the existing authored-map invariants.
-- Regression suites passed: `MainFamilyTreeIntegrationTest` 15/15, `BuyBuildingModalTest` 22/22, `BusinessManagerTest` 25/25, `BusinessEconomyTest` 8/8, `BusinessModalIntegrationTest` 2/2, `WorkerAssignmentFlowTest` 7/7, `WorkerNPCSlotTest` 7/7, and `DynamicSaveManagerTest` 19/19 with real `user://` writes. Stable business `plot_id` save/load remains intact.
-- The real Godot 4.7.1 renderer produced the 1080 x 1920 capture `Tests/Artifacts/map_property_tag_readability.png`; it verifies the normal and red warning treatments in the unchanged authored Map composition. This pass did not edit `UI/Map.tscn`, business sprites, building transforms, or JSON/save schemas.
+with the 4 September 2026 production Event state and GDD v3.8.
 
-Fresh BuyBuildingModal and MapPropertyTag visual/UX follow-up on 2026-08-29:
+## Next Work
 
-- Canonical GDD v3.6 Sections 11 and 13.1/D-136 were rechecked. This follow-up changes presentation only and introduces no purchase, staffing, ownership, economy, JSON, or save-schema rule.
-- Insufficient funds continue to disable the Buy Building CTA while leaving its acquisition price visible. The redundant `Not enough money` helper text was removed from every affordability path; backend affordability validation remains in place. The feedback row stays reserved for actual unavailable-property or generic purchase failures and is hidden when empty.
-- `MapPropertyTag` now guarantees geometric center alignment: equal 18 px horizontal and 11 px vertical margins, a full-width centered VBox, full-width title/state labels, and centered vertical content. The understaffed StyleBox uses a clearly visible pastel-red fill (`#FCC8C3FA`) and stronger red border; fully staffed and unowned `For Sale` states retain the normal cream style.
-- `Tests/BuyBuildingModalTest.tscn`: 22 passed / 0 failed. Coverage confirms a visibly distinct disabled CTA, visible price, hidden/empty affordability feedback, and unchanged backend rejection with no deduction or business creation.
-- `Tests/MapScreenTest.tscn`: 28 passed / 0 failed. Coverage now proves both label centers equal the card's geometric center, warning states use the red filled StyleBox for `0/3`, `1/3`, and `2/3`, `3/3` returns to the normal StyleBox, and unowned `For Sale` remains normal. Existing click, drag, pan-isolation, House/Land, authored-sprite, and stable-ID checks remain green.
-- Routing regressions passed: `MainFamilyTreeIntegrationTest` 15/15 and `BusinessModalIntegrationTest` 2/2. The Godot 4.7.1 editor scan completed without parser or resource errors; restricted-environment certificate/editor-settings warnings remain non-project warnings.
-- Real-renderer 1080 x 1920 captures `Tests/Artifacts/buy_building_modal_insufficient_funds.png` and `Tests/Artifacts/map_property_tag_readability.png` visually confirm the simplified disabled modal and the centered, filled warning tag. Authored Map layout, property selection routing, business sprites, and `UI/Map.tscn` were not changed in this follow-up.
-
-## Documentation Follow-up Rule
-
-Fresh House system validation on 2026-08-31:
-
-- Canonical Google Docs GDD v3.6 Section 13.2 and D-145 were read before implementation. `docs/PENDING_DECISIONS.md` contained no newer House decision.
-- Godot 4.7.1 editor scan and Main scene smoke completed without House parser, missing-resource, null-instance, or runtime errors.
-- `Tests/HouseManagerTest.tscn`: 55 passed / 0 failed after final query/cost coverage. It covers starting ownership/Head/one-slot occupancy, every level/cost/expense, one-slot and one-role constraints, life-stage rules, employment independence, slot-relative tiers, importance/weighting, score/status thresholds and clamping, perk recalculation/IDs, Unhoused monthly behavior, explicit removal, upgrades, death cleanup, save restoration, ready-made purchase, and monthly expense deduplication.
-- `Tests/HouseModalTest.tscn`: 15 passed / 0 failed. It verifies exact-instance binding, input blocking, real summary/role/perk/upgrade data, immediate signal refresh, information-layer isolation, affordability, and close behavior.
-- `Tests/MainFamilyTreeIntegrationTest.tscn`: 17 passed / 0 failed, including exact owned-House routing and separation from the unowned purchase flow. `Tests/MapScreenTest.tscn`: 28 passed / 0 failed.
-- Regression suites passed: `EconomyManagerTest` 7/7, `BusinessEconomyTest` 8/8, `BusinessManagerTest` 25/25, `BuyBuildingModalTest` 22/22, `BusinessModalIntegrationTest` 2/2, `ItemManagerTest` 189/189, `FamilyCreationTest` 5/5, `DynamicSaveManagerTest` 19/19, and `NewGameCharacterSelectionTest` 18/18. Save-writing suites used an isolated writable Godot user-data directory because the restricted runner cannot write its default Windows `user://` location.
-- The real OpenGL renderer produced `Tests/Artifacts/house_modal_reference.png` at 1080×1920. Visual review confirmed the approved cream hierarchy, existing House/portrait/status/info/coin assets, readable role/stat/perk text, scroll-owned household content, and fixed upgrade footer without Map input leakage.
-
-Fresh authoritative House Modal visual-reference correction on 2026-08-31:
-
-- Canonical Google Docs GDD v3.6 D-146 was read before the correction. The matching authoritative-reference rule was added to repository-wide `AGENTS.md` because it was not previously present there.
-- The current modal was rendered through the production Main -> Map -> owned House path at 1080 x 1920 before editing, compared section by section with the approved `house-screen-1080.jpg`, then rendered and compared again after each correction pass.
-- `HouseModal` now matches the approved outer bounds, rounded modal geometry, blue-to-cream header gradient, 24 px content inset, header illustration/title/detail/close placement, 119 px summary block, summary column dividers, Household divider, fixed household-card rhythm, 116 px portrait/empty-slot areas, square-left/rounded-right action segments, arrow presentation, 66 px Next Upgrade building icon, and fixed upgrade footer/button geometry.
-- House-specific reusable style helpers now own the asymmetric action segment, stat/perk pill padding and radius, summary/role/upgrade dividers, modal gradient, and shared rounded panels. Existing source assets are consumed unchanged; no PNG or SVG source bytes were edited.
-- Dynamic gameplay content remains authoritative: the rendered test shows the selected Character's current portrait, role-relative tier, JSON-defined required stats, and D-145 Level 2 upgrade price of 35,000 rather than hard-coding the example portrait/text or the reference image's obsolete 20,000 value.
-- `Tests/HouseModalTest.tscn`: 19 passed / 0 failed, including new outer-geometry, 162 px role-card, compact overflow-pill, asymmetric action-corner, and 66 px upgrade-icon assertions. Regressions passed: `HouseManagerTest` 55/55, `MainFamilyTreeIntegrationTest` 17/17, and `MapScreenTest` 28/28.
-- The final real OpenGL render is `Tests/Artifacts/house_modal_reference.png`. Final visual comparison found no remaining avoidable layout/style discrepancy; only data-bound sample content differs where the approved reference conflicts with current Character/House state or canonical D-145 values.
-
-Fresh authoritative House assignment bottom-sheet replacement on 2026-08-31:
-
-- The three user-approved House UI references supersede the previous House assignment presentation. Canonical Google Docs GDD v3.6 Section 13.2, D-145, and D-146 were rechecked before implementation; no House balance, eligibility, capacity, role-performance, perk, upgrade, Unhoused, Map, or save rule changed.
-- `HouseAssignmentSheet` now uses the approved 1080 x 1920 geometry: a dimmed House Modal remains visible behind a 1000 px wide sheet beginning at y=502, with 40 px top corners, a 201 x 9 drag handle, centered title/subtitle, 24 px two-column gap, and 446 x 658 candidate cards. The previous full-height list, separate top Remove action, close button, textual tier line, and list-style candidate rows were removed.
-- Candidate cards follow the established approved `WorkerSelectionSheet` card language while remaining House-specific because the Business component is coupled to business slots, source filters, hire actions, and income. Cards use the existing portrait assets without an additional mask; actual `Resources/Icons/performance-tier/S.svg` through `D.svg`; and the eight existing `Resources/Icons/stats/` SVGs. JSON-defined role-required stats receive the reference's red value emphasis.
-- The current role holder appears in the candidate grid with `Remove from House`; other eligible family members use `Assign`. The existing manager operations remain authoritative, so replacement/removal refreshes House state immediately and the former occupant becomes Unhoused rather than being auto-added to a generic resident slot.
-- The no-candidate state reuses the identical sheet shell and displays only `No eligible family member is available.` at the approved centered position. No warning icon, fake card, close control, or substitute visual asset was added.
-- `Tests/HouseAssignmentSheetTest.tscn`: 17 passed / 0 failed. Coverage verifies sheet/card geometry, two-column structure, exact copy, existing tier/stat assets, required-stat emphasis, current-occupant removal, replacement/Unhoused behavior, and the empty state. Regressions passed: `HouseModalTest` 19/19, `HouseManagerTest` 55/55, `MainFamilyTreeIntegrationTest` 17/17, and `MapScreenTest` 28/28.
-- Real OpenGL captures `Tests/Artifacts/house_assignment_eligible.png` and `Tests/Artifacts/house_assignment_empty.png` were produced through the production Main -> Map -> owned House path at 1080 x 1920 and compared directly with the two approved bottom-sheet references. `Tests/Artifacts/house_modal_reference.png` was also refreshed for the unchanged approved House Modal state.
-
-Fresh approved property-modal and Property Tag consistency pass on 2026-08-31:
-
-- Canonical Google Docs GDD v3.6 D-136, D-145, and D-146 were rechecked before implementation. The approved disabled House and Buy Building references controlled presentation; canonical manager values still control prices, expenses, capacity, and upgrade behavior.
-- `BuyBuildingModal` now matches the approved compact 670 px card, gradient header, Level 1 hierarchy, two-column financial card, supplied employee-slot icon, information card, 20 px supporting copy, and cream bordered disabled CTA with visible price. `BuyHouseModal` uses the same structure and adapts only House image/title/level/capacity/expense/action/price content.
-- House information now uses the shared gradient/cream/card language, exactly one X close action, and 21–22 px explanatory copy while preserving all existing House-system wording.
-- Business and House upgrade CTAs use the same cream bordered disabled state and dimmed label/coin/price presentation. The redundant small business-type icon was removed from the Business Modal header for every business type; the main building illustration remains data-bound.
-- Family-business, House, and Land building footprints are non-pickable. All three categories route stable IDs exclusively through their floating Property Tags. Land still opens no modal because its purchase/construction flow remains deferred.
-- Focused tests passed: `BuyBuildingModalTest` 22/22, `BuyHouseModalTest` 3/3, `HouseModalTest` 21/21, `MapScreenTest` 28/28, `MainFamilyTreeIntegrationTest` 17/17, and `BusinessModalIntegrationTest` 2/2. Backend regressions passed: `HouseManagerTest` 55/55, `BusinessManagerTest` 25/25, and `HouseAssignmentSheetTest` 17/17.
-- Real OpenGL 1080 x 1920 captures were produced for disabled Buy Building, disabled Buy House, House information, disabled House upgrade, and disabled Business upgrade states. These were visually reviewed against the supplied references through the production Main/Map paths.
-- The project startup scene was also run with the real OpenGL compatibility renderer for 120 frames and exited 0 without project parser, missing-resource, or runtime errors. The Windows certificate-store warning is environment-only and unchanged.
-
-Fresh Event System Phase 1 static-data validation on 2026-09-01:
-
-- Canonical Google Docs GDD v3.6 Section 14 and D-147–D-153, `EVENT_SYSTEM_SPEC.md`, and `EVENT_SYSTEM_IMPLEMENTATION_PLAN.md` were read before implementation. No newer Event decision exists in `PENDING_DECISIONS.md`.
-- `Resources/Json/Events/` now contains exactly the 12 approved category roots with schema version 1 and empty production pools/Events. No production Event, Job tag assignment, gameplay value, EventManager, Autoload, runtime evaluator, queue, scheduler, effect executor, save field, adapter, or UI was added.
-- `EventDataRegistry` loads all required files, rejects malformed/incomplete sets, publishes lookups atomically, and exposes source/category/Event/path diagnostics. `EventDataValidator` covers the full Phase 1 root, pool, Event core, trigger/date, participant, recursive requirement, operator/value/reference, repeat/cooldown, Family Agency, presentation/resource, choice/cost, resolution/outcome/modifier, effect-whitelist, Event-reference, and static cycle contracts. Optional Job `event_tags` is valid when absent and validated as unique non-empty Strings when present.
-- `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. Coverage includes all requested valid/invalid categories and proves every approved trigger, repeat, cooldown scope/unit, requirement family (with Job tags separately fixture-validated), resolution mode, and effect family can be represented statically. Calendar validation rejects structurally valid-looking but impossible annual and ISO dates, and optional Event metadata is type-checked.
-- Godot 4.7.1 headless editor project/script scan exited 0 without parser or missing-resource errors. The Windows certificate-store and restricted editor-settings warnings remain environment-only and pre-existing.
-- The real project startup scene completed a 120-frame headless smoke with exit code 0 and no project parser, missing-resource, or runtime errors. Focused shared-data regressions passed for `CareerManagerTest` 14/14, `BusinessManagerTest` 25/25, and `ItemManagerTest` 189/189. `HouseManagerTest` reproduced 53/55 twice, with the existing `Caregiver follows adult-count plus Baby/Child rule` and `Full role contribution applies from five occupants` failures; no House implementation/data was changed in this phase. Event System Phase 2 was not started.
-
-Fresh Event System Phase 2 runtime eligibility validation on 2026-09-01:
-
-- Canonical Google Docs GDD v3.6 Section 14 and D-147–D-153, `EVENT_SYSTEM_SPEC.md`, `EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`, current managers, Phase 1 Event infrastructure, and applicable project documentation were read before implementation. No conflict or newer confirmed Event decision was found.
-- `EventDataRegistry` now indexes enabled definitions by ID, domain, category, pool, and manual source. `EventInstance`, `RequirementEvaluator`, `EventRuntimeQueryProvider`, `EventParticipantResolver`, and `EventRuntimeService` implement only the approved Phase 2 runtime model, live eligibility, candidate resolution, direct/pool manual discovery, and activation-time revalidation. History, entitlement, cooldown, and completion checks use explicit read-only provider boundaries with neutral defaults until their later approved phases.
-- All 47 approved requirement types route to authoritative manager data. Lifestyle uses the exact equipped-item backend score; House requirements use `HouseManager`; family businesses remain family-owned; optional Job tags are checked only when present and are never inferred; absent Item flags safely evaluate false; comparisons reject incompatible runtime types instead of coercing them.
-- Participant resolution covers trigger Character, player-selected Character, spouse/child/parent/family member, existing Relationship NPC, primary House, owned Business, and explicit context entities. Minimum/maximum cardinality, duplicate prevention, entity eligibility, and activation-time revalidation produce structured, readable reasons.
-- `Tests/EventRuntimePhase2Test.tscn`: 112 passed / 0 failed. `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. Focused shared-manager regressions passed: `FamilyCreationTest` 5/5, `ParentModelTest` 3/3, `FamilyCandidateTest` 7/7, `NewGameCharacterSelectionTest` 18/18 with real `user://` writes, `CareerManagerTest` 14/14, `CareerManagerOfferTest` 6/6, `EducationManagerTest` 17/17, `RelationshipNPCManagerTest` 5/5, `RelationshipDivorceRemarriageTest` 8/8, `ItemManagerTest` 189/189, and `BusinessManagerTest` 25/25.
-- `HouseManagerTest` reproduced 53/55 with exactly the same pre-existing `Caregiver follows adult-count plus Baby/Child rule` and `Full role contribution applies from five occupants` failures recorded during Phase 1; Phase 2 did not modify House code or data.
-- Godot 4.7.1 headless editor/project scan and the real `Scenes/MainMenu/MainMenu.tscn` startup path both exited 0 without project parser, missing-resource, or runtime errors. The restricted environment still emitted only its pre-existing Windows certificate-store/editor-settings warnings.
-- No production Event content, Job tag assignment, gameplay value, trigger dispatcher, weighted automatic selection, queue/pause runtime, scheduler, cooldown/repeat persistence, resolution/outcome/effect execution, save field, adapter, UI, or Autoload was added. Discovery and activation are read-only with respect to gameplay state. Phase 3 was not started.
-
-Fresh Event System Phase 3 timing/orchestration validation on 2026-09-01:
-
-- Canonical Google Docs GDD v3.6 Section 14 and D-147–D-153, `EVENT_SYSTEM_SPEC.md`, `EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`, the completed Phase 1–2 implementation/tests, all named managers, Autoload ordering, and applicable repository documents were rechecked before implementation. No conflict or newer confirmed Event decision was found.
-- `EventManager`, `GameCalendar`, `EventCalendarTriggerEvaluator`, and `EventPoolSelector` implement the complete Phase 3 boundary. Minimal adapters cover existing Character birth/death, Education due/major request, House state/upgrade, and family-Business create/upgrade/role signals; the generic semantic API supports other names without falsely mapping incomplete Career/Relationship signals. Time is Gregorian and cooldown/schedule math never substitutes fixed 30-day months or 365-day years.
-- `Tests/EventRuntimePhase3Test.tscn`: 115 passed / 0 failed. `Tests/EventDataValidationTest.tscn`: 63 passed / 0 failed. `Tests/EventRuntimePhase2Test.tscn`: 112 passed / 0 failed.
-- Focused regressions passed: `HouseManagerTest` 56/56; `FamilyCreationTest` 5/5; `ParentModelTest` 3/3; `FamilyCandidateTest` 7/7; `NewGameCharacterSelectionTest` 18/18 with real `user://` writes; `CareerManagerTest` 14/14; `CareerManagerOfferTest` 6/6; `EducationManagerTest` 17/17; `RelationshipNPCManagerTest` 5/5; `RelationshipDivorceRemarriageTest` 8/8; `ItemManagerTest` 189/189; and `BusinessManagerTest` 25/25. This is 643 passing assertions and zero test failures across the requested matrix.
-- Godot 4.7.1 headless editor/project scan and the real startup scene path both exited 0 without project parser, missing-resource, or runtime errors. The restricted run's Windows certificate-store/editor-settings warnings remain environment-only.
-- Phase 3 performs no outcome resolution or gameplay effects, creates no final story history, does not add Event fields to `SaveManager` or change save version 5, creates no Event/participant/Lifestyle/Agency/Relationship/Education UI, and leaves all 12 production category files empty. Phase 4 was not started.
-
-Fresh Event System D-154–D-158 synchronization and Phase 4A implementation on 2026-09-02:
-
-- The live canonical GDD Section 14 and D-154–D-158 were rechecked before code changes. Static/runtime requirements and effects now match the authoritative manager-aligned contract: no generic Relationship pair state, Career/Education level, generic job/education/House assignment/Business staffing mutation, `business_effect`, `business_role_change`, or `damage_item`. Divorce removes an external departing spouse from their House through `HouseManager` while preserving unrelated residents/roles.
-- `EventManager.resolve_active_event`, `EventResolutionResolver`, `EventEffectResolver`, and `EventStoryHistory` implement the bounded Phase 4A backend. Final Event/choice/cost revalidation precedes deterministic, seeded weighted/modifier, or score-check resolution. The full approved effect list is preflighted before cost/mutation and delegated to authoritative managers. Results report actual clamped/applied values, support validated auto/custom feedback, and never expose internal flag IDs in display text.
-- Character stat/flag mutation, Item instance creation/removal/ownership lookup, Education enrollment eligibility, Business upgrade-cost validity, Relationship marriage eligibility, and external Career removal/salary changes use narrow reusable manager APIs. Event code does not write those managers' state directly. D-155 Item selection uses nearest expiry, oldest purchase, then instance ID and never takes another Character's equipment. Temporary flags preserve pre-existing permanent flags.
-- Terminal story records preserve instance/Event identity, dates/status, participants/context, choice/outcome, EffectResults, and chain source. The runtime history provider answers all five story requirements. Completion is the only repeat/cooldown commit point; cancellation/expiry do not consume them. Queue/schedule/cancel effects, symmetric JSON-compatible in-memory runtime export/import, deterministic RNG/counters/ledgers, pause ownership, no-replay import, and full reset are implemented.
-- Final validation: `EventDataValidationTest` 85/85, `EventRuntimePhase2Test` 107/107, `EventRuntimePhase3Test` 115/115, `EventRuntimePhase4ATest` 64/64, `HouseManagerTest` 56/56, `RelationshipNPCManagerTest` 5/5, `RelationshipDivorceRemarriageTest` 10/10, `CareerManagerTest` 14/14, `CareerManagerOfferTest` 8/8, `EducationManagerTest` 17/17, `ItemManagerTest` 189/189, `BusinessManagerTest` 25/25, `FamilyCreationTest` 5/5, `ParentModelTest` 3/3, `FamilyCandidateTest` 7/7, and `NewGameCharacterSelectionTest` 18/18: 728 passing assertions / 0 failures. The Godot 4.7.1 editor scan and real MainMenu startup path both exited 0; only the restricted Windows certificate-store warning appeared. Phase 4B was not started: `SaveManager` and save version 5 are unchanged, no disk migration exists, all production Event category files remain empty, and Phase 5 adapters, UI, Phase 4B persistence, and content remain future work.
-
-Fresh Event System Phase 4B persistence/migration implementation on 2026-09-02:
-
-- The live canonical GDD Section 14 and D-154–D-158, Event specification/plan, save schema, architecture/status documents, current Phase 4A implementation, and referenced managers were rechecked before persistence changes. No new gameplay decision or conflict was found. At task start, `main` was clean at `9a7ce54`; the complete Phase 4A state was present but already committed rather than intentionally uncommitted as the task handoff expected. It was preserved and not reset or overwritten.
-- `SaveManager.SAVE_VERSION` is 6. One `event_system` root stores the authoritative Event export. Load releases any current Event-owned pause, restores canonical game/domain managers first, then imports Event state through stable IDs. Versions 2–5 initialize clean Event state; a missing/wrong/corrupt version 6 subsection warns and resets only Event state. Deferred lifecycle autosaves capture synchronous resolution only at coherent pre/post effect-chain boundaries.
-- Persisted runtime includes active/queued/scheduled identity and binding, story history, repeat/cooldown state, temporary grants with overlap/permanent protection, Event/schedule/queue counters, selection/calendar/occurrence ledgers, stable queue order, blocking pause ownership, and full-width pool/resolution RNG streams. Decimal RNG strings avoid JSON precision loss. Defensive import rejects non-JSON values, invalid structures/counters, malformed instances, and missing active/queued definitions without substitution or effect execution.
-- One concrete cross-manager persistence correction was required: JSON numeric `Character.flag_ids` are normalized back to integer IDs during Character restore. This makes Event-owned temporary-flag expiration remove the intended numeric flag after disk load while preserving overlapping and pre-existing permanent grants. No gameplay rule or broad manager refactor was added. The existing ItemManager test expectation was updated from save version 5 to 6.
-- `Tests/EventSavePersistencePhase4BTest.tscn`: 90/90. It covers empty/full JSON and disk round trips, real version 5 migration, missing/corrupt payload recovery, missing-definition rejection, no replay of stat/money/Item/salary effects, active blocking restore from x1/x2/x3/manual pause, active-plus-queue continuity, all five story queries and participant/context scopes, all six non-repeatable modes, all six cooldown scopes at the exact boundary, schedules/cancellation/expiry, counters, duplicate ledgers, deterministic RNG, temporary flags, and new-game reset.
-- Required regression matrix: Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, House 56/56, Relationship NPC 5/5, Relationship divorce/remarriage 10/10, Career 14/14, Career offers 8/8, Education 17/17, Item 189/189, Business 25/25, Family creation 5/5, Parent model 3/3, Family candidate 7/7, and New Game Character Selection 18/18: 818 passing assertions / 0 failures. `DynamicSaveManagerTest` separately passed 19/19 with real isolated `user://` writes. Godot 4.7.1 editor/script scan and the real MainMenu 120-frame startup path exited 0; the only runtime error text was the environment-only Windows root-certificate-store access warning. `git diff --check` passed.
-- Event Phase 1, Phase 2, Phase 3, Phase 4A, and Phase 4B are implemented; Event Phase 4 is COMPLETE. Phase 5 is NOT started. Event UI and participant-selector UI are NOT implemented. All 12 production Event category files remain empty; no production Event content or new gameplay manager/system was created.
-
-Fresh Event System Phase 5A Education backend adapter implementation on 2026-09-02:
-
-- Work began from clean `main` at `c60a524` (`phase 4B - event manager`). The live canonical GDD Education section, Section 14, and D-154–D-158 plus the Event specification/plan, current managers, adapters, persistence, tests, and all Education signal consumers were inspected first. The GDD/spec approves `education_stage_due`, `school_enrolled`, and `school_graduated`; it does not approve a separate `major_selected` or university-decline semantic trigger. No player-facing Education signal consumer exists in the current scene/script tree beyond autosave/Event adapters/tests.
-- Pre-change validation passed 511/511: Event Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, Education 17/17, Family creation 5/5, Parent model 3/3, Family candidate 7/7, and New Game Character Selection 18/18.
-- `EducationManager` adds only two post-success domain signals: `school_enrolled(character_id, school_id)` after canonical cost/bonus/state/log mutation, and `school_graduated(character_id, school_id, graduation_date)` after canonical graduation mutation/logging. Existing birthday detection, queue ordering, active-event validation, education pause ownership, enrollment, School.json costs/bonuses, university decline, major selection, expected-graduation calculation, and graduation timing are unchanged.
-- `EventManager` preserves the existing due/major request mapping to `education_stage_due` and listens to the new domain signals. Enrollment context contains Character/School IDs, stage, and school type. Graduation context contains Character/School IDs, stage, graduation date, and major only when present. Stable semantic occurrence IDs use Character/School/date values; failed operations and save deserialization emit nothing. EventManager never repeats Education cost, stat, state, or graduation mutations.
-- `Tests/EventEducationAdapterPhase5ATest.tscn`: 60/60. Controlled fixtures cover Primary/Middle/High/University due transitions, major-selection due, all four graduation stages, successful and four failed enrollment paths, exact one-time cost/stat/state mutation, real EventManager queueing for enrolled/graduated signals, duplicate protection, running/manual pause behavior, university decline, long-major selection without instant graduation, absence of unapproved semantic names, and version 6 save/load non-replay.
-- Final required matrix passed 571/571: Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, Phase 5A 60/60, Education 17/17, Family creation 5/5, Parent model 3/3, Family candidate 7/7, and New Game Character Selection 18/18. Godot 4.7.1 editor/script scan and real MainMenu 120-frame startup exited 0; only the environment root-certificate-store warning appeared outside expected negative-test validation diagnostics. `git diff --check` passed.
-- Phase 5A Education backend adaptation is COMPLETE. Phase 5B Career is NOT started. `SAVE_VERSION` remains 6. The legacy Education queue/request/pause interaction contract remains intentionally operational until the later generic Education Event UI migration. Event UI, Education Event UI migration, Education Level, transfer/change/dropout, instant graduation, new Education state, and production Event content were not added.
-
-Fresh Event System Phase 5B external Job Offer/Career backend adapter implementation on 2026-09-02:
-
-- Work began from clean `main` at `3c7bc5b` (`phase 5A`), so the complete Phase 5A state was already committed locally rather than uncommitted. It was preserved without reset, clean, checkout, restore, or remote replacement. The live canonical GDD Career section, Section 14, and D-154–D-158 plus the Event specification/plan, current managers, persistence/autosave paths, tests, and every current Job Offer signal/caller consumer were inspected first. No player-facing Job Offer scene or consumer exists outside tests/autosave/Event adapters; Phase 4A's effect resolver is the only gameplay caller of the four Career Event effects.
-- Pre-change validation passed 593/593: Event Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, Phase 5A 60/60, Career 14/14, Career offers 8/8, Education 17/17, Family creation 5/5, Parent model 3/3, Family candidate 7/7, and New Game Character Selection 18/18.
-- `CareerManager` adds only two post-success domain signals. `job_offer_accepted` emits after canonical revalidation, employment assignment, unemployment/cooldown clearing, and active-offer removal, carrying nullable unemployed previous values or complete previous/new employment. `external_job_removed` emits after external Job/Company/salary clearing, unemployment-date mutation, cooldown clearing, and active-offer removal, carrying prior employment. Failed operations emit neither. Offer eligibility, probability brackets, cooldowns, pools, random selection, Job/Company validation, Job.json salary, active-offer ownership, acceptance/rejection, removal, and salary-increase algorithms are unchanged.
-- `EventManager` maps the already-stored authoritative offer to `job_offer_requested`; an accepted unemployed offer to `job_started`; an accepted employed replacement to `job_changed`; and successful external removal to `job_lost`. Each binds primary to the Character and carries authoritative Career context. Occurrence identities use the semantic name plus stable Character/Job/Company/date values. The adapter observes completed mutations only and never accepts, rejects, removes, assigns, calculates, or stores Career state. Nested acceptance through the existing Event effect queues its follow-up through the ordinary Phase 3 ordering and completes the source exactly once.
-- `Tests/EventCareerAdapterPhase5BTest.tscn`: 59/59. Controlled fixtures cover authoritative offer storage before dispatch, duplicate pending-offer suppression, unemployed/employed acceptance exclusivity, prior/new context, failed acceptance/removal, rejection without an invented trigger, external removal, Family Business isolation, salary-only promotion, version 6 active-offer/employment/unemployment plus separate Event-state persistence without semantic replay, and nested Event resolution without double mutation.
-- Final required matrix passed 677/677: Event Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, Phase 5A 60/60, Phase 5B 59/59, Career 14/14, Career offers 8/8, Education 17/17, Business 25/25, Family creation 5/5, Parent model 3/3, Family candidate 7/7, and New Game Character Selection 18/18. Godot 4.7.1 editor/script scan and real MainMenu 120-frame startup exited 0; only the environment root-certificate-store warning appeared outside expected negative-test diagnostics. `git diff --check` passed.
-- Phase 5B external Career backend adaptation is COMPLETE. Phase 5C lifecycle/death is NOT started. `SAVE_VERSION` remains 6 and `active_job_offers` remains the canonical Career save state. Existing offer generation/accept/reject behavior is retained. Event UI and Job Offer Event UI migration were not implemented; all production Event category files remain unchanged/empty; Job `event_tags` were not authored; and no Career Level, XP, promotion tier, new manager, persistent Character field, or Business staffing rule was created.
-
-Fresh canonical retirement cleanup and Event System Phase 5C lifecycle/death backend adapter implementation on 2026-09-02:
-
-- Work began from clean `main` at `aeca183` (`phase 5b`). The complete Phase 5B state was already committed locally rather than uncommitted and was preserved without reset, clean, checkout, restore, or remote replacement. The live canonical GDD Character lifecycle/retirement/death sections, Section 14 and D-154–D-158 plus the Event specification/plan, current managers, save order, tests, and all existing birth/death consumers were inspected before changes.
-- The already-canonical age-65 rule is now complete: `CharacterManager.retire_character` preserves the existing pre-retirement salary capture, 10% pension and 25,000 salary cap, commits salary/is_retired state, then calls the existing `BusinessManager.remove_character_from_any_slot`. It never writes Business slot dictionaries. BusinessManager itself is unchanged; only the retiree's slot is removed, with no automatic replacement or ownership/level/House/family mutation. SaveManager runs retirement normalization after restored Business instances exist, so eligible legacy saves receive the same domain cleanup without a `retired` semantic occurrence.
-- `CharacterManager` adds only `age_reached(character_id, age)`, `life_stage_changed(character_id, previous_stage, new_stage)`, and `character_retired(character_id)`. Normal date handling captures prior stage/retirement state, runs the existing life-stage then retirement operations, emits truthful post-transition signals for birthdays/actual changes, and leaves death processing in its original final position. New-game time reset is semantically suppressed until the old Character roster clears. Generic load/normalization helpers remain signal-silent; there are no replay-marker fields.
-- `EventManager` maps the three new domain signals to `age_reached`, `life_stage_changed`, and `retired`, with primary Character binding, minimal canonical context, and stable Character/value/date occurrence IDs. The existing `character_died` bridge remains post-mutation with `character_id` and `death_date`; the existing `character_born` bridge remains unchanged with parent IDs. Event participant validation permits only a `character_died` system Event's primary trigger Character to remain valid after death, enabling future Funeral Event/chain content while ordinary Character participant revalidation still rejects dead Characters.
-- `Tests/CharacterRetirementBusinessCleanupTest.tscn`: 11/11. Assigned/unassigned/below-age/already-retired and legacy load-normalization cases preserve pension/salary behavior, isolate Business cleanup, and leave unrelated slots unchanged.
-- `Tests/EventLifecycleAdapterPhase5CTest.tscn`: 54/54. Real birthday and age-65 date progression, all five canonical life-stage boundaries, post-cleanup retirement ordering, deterministic existing death logic, one controlled death/Funeral-category Event, birth regression, duplicate prevention, Event-state persistence, legacy retirement correction, zero lifecycle replay on load, and absence of new persistent lifecycle markers are covered.
-- Final required 20-suite matrix passed 813/813: Event Phase 1 85/85, Phase 2 107/107, Phase 3 115/115, Phase 4A 64/64, Phase 4B 90/90, Phase 5A 60/60, Phase 5B 59/59, Phase 5C 54/54, retirement cleanup 11/11, Family creation 5/5, Parent model 3/3, Family candidate 7/7, New Game Character Selection 18/18, Career 14/14, Career offers 8/8, House 56/56, Business 25/25, Relationship NPC 5/5, divorce/remarriage 10/10, and Education 17/17.
-- Phase 5C lifecycle/death backend adaptation is COMPLETE. Phase 5D is NOT started. `SAVE_VERSION` remains 6. Age calculation, stage boundaries, retirement age/pension, lifespan settings, health modifier, death chance/order, and existing House death cleanup ownership are unchanged. EventManager cannot staff Businesses; ordinary staffing remains player-controlled. No FuneralManager, Funeral state/UI, inheritance/grief system, new gameplay rule, production Event content, or Event UI was added.
-
-After code or data changes, update this file. Also update `ARCHITECTURE.md` for responsibility/dependency changes, `DATA_SCHEMA.md` for schema/save changes, and `PENDING_DECISIONS.md` for confirmed decisions not yet synchronized to the canonical GDD.
+1. Continue production Event authoring with Career.
+2. Do not invent Career probabilities/amounts that remain undecided.
+3. Keep factual Job Offer behavior unchanged.
+4. Separately restore the approved Economy Index implementation after its exact growth/cadence decision is confirmed.
+5. Later clean shared Names/config/legacy JSON in bounded migrations with regression tests.

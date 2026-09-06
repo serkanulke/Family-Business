@@ -2,63 +2,104 @@
 
 ## Purpose and Authority
 
-This file preserves durable historical context, working principles, and recurring misunderstandings from project conversations. It is a concise memory, not a chat transcript and not a duplicate of the GDD.
+This file preserves only durable historical context and recurring misunderstandings that are useful across separate project chats.
 
-Authority rules:
+Authority order:
 
-1. The canonical Google Docs GDD is the authoritative gameplay design source.
-2. The current repository is the factual source for what is implemented now.
-3. `PENDING_DECISIONS.md` contains only confirmed decisions awaiting GDD synchronization.
-4. This conversation memory provides historical context and does not override any of the above.
+1. Canonical Google Docs GDD — gameplay design.
+2. Current repository — factual implementation state.
+3. Event Authoring Guide — production Event authoring contract.
+4. Repository architecture/schema/status docs — technical description.
+5. `PENDING_DECISIONS.md` — confirmed but not-yet-synchronized decisions only.
+6. This file — historical context only.
 
-When sources appear to conflict, identify the conflict before changing implementation.
+This file never overrides the GDD or current repository.
 
 ## Durable Working Principles
 
-- Separate chats may be used for separate project subjects.
-- The project's persistent memory lives in project documents, not in assumed chat recall.
-- At the start of a new chat, read the relevant project documents instead of relying on conversational memory alone.
-- Read the relevant canonical GDD section before implementing or changing a gameplay system.
-- Inspect the existing manager, JSON, scenes, integrations, and tests before changing an existing system.
-- Keep systems as simple as the confirmed design permits; do not add unnecessary complexity.
-- Do not invent gameplay decisions that are absent from the canonical GDD or a confirmed pending decision.
-- Preserve the current manager/autoload and JSON-driven architecture unless a documented reason requires a change.
-- Large systems must be implemented in bounded, documented phases so Work tasks remain reviewable, but the complete approved system scope must remain tracked until finished. A phase is not complete if agreed parts of that phase are intentionally omitted as an MVP shortcut.
-- Event System work follows `docs/EVENT_SYSTEM_SPEC.md` and `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`; backend, integration, and UI phases must not be collapsed into one oversized task unless the user explicitly requests it.
+- The repository/project documents are persistent project memory; do not depend on assumed chat recall.
+- Read the relevant GDD section and current code before changing a gameplay system.
+- Do not invent missing gameplay decisions.
+- Family Business is Event-driven, not an autonomous simulation framework.
+- Prefer the smallest manager-aligned implementation that satisfies approved gameplay.
+- Before changing the GDD, report exact intended edits in Turkish and obtain explicit approval.
+- Approved visual references are authoritative; do not redesign them.
+- If a legacy JSON exists but has no consumer, do not automatically reconnect or delete it without understanding its intended role.
 
-## Important Historical Distinctions
+## Event System Lessons
 
-### Worker NPCs and Relationship NPCs
+### Factual Events are not ordinary random Events
 
-- Worker NPCs and Relationship NPCs are different concepts and must not be confused.
-- Worker NPCs exist for staffing purchased family businesses and are managed separately from full character relationship candidates.
-- Relationship NPCs participate in relationship/family flows and use the character-based model.
+Education due, Job Offer, Retirement and confirmed death/Farewell are core factual flows. Their owning manager creates the fact; EventManager presents/orchestrates it. Do not force them through ordinary save-level random pacing.
 
-### Family Businesses
+### Ordinary random pacing is save-scoped
 
-- Family businesses belong to the family, not to an individual character.
-- Do not confuse family-owned businesses with external companies used by the playable-character career system.
+Family size increases candidate variety, not the number of independent random activation rolls. `weight` is relative selection weight, not an occurrence percentage.
 
-### Event System
+### Job Offer is one generic Career Event
 
-- The approved Event design is category-based under `Resources/Json/Events/`, not one monolithic `event.json`.
-- Event `category`, gameplay `domain`, `trigger`, and `presentation.template` are separate concepts.
-- Trigger cadence is authored in Event data; EventManager does not hardcode category-wide frequency.
-- Story history preserves choices/outcomes/context for later eligibility.
-- Lifestyle and Family Agency are manual Event flows.
-- Family Agency cooldown is per Event/option, never global, and every Agency Event uses at least a 60-month cooldown.
-- Paid Event experiences may be entitlement-gated and launched from Family Agency. Player-selected Event groups use a dedicated selection modal/bottom sheet rather than Family Tree multi-select.
-- Applied Event effects must produce player-facing feedback using the actual applied result.
+Do not create one Event per Job.
 
-## Recurring Misunderstandings to Avoid
+CareerManager remains authoritative for Job Offer generation, probability, cooldown, Job/Company selection, salary, active offer and accept/reject behavior.
 
-- Do not treat `CONVERSATION_MEMORY.md` as more authoritative than the GDD.
-- Do not copy the canonical Google Docs GDD into the repository merely to make it locally available.
-- Do not treat `PENDING_DECISIONS.md` as a place for unconfirmed ideas or unresolved questions.
-- Do not assume an asset or JSON file means a system is implemented; verify that code or scenes actually consume it.
-- Do not assume a backend signal has a player-facing flow; verify that a scene or script consumes it.
-- Do not declare the Event System implemented because one sample Event opens; use the full implementation plan and completion audit.
+Current dynamic copy tokens:
 
-## Memory Maintenance
+```text
+{character_name}
+{job}
+{company_name}
+{salary}
+```
 
-Keep this file concise and project-relevant. Add only durable context that will prevent future confusion. Implementation facts belong in `DEVELOPMENT_STATUS.md`, architecture facts in `ARCHITECTURE.md`, schema facts in `DATA_SCHEMA.md`, and confirmed unsynchronized gameplay decisions in `PENDING_DECISIONS.md`.
+### Production Event workflow
+
+Core production order:
+
+Education -> Age/Lifecycle -> Job Offer -> Career -> Relationship -> Household -> Business -> Health -> Finance -> General -> Lifestyle -> Family Agency.
+
+Education, Age/Lifecycle and Job Offer core sets are complete. Career is next.
+
+Do not reopen Event architecture unless real production content exposes a concrete blocker.
+
+## NPC Distinction
+
+### Worker NPC
+Lightweight record for family-business staffing. Owned by NPCManager.
+
+### Relationship candidate
+Full Character record with lifecycle/education/career/family fields. Generated/managed through RelationshipNpcManager + CharacterManager.
+
+Never merge these concepts because both are called NPCs.
+
+## Family Business vs External Company
+
+- External Companies belong to Career/Job Offer data.
+- Family Businesses are player-family-owned Map properties.
+- Business staffing never becomes an Event-controlled autonomous process.
+
+## Static Data Lessons
+
+### GameData.json
+The original intent — data-authored gameplay defaults/tuning instead of unnecessary hardcoding — remains valid.
+
+The current old file is not usable as-is because it mixes stale configuration and mutable save/runtime values. Economy Index is a real approved gameplay rule, not a reason to reconnect the old whole schema unchanged.
+
+### Avatar.json
+The file came from the purchasable avatar-theme concept, but the current schema predates the active portrait system. Future avatar-theme work requires a new compatible schema.
+
+### Relationship names
+Active Worker and Relationship configs duplicate name data. A future shared Names.json cleanup should migrate both consumers together rather than leaving duplicate canonical lists.
+
+## Recurring Mistakes to Avoid
+
+- Do not equate “file exists” with “system implemented”.
+- Do not equate `weight: 5` with 5% occurrence chance.
+- Do not roll an ordinary random Event independently for every family Character.
+- Do not move Job Offer generation out of CareerManager.
+- Do not add Career Level, numeric Relationship meters, generic House assignment, Event-controlled staffing, or Item damage without an approved design.
+- Do not treat old Event Phase documents as future architecture requirements; the backend exists and current work is production content.
+- Do not use GDD implementation snapshots as the source of repository status; that belongs in `DEVELOPMENT_STATUS.md`.
+
+## Maintenance
+
+Keep this file short. Implementation facts belong in `DEVELOPMENT_STATUS.md`; schema facts in `DATA_SCHEMA.md`; architecture in `ARCHITECTURE.md`; current Event authoring rules in the Event docs/Guide.

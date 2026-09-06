@@ -2,63 +2,149 @@
 
 These instructions apply to the entire repository.
 
-## Canonical GDD
+## Project Identity and Hard Scope Boundary
 
-The canonical and authoritative Game Design Document (GDD) is the existing Google Docs file:
+Family Business is an intentionally simple, portrait-oriented, Android, Event-driven family-management game. It is **not** a life-simulation sandbox, autonomous simulation project, or general simulation framework.
+
+The normal gameplay shape is:
+
+`Event/factual trigger -> player choice -> existing manager state changes -> optional authored chain/schedule -> Event ends.`
+
+Do not introduce continuous hidden simulation, autonomous NPC behavior, new meters, parallel progression/state machines, extra managers, background systems, or new persistent gameplay fields unless the project owner explicitly approves them first. Existing time progression, managers, NPC records, or genre terminology do not authorize new simulation layers.
+
+## Authority Order
+
+### 1. Canonical GDD
+
+The authoritative gameplay design source is the existing Google Docs GDD:
 
 https://docs.google.com/document/d/1HZtUIWQbsv9_jlnWxuWCbPhk4MviQm9bTuiMSxqBVCE/edit?tab=t.0
 
-Before implementing or modifying any gameplay system:
+Before implementing or changing gameplay:
 
-1. Read the relevant section of the canonical GDD.
-2. Treat confirmed GDD decisions as the authoritative gameplay design source.
-3. Do not create, copy, or regenerate a local GDD unless the user explicitly requests it.
-4. Do not replace or overwrite the existing Google Docs GDD with a newly generated document.
-5. Do not invent gameplay rules, values, mechanics, or exceptions that the GDD does not establish.
-6. If `docs/PENDING_DECISIONS.md` contains a confirmed decision that has not yet been synchronized to the GDD, treat it as newer confirmed project context, flag it for GDD synchronization, and do not silently resolve any conflict.
-7. If the GDD, a pending confirmed decision, and the current implementation appear to conflict, identify the conflict before changing behavior. Do not silently redesign the system.
+1. Read the relevant GDD section.
+2. Treat DECIDED rules as binding.
+3. Do not invent missing gameplay rules, values, mechanics, exceptions, or future systems.
+4. OPEN and DEFERRED items are not permission to choose a solution.
+5. Do not recreate a local GDD or overwrite the canonical Google Doc.
 
-`docs/CONVERSATION_MEMORY.md` is historical context only. It never overrides the canonical GDD, a confirmed pending decision, or the factual state of the repository.
+Before editing the GDD itself, first report the exact proposed changes to the project owner in Turkish and wait for explicit approval. Do not silently add, reinterpret, or resolve gameplay decisions.
 
-## Authoritative Visual References
+### 2. Event Authoring Guide
 
-When the user supplies an approved screen, modal, mockup, screenshot, or other visual UI reference, that reference is authoritative for presentation. Reproduce it as closely as Godot permits at the project's reference resolution. Do not redesign, improve, reinterpret, normalize, simplify, restyle, or substitute independent UI conventions unless the user explicitly grants visual-design freedom for that specific area.
+For production Event JSON/schema authoring, use the current Event Authoring Guide together with GDD Section 14:
 
-Required fidelity includes layout and geometry; component dimensions; margins, padding, gaps, and alignment; text centering; typography size, weight, line height, and placement; colors; borders and separators; shadows; icon size and placement; button geometry and enabled or disabled states; pill or tag treatment; and every corner radius, including asymmetric or per-corner radii. Preserve referenced image and portrait aspect ratio, crop, mask, silhouette, and edge treatment. Do not arbitrarily round, crop, mask, reframe, recolor, or otherwise restyle an existing asset unless the approved reference shows that treatment or the user explicitly requests it.
+https://docs.google.com/document/d/15hkCdEh04VpaqxRUfah1BY7yeuijAgLFRMQz47k3Ldg/edit
 
-Treat visual deviations as implementation defects rather than design alternatives. If a referenced detail is ambiguous, technically impossible, or depends on a missing asset, preserve every unambiguous detail, report the unresolved point, and request direction instead of guessing. Fit functional implementation to the approved visual design rather than changing the approved design for implementation convenience.
+The Guide describes the approved authoring contract. Repository code remains the factual source for what the validator/runtime actually supports.
 
-When no direct visual reference is supplied for a required UI element, inspect the project's existing user-approved Family Business screens and reuse the closest established component and design language. This applies to modals, bottom sheets, cards, buttons, tags, pills, icons, character selectors, empty states, headers, information panels, typography, spacing, corner radii, colors, and separators. Do not invent a new design language. If neither a direct approved reference nor an approved existing precedent resolves the presentation, stop and report the ambiguity instead of making an independent visual-design decision.
+### 3. Current Repository
+
+The current `main` branch is the factual source for implemented code, data, scenes, assets, and tests. Inspect the actual manager, JSON, scene/UI adapter, and tests before changing an existing system.
+
+### 4. Repository Documentation
+
+- `docs/ARCHITECTURE.md` — current technical boundaries and responsibilities.
+- `docs/DATA_SCHEMA.md` — current static/runtime/save schemas and known legacy-data status.
+- `docs/DEVELOPMENT_STATUS.md` — implemented/partial/missing state and known gaps.
+- `docs/EVENT_SYSTEM_SPEC.md` — current Event backend/authoring technical contract.
+- `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md` — current production Event/content roadmap, not a historical phase checklist.
+- `docs/MAP_ART_STANDARD.md` — current Map/building art geometry and footprint rules.
+- `docs/PENDING_DECISIONS.md` — only confirmed decisions not yet synchronized to the GDD.
+- `docs/CONVERSATION_MEMORY.md` — durable historical context only.
+
+Repository documentation never overrides a newer confirmed GDD decision.
 
 ## Before Changing Code or Data
 
-- Read the relevant project documentation first: `docs/ARCHITECTURE.md`, `docs/DATA_SCHEMA.md`, `docs/DEVELOPMENT_STATUS.md`, `docs/PENDING_DECISIONS.md`, and `docs/CONVERSATION_MEMORY.md` as applicable.
-- Inspect the current implementation before changing an existing system. Read the relevant manager/autoload, JSON files, scenes, UI adapters, and tests.
-- Preserve the current manager/autoload and JSON-driven architecture unless there is a specific, documented reason to change it.
-- Keep solutions as simple as the confirmed design permits. Do not add unnecessary systems, abstractions, or mechanics.
-- Do not confuse Worker NPCs managed by `NPCManager` with Relationship NPCs managed by `RelationshipNpcManager`.
-- Treat family businesses as family-owned systems. Do not model them as property of an individual character unless the canonical GDD is explicitly changed.
+- Explain the exact proposed behavior/files before making a foundation-preserving code/data change when the project owner has not already approved that concrete change.
+- Read the relevant GDD and project docs first.
+- Inspect current implementation and tests before editing.
+- Prefer the smallest change that satisfies approved gameplay.
+- Preserve existing manager ownership; do not duplicate canonical state in EventManager, UI, or another manager.
+- Static/tunable data should remain data-driven when the GDD assigns it to JSON/configuration. Mutable save state remains manager/SaveManager-owned.
+- Do not reconnect a legacy JSON file merely because it exists. Confirm its current design purpose and migrate it deliberately.
+- Do not confuse Worker NPCs (`NPCManager`) with full Character-based Relationship candidates (`RelationshipNpcManager` / `CharacterManager`).
+- Family businesses are family-owned and distinct from external Career companies.
 
-## Large-System Implementation Phasing
+## Event System Production Rules
 
-For large, cross-cutting systems, especially the Event System, do not combine data architecture, backend lifecycle, integrations, UI, and category content into one oversized task unless the user explicitly requests that scope.
+The Event backend core already exists. Production work must **not** restart a broad architecture audit or redesign the Event system unless a real production Event exposes a concrete blocker.
 
-- Use approved project documentation as the contract before starting each phase.
-- For Event System work, read GDD Section 14 plus `docs/EVENT_SYSTEM_SPEC.md` and `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md`.
-- Finish the complete approved scope of the current phase, including tests and required documentation updates. Do not replace the phase with a small demo, MVP shortcut, or placeholder implementation and call it complete.
-- Do not silently forget remaining approved scope. The implementation plan remains the checklist until the final completion audit passes.
-- Stop at the defined phase boundary, report exact completed/remaining work and test results, and wait for the next user instruction before starting the next phase.
-- Do not mix unrelated UI/category implementation into a backend/data phase.
-- The overall system may be marked implemented only after every required phase and final audit are complete.
+### Ordinary random Events
+
+- Ordinary random Event pacing is controlled at **save level**, not independently per Character or per category.
+- Family size enlarges the eligible Event+Character candidate set; it must not linearly multiply random rolls/modals.
+- Categories are organization/eligibility domains, not quotas.
+- A save-scoped random pool may fail its activation roll and produce no Event.
+- `weight` is relative selection weight after the pool is allowed to activate. It is never an absolute occurrence probability.
+- Save-scoped random pools use the approved `selection_scope: "save"`, `activation_chance`, and positive `max_events` contract.
+
+### Factual/core Events
+
+Factual Events representing an already-existing authoritative gameplay fact bypass ordinary random pacing. Examples:
+
+- Education stage due / major selection due.
+- CareerManager Job Offer request.
+- Retirement.
+- Confirmed death -> Farewell.
+
+Do not move factual/core flows into ordinary save-level random pacing merely to make Event categories look uniform.
+
+### Job Offer
+
+- External Job Offer is a core factual Career flow.
+- `CareerManager` remains authoritative for eligibility, unemployed/employed offer probabilities, cooldowns, Job/Company selection, salary, active offers, accept/reject, and employment replacement.
+- All Jobs use one generic production Job Offer Event; do not create one Event per Job.
+- Runtime presentation resolves `{character_name}`, `{job}`, `{company_name}`, and `{salary}` from bound/canonical data.
+- Do not move CareerManager's Job Offer generation into ordinary random Event pacing.
+
+### Event effects and manager boundaries
+
+- EventManager orchestrates; it is not a second gameplay model.
+- No Career Level, Education Level, numeric Relationship Level, compatibility/attraction meter, generic House assignment, Event-controlled Business staffing, or Item damage system exists.
+- Education progression, Job offers, marriage/divorce, Houses, Businesses, Items, economy, and Character lifecycle remain owned by their existing managers.
+- Add a new manager/state/effect family only after explicit design approval.
+
+## Production Event Workflow
+
+Current production order:
+
+1. Education — core production Events complete.
+2. Age / Lifecycle — Retirement + Farewell complete.
+3. Job Offer — one generic factual production Event complete.
+4. Career — next production category.
+5. Relationship.
+6. Household.
+7. Business.
+8. Health.
+9. Finance.
+10. General.
+11. Lifestyle.
+12. Family Agency.
+
+Within a category, author core/mandatory playable-loop Events first and flavor/random Events later.
+
+Before creating a production Event, read the current GDD, Event Authoring Guide, relevant manager/data, and current Event JSON/tests. Do not guess schema or balance values. If production authoring exposes a genuine backend blocker, report the exact blocker and propose the narrowest correction before changing the core.
+
+## Visual Implementation Rule
+
+When the project owner supplies an approved screen, modal, mockup, screenshot, or other visual reference, it is authoritative for presentation.
+
+Do not redesign, improve, reinterpret, normalize, simplify, restyle, or substitute independent UI conventions. Match layout, geometry, spacing, typography, colors, borders, shadows, icon placement, button states, tags/pills, corner radii, image crop/mask, and alignment as closely as Godot permits.
+
+If a referenced detail is ambiguous or a required asset is missing, preserve all unambiguous parts and report the unresolved point instead of guessing. When no direct reference exists, reuse the closest already-approved Family Business UI language; do not invent a new design language.
 
 ## Documentation Maintenance
 
-After any implementation or behavior change:
+After implementation or behavior changes:
 
-- Always update `docs/DEVELOPMENT_STATUS.md` so it matches the repository.
-- Update `docs/ARCHITECTURE.md` when managers, autoloads, dependencies, scene boundaries, or system responsibilities change.
-- Update `docs/DATA_SCHEMA.md` when JSON, runtime dictionaries, save data, identifiers, or relationships change.
-- Update `docs/PENDING_DECISIONS.md` only for confirmed decisions that have not yet been synchronized to the canonical GDD. Do not use it for ideas, guesses, or open questions.
-- Update `docs/CONVERSATION_MEMORY.md` only when durable historical context, working principles, or recurring misunderstandings need to be preserved.
+- Update `docs/DEVELOPMENT_STATUS.md` to match repository reality.
+- Update `docs/ARCHITECTURE.md` when technical responsibilities/dependencies change.
+- Update `docs/DATA_SCHEMA.md` when static/runtime/save schemas change.
+- Update `docs/EVENT_SYSTEM_SPEC.md` only when the implemented Event technical contract changes.
+- Update `docs/EVENT_SYSTEM_IMPLEMENTATION_PLAN.md` when production Event/category progress changes.
+- Update `docs/PENDING_DECISIONS.md` only for an explicitly confirmed decision not yet synchronized to the GDD; remove it after GDD synchronization.
+- Keep `docs/CONVERSATION_MEMORY.md` concise and historical; implementation facts belong elsewhere.
 
-Documentation must describe observed repository state. When evidence is missing, say that it was not found; do not guess.
+Documentation must distinguish approved design from observed implementation. When evidence is missing, say it was not found; do not guess.
