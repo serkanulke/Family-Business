@@ -1,6 +1,3720 @@
 {
   "schema_version": 1,
   "category": "relationship",
-  "pools": [],
-  "events": []
+  "pools": [
+    {
+      "pool_id": "relationship_meet_18_20_pool",
+      "selection_mode": "weighted_one",
+      "selection_scope": "save",
+      "activation_chance": 0.005,
+      "max_events": 1
+    },
+    {
+      "pool_id": "relationship_meet_21_23_pool",
+      "selection_mode": "weighted_one",
+      "selection_scope": "save",
+      "activation_chance": 0.0075,
+      "max_events": 1
+    },
+    {
+      "pool_id": "relationship_meet_24_26_pool",
+      "selection_mode": "weighted_one",
+      "selection_scope": "save",
+      "activation_chance": 0.01,
+      "max_events": 1
+    },
+    {
+      "pool_id": "relationship_meet_27_29_pool",
+      "selection_mode": "weighted_one",
+      "selection_scope": "save",
+      "activation_chance": 0.0125,
+      "max_events": 1
+    }
+  ],
+  "events": [
+    {
+      "event_id": "relationship_01_meet_18_20",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meet_someone",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 120,
+      "exclusive_group": null,
+      "pool_id": "relationship_meet_18_20_pool",
+      "trigger": {
+        "type": "calendar",
+        "cadence": {
+          "unit": "month",
+          "interval": 1
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "new_relationship_npc",
+          "from": "primary"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": ">=",
+            "value": 18
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "<=",
+            "value": 20
+          },
+          {
+            "none": [
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_21_23"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_24_26"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_27_29"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_guaranteed_30"
+              }
+            ]
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A NEW CONNECTION!",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} cross paths at a social event. Their conversation feels natural and enjoyable. It seems {candidate_name} is interested in getting to know {character_name} better."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "show_interest",
+          "title": "SHOW INTEREST",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_02_message_later",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Show that you would like to see them again."
+        },
+        {
+          "choice_id": "not_interested",
+          "title": "NOT INTERESTED",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection here."
+        },
+        {
+          "choice_id": "invite_to_dinner",
+          "title": "INVITE TO DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Invite them to dinner.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event": "meet_someone",
+        "logical_event_number": 1,
+        "age_band": "18-20",
+        "monthly_activation_chance": 0.005,
+        "first_opportunity": true
+      }
+    },
+    {
+      "event_id": "relationship_01_meet_21_23",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meet_someone",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 120,
+      "exclusive_group": null,
+      "pool_id": "relationship_meet_21_23_pool",
+      "trigger": {
+        "type": "calendar",
+        "cadence": {
+          "unit": "month",
+          "interval": 1
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "new_relationship_npc",
+          "from": "primary"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": ">=",
+            "value": 21
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "<=",
+            "value": 23
+          },
+          {
+            "none": [
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_18_20"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_24_26"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_27_29"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_guaranteed_30"
+              }
+            ]
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A NEW CONNECTION!",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} cross paths at a social event. Their conversation feels natural and enjoyable. It seems {candidate_name} is interested in getting to know {character_name} better."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "show_interest",
+          "title": "SHOW INTEREST",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_02_message_later",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Show that you would like to see them again."
+        },
+        {
+          "choice_id": "not_interested",
+          "title": "NOT INTERESTED",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection here."
+        },
+        {
+          "choice_id": "invite_to_dinner",
+          "title": "INVITE TO DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Invite them to dinner.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event": "meet_someone",
+        "logical_event_number": 1,
+        "age_band": "21-23",
+        "monthly_activation_chance": 0.0075,
+        "first_opportunity": true
+      }
+    },
+    {
+      "event_id": "relationship_01_meet_24_26",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meet_someone",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 120,
+      "exclusive_group": null,
+      "pool_id": "relationship_meet_24_26_pool",
+      "trigger": {
+        "type": "calendar",
+        "cadence": {
+          "unit": "month",
+          "interval": 1
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "new_relationship_npc",
+          "from": "primary"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": ">=",
+            "value": 24
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "<=",
+            "value": 26
+          },
+          {
+            "none": [
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_18_20"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_21_23"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_27_29"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_guaranteed_30"
+              }
+            ]
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A NEW CONNECTION!",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} cross paths at a social event. Their conversation feels natural and enjoyable. It seems {candidate_name} is interested in getting to know {character_name} better."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "show_interest",
+          "title": "SHOW INTEREST",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_02_message_later",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Show that you would like to see them again."
+        },
+        {
+          "choice_id": "not_interested",
+          "title": "NOT INTERESTED",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection here."
+        },
+        {
+          "choice_id": "invite_to_dinner",
+          "title": "INVITE TO DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Invite them to dinner.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event": "meet_someone",
+        "logical_event_number": 1,
+        "age_band": "24-26",
+        "monthly_activation_chance": 0.01,
+        "first_opportunity": true
+      }
+    },
+    {
+      "event_id": "relationship_01_meet_27_29",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meet_someone",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 120,
+      "exclusive_group": null,
+      "pool_id": "relationship_meet_27_29_pool",
+      "trigger": {
+        "type": "calendar",
+        "cadence": {
+          "unit": "month",
+          "interval": 1
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "new_relationship_npc",
+          "from": "primary"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": ">=",
+            "value": 27
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "<=",
+            "value": 29
+          },
+          {
+            "none": [
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_18_20"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_21_23"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_24_26"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_guaranteed_30"
+              }
+            ]
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A NEW CONNECTION!",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} cross paths at a social event. Their conversation feels natural and enjoyable. It seems {candidate_name} is interested in getting to know {character_name} better."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "show_interest",
+          "title": "SHOW INTEREST",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_02_message_later",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Show that you would like to see them again."
+        },
+        {
+          "choice_id": "not_interested",
+          "title": "NOT INTERESTED",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection here."
+        },
+        {
+          "choice_id": "invite_to_dinner",
+          "title": "INVITE TO DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Invite them to dinner.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event": "meet_someone",
+        "logical_event_number": 1,
+        "age_band": "27-29",
+        "monthly_activation_chance": 0.0125,
+        "first_opportunity": true
+      }
+    },
+    {
+      "event_id": "relationship_01_meet_guaranteed_30",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meet_someone",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 150,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "calendar",
+        "cadence": {
+          "unit": "month",
+          "interval": 1
+        }
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "trigger"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "new_relationship_npc",
+          "from": "primary"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": ">=",
+            "value": 30
+          },
+          {
+            "type": "age",
+            "target": "primary",
+            "operator": "<=",
+            "value": 54
+          },
+          {
+            "none": [
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_18_20"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_21_23"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_24_26"
+              },
+              {
+                "type": "event_seen",
+                "operator": "==",
+                "value": "relationship_01_meet_27_29"
+              }
+            ]
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A NEW CONNECTION!",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} cross paths at a social event. Their conversation feels natural and enjoyable. It seems {candidate_name} is interested in getting to know {character_name} better."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "show_interest",
+          "title": "SHOW INTEREST",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_02_message_later",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Show that you would like to see them again."
+        },
+        {
+          "choice_id": "not_interested",
+          "title": "NOT INTERESTED",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection here."
+        },
+        {
+          "choice_id": "invite_to_dinner",
+          "title": "INVITE TO DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Invite them to dinner.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event": "meet_someone",
+        "logical_event_number": 1,
+        "guaranteed_first_opportunity": true,
+        "guarantee_age": 30,
+        "first_opportunity": true
+      }
+    },
+    {
+      "event_id": "relationship_02_message_later",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "message_later",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A MESSAGE LATER",
+        "subtitle": null,
+        "description": "A few days later, {candidate_name} sends {character_name} a message. They say they enjoyed meeting and ask if they would like to spend some time together again."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "meet_for_coffee",
+          "title": "MEET FOR COFFEE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_04_coffee_and_conversation",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Meet at a quiet café."
+        },
+        {
+          "choice_id": "suggest_dinner",
+          "title": "SUGGEST DINNER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_03_dinner_for_two",
+                "delay": {
+                  "unit": "day",
+                  "value": 7
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Suggest dinner instead.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "confidence",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "politely_decline",
+          "title": "POLITELY DECLINE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection politely."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 2
+      }
+    },
+    {
+      "event_id": "relationship_03_dinner_for_two",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "dinner_for_two",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "DINNER FOR TWO",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} meet for dinner. As the evening goes on, the conversation becomes more personal. There is an ease between them that is becoming difficult to ignore."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "open_up",
+          "title": "OPEN UP",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_05_a_little_closer",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Share something personal."
+        },
+        {
+          "choice_id": "keep_things_light",
+          "title": "KEEP THINGS LIGHT",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_06_keeping_it_casual",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep the evening relaxed."
+        },
+        {
+          "choice_id": "make_interest_clear",
+          "title": "MAKE YOUR INTEREST CLEAR",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_07_more_than_friends",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Make your interest clear.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "social",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 3
+      }
+    },
+    {
+      "event_id": "relationship_04_coffee_and_conversation",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "coffee_and_conversation",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "COFFEE AND CONVERSATION",
+        "subtitle": null,
+        "description": "They meet at a quiet café. Without the noise of their first encounter around them, the conversation has more room to breathe. {candidate_name} seems comfortable, but neither of them has said what this is yet."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "get_to_know_them",
+          "title": "GET TO KNOW THEM",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_05_a_little_closer",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Learn more about them."
+        },
+        {
+          "choice_id": "flirt_a_little",
+          "title": "FLIRT A LITTLE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_07_more_than_friends",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Make the mood a little more romantic.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "social",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        },
+        {
+          "choice_id": "keep_it_friendly",
+          "title": "KEEP IT FRIENDLY",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_06_keeping_it_casual",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep things friendly for now."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 4
+      }
+    },
+    {
+      "event_id": "relationship_05_a_little_closer",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "a_little_closer",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A LITTLE CLOSER",
+        "subtitle": null,
+        "description": "The conversation takes a more personal turn. {candidate_name} shares something they do not usually tell people they have only recently met. The moment changes the tone between them."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "open_up_too",
+          "title": "OPEN UP TOO",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_07_more_than_friends",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Share something personal in return."
+        },
+        {
+          "choice_id": "listen_to_them",
+          "title": "LISTEN TO THEM",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_07_more_than_friends",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Give them your full attention."
+        },
+        {
+          "choice_id": "pull_back_a_little",
+          "title": "PULL BACK A LITTLE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_06_keeping_it_casual",
+                "delay": {
+                  "unit": "day",
+                  "value": 14
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Slow the connection down."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 5
+      }
+    },
+    {
+      "event_id": "relationship_06_keeping_it_casual",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "keeping_it_casual",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "KEEPING IT CASUAL",
+        "subtitle": null,
+        "description": "Some time passes. {character_name} and {candidate_name} continue seeing each other from time to time, but neither has made a clear move. Eventually, {candidate_name} asks what {character_name} actually wants from this."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "want_something_more",
+          "title": "I WANT SOMETHING MORE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_07_more_than_friends",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Say that you want this to become more."
+        },
+        {
+          "choice_id": "need_more_time",
+          "title": "I NEED MORE TIME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_08_some_time_later",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Ask for more time."
+        },
+        {
+          "choice_id": "just_be_friends",
+          "title": "LET'S JUST BE FRIENDS",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the romantic possibility."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 6
+      }
+    },
+    {
+      "event_id": "relationship_07_more_than_friends",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "more_than_friends",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "MORE THAN FRIENDS",
+        "subtitle": null,
+        "description": "The question is finally out in the open. {candidate_name} admits they have been hoping the connection between them might become something more than a few casual meetings."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "give_this_a_chance",
+          "title": "LET'S GIVE THIS A CHANCE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": "dating"
+              },
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_09_first_few_months",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Start dating."
+        },
+        {
+          "choice_id": "not_ready_yet",
+          "title": "I'M NOT READY YET",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_08_some_time_later",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Ask for more time."
+        },
+        {
+          "choice_id": "dont_feel_same",
+          "title": "I DON'T FEEL THE SAME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 7
+      }
+    },
+    {
+      "event_id": "relationship_08_some_time_later",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "some_time_later",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "candidate"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "SOME TIME LATER",
+        "subtitle": null,
+        "description": "Some time has passed since {character_name} asked to slow things down. They have continued seeing each other, but the question they avoided has not disappeared. {candidate_name} brings it up again."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "ready_now",
+          "title": "I'M READY NOW",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": "dating"
+              },
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_09_first_few_months",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Start dating."
+        },
+        {
+          "choice_id": "still_need_time",
+          "title": "I STILL NEED TIME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "Keep things where they are for now."
+        },
+        {
+          "choice_id": "end_this",
+          "title": "WE SHOULD END THIS",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "End the connection."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 8
+      }
+    },
+    {
+      "event_id": "relationship_09_first_few_months",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "first_few_months",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "THE FIRST FEW MONTHS",
+        "subtitle": null,
+        "description": "A few months have passed since {character_name} and {candidate_name} decided to give the relationship a chance. Things have settled into a comfortable rhythm, but they are still learning what being together actually means."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "make_more_time",
+          "title": "MAKE MORE TIME FOR THEM",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_10_getting_closer",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Make the relationship a priority."
+        },
+        {
+          "choice_id": "develop_naturally",
+          "title": "LET THINGS DEVELOP NATURALLY",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_11_change_of_plans",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Let the relationship find its own pace."
+        },
+        {
+          "choice_id": "keep_distance",
+          "title": "KEEP SOME DISTANCE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_12_something_feels_off",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep a little more distance."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 9
+      }
+    },
+    {
+      "event_id": "relationship_10_getting_closer",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "getting_closer",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "GETTING CLOSER",
+        "subtitle": null,
+        "description": "They have started spending much more time together. {candidate_name} has become a familiar part of {character_name}'s daily life, and the relationship no longer feels new.\n\nOne evening, {candidate_name} suggests meeting some of {character_name}'s family."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "introduce_to_family",
+          "title": "INTRODUCE THEM TO FAMILY",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_13_meeting_the_family",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Introduce them to the family."
+        },
+        {
+          "choice_id": "not_yet",
+          "title": "NOT YET",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_11_change_of_plans",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Wait a little longer."
+        },
+        {
+          "choice_id": "ask_why_matters",
+          "title": "ASK WHY IT MATTERS",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_14_what_are_we_building",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Ask why meeting the family matters."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 10
+      }
+    },
+    {
+      "event_id": "relationship_11_change_of_plans",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "change_of_plans",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A CHANGE OF PLANS",
+        "subtitle": null,
+        "description": "{character_name} and {candidate_name} had plans to spend the evening together, but something else has come up for {character_name}. {candidate_name} is clearly disappointed."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "keep_original_plans",
+          "title": "KEEP YOUR ORIGINAL PLANS",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_10_getting_closer",
+                "delay": {
+                  "unit": "week",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep the plans you already made."
+        },
+        {
+          "choice_id": "cancel_this_time",
+          "title": "CANCEL THIS TIME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_12_something_feels_off",
+                "delay": {
+                  "unit": "week",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Cancel this time."
+        },
+        {
+          "choice_id": "make_it_up",
+          "title": "MAKE IT UP TO THEM",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_15_a_good_night",
+                "delay": {
+                  "unit": "week",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Find a better way to make it up to them.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "social",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 11
+      }
+    },
+    {
+      "event_id": "relationship_12_something_feels_off",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "something_feels_off",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "SOMETHING FEELS OFF",
+        "subtitle": null,
+        "description": "Lately, {candidate_name} has seemed more distant. When {character_name} finally asks what is wrong, they admit that the relationship has started to feel one-sided."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "talk_it_through",
+          "title": "TALK IT THROUGH",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_16_honest_conversation",
+                "delay": {
+                  "unit": "week",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Have an honest conversation."
+        },
+        {
+          "choice_id": "promise_better",
+          "title": "PROMISE TO DO BETTER",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_10_getting_closer",
+                "delay": {
+                  "unit": "week",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Promise to make more effort."
+        },
+        {
+          "choice_id": "end_relationship",
+          "title": "END THE RELATIONSHIP",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": -3
+              }
+            ]
+          },
+          "description": "End the dating relationship."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 12,
+        "dating_end_happiness": -3
+      }
+    },
+    {
+      "event_id": "relationship_13_meeting_the_family",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "meeting_the_family",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "MEETING THE FAMILY",
+        "subtitle": null,
+        "description": "{candidate_name} joins {character_name} for a family gathering. The first few minutes are a little awkward, but the evening soon becomes easier.\n\nBy the end of it, {candidate_name} seems relieved."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "stay_close",
+          "title": "STAY CLOSE TO THEM",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_15_a_good_night",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Stay close during the gathering."
+        },
+        {
+          "choice_id": "let_them_handle",
+          "title": "LET THEM HANDLE IT",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_14_what_are_we_building",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Let them find their own place in the room."
+        },
+        {
+          "choice_id": "good_impression",
+          "title": "MAKE A GOOD IMPRESSION",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_17_part_of_your_life",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Help the evening go smoothly.",
+          "requirements": {
+            "all": [
+              {
+                "type": "stat",
+                "target": "primary",
+                "stat": "social",
+                "operator": ">=",
+                "value": 60
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 13
+      }
+    },
+    {
+      "event_id": "relationship_14_what_are_we_building",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "what_are_we_building",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "WHAT ARE WE BUILDING?",
+        "subtitle": null,
+        "description": "During a quiet moment, {candidate_name} asks a question that has been sitting between them for some time: where does {character_name} think this relationship is going?"
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "future_with_you",
+          "title": "I SEE A FUTURE WITH YOU",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_17_part_of_your_life",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Say that you see a future together."
+        },
+        {
+          "choice_id": "happy_as_we_are",
+          "title": "I'M HAPPY AS WE ARE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep the relationship as it is for now."
+        },
+        {
+          "choice_id": "not_sure",
+          "title": "I'M NOT SURE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_16_honest_conversation",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Admit that you are not sure yet."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 14
+      }
+    },
+    {
+      "event_id": "relationship_15_a_good_night",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "a_good_night",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A GOOD NIGHT",
+        "subtitle": null,
+        "description": "What began as an ordinary evening turns into one of those nights that feels unexpectedly important. On the way home, {candidate_name} admits how happy they have been lately."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "feel_same",
+          "title": "SAY YOU FEEL THE SAME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_17_part_of_your_life",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Say that you feel the same."
+        },
+        {
+          "choice_id": "enjoy_moment",
+          "title": "ENJOY THE MOMENT",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Enjoy the moment without pushing further."
+        },
+        {
+          "choice_id": "talk_future",
+          "title": "TALK ABOUT THE FUTURE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_14_what_are_we_building",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Talk about what might come next."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 15
+      }
+    },
+    {
+      "event_id": "relationship_16_honest_conversation",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "honest_conversation",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "AN HONEST CONVERSATION",
+        "subtitle": null,
+        "description": "The conversation is uncomfortable at first. Both of them finally say things they have been avoiding, and it becomes clear that the relationship cannot simply continue without changing."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "listen_compromise",
+          "title": "LISTEN AND COMPROMISE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "week",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Try to find a way forward together."
+        },
+        {
+          "choice_id": "stand_ground",
+          "title": "STAND YOUR GROUND",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_19_difficult_choice",
+                "delay": {
+                  "unit": "week",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Hold your position."
+        },
+        {
+          "choice_id": "end_relationship",
+          "title": "END THE RELATIONSHIP",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": -6
+              }
+            ]
+          },
+          "description": "End the dating relationship."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 16,
+        "dating_end_happiness": -6
+      }
+    },
+    {
+      "event_id": "relationship_17_part_of_your_life",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "part_of_your_life",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "PART OF YOUR LIFE",
+        "subtitle": null,
+        "description": "Without either of them really noticing when it happened, {candidate_name} has become part of {character_name}'s everyday life. Family gatherings, plans and ordinary days now often include them.\n\nOne evening, they begin talking seriously about what comes next."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "talk_marriage",
+          "title": "TALK ABOUT MARRIAGE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_20_next_step",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Talk seriously about marriage."
+        },
+        {
+          "choice_id": "no_rush",
+          "title": "THERE'S NO RUSH",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep building the relationship."
+        },
+        {
+          "choice_id": "change_subject",
+          "title": "CHANGE THE SUBJECT",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Avoid the subject for now."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 17
+      }
+    },
+    {
+      "event_id": "relationship_18_more_time_together",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "more_time_together",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "MORE TIME TOGETHER",
+        "subtitle": null,
+        "description": "More time passes, and the relationship remains steady. There is no crisis and no dramatic change; they simply continue building a life around each other.\n\nEventually, the question of the future returns."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "talk_marriage",
+          "title": "TALK ABOUT MARRIAGE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_20_next_step",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Talk seriously about marriage."
+        },
+        {
+          "choice_id": "keep_dating",
+          "title": "KEEP DATING",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": []
+          },
+          "description": "Keep dating without forcing the next step."
+        },
+        {
+          "choice_id": "end_relationship",
+          "title": "END THE RELATIONSHIP",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": -6
+              }
+            ]
+          },
+          "description": "End the dating relationship."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 18,
+        "dating_end_happiness": -6
+      }
+    },
+    {
+      "event_id": "relationship_19_difficult_choice",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "difficult_choice",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A DIFFICULT CHOICE",
+        "subtitle": null,
+        "description": "Neither {character_name} nor {candidate_name} wants to pretend the disagreement did not happen. They still care about each other, but both know that something has to give."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "try_one_more_time",
+          "title": "TRY ONE MORE TIME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_18_more_time_together",
+                "delay": {
+                  "unit": "month",
+                  "value": 2
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Give the relationship another chance."
+        },
+        {
+          "choice_id": "end_things_here",
+          "title": "END THINGS HERE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": -10
+              }
+            ]
+          },
+          "description": "End the dating relationship."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 19,
+        "dating_end_happiness": -10
+      }
+    },
+    {
+      "event_id": "relationship_20_next_step",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "next_step",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "repeatable"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "THE NEXT STEP",
+        "subtitle": null,
+        "description": "The conversation turns to marriage. {candidate_name} does not dismiss the idea. Instead, they ask whether {character_name} is truly ready for that kind of commitment."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "ready",
+          "title": "I'M READY",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_21_question_to_ask",
+                "delay": {
+                  "unit": "day",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Move toward a proposal."
+        },
+        {
+          "choice_id": "not_yet",
+          "title": "NOT YET",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_20_next_step",
+                "delay": {
+                  "unit": "month",
+                  "value": 6
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Keep dating and return to the question later."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 20,
+        "not_yet_repeat_delay_months": 6
+      }
+    },
+    {
+      "event_id": "relationship_21_question_to_ask",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "question_to_ask",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "repeatable"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "A QUESTION TO ASK",
+        "subtitle": null,
+        "description": "{character_name} has made a decision. The question is no longer whether the relationship matters, but whether this is the right moment to make it permanent."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "ask_to_marry",
+          "title": "ASK THEM TO MARRY YOU",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "queue_event",
+                "event_id": "relationship_22_the_answer"
+              }
+            ]
+          },
+          "description": "Ask them to marry you."
+        },
+        {
+          "choice_id": "wait_better_time",
+          "title": "WAIT FOR A BETTER TIME",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_21_question_to_ask",
+                "delay": {
+                  "unit": "month",
+                  "value": 3
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Wait and return to the question later."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 21,
+        "wait_repeat_delay_months": 3
+      }
+    },
+    {
+      "event_id": "relationship_22_the_answer",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "the_answer",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "chain"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "THE ANSWER",
+        "subtitle": null,
+        "description": "For a moment, {candidate_name} says nothing. Then they smile and give {character_name} the answer they were hoping to hear.\n\nThere is one more decision to make before the wedding day arrives."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "plan_wedding",
+          "title": "PLAN THE WEDDING",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "schedule_event",
+                "event_id": "relationship_23_the_wedding",
+                "delay": {
+                  "unit": "month",
+                  "value": 1
+                },
+                "inherit_context": true
+              }
+            ]
+          },
+          "description": "Plan the wedding."
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 22
+      }
+    },
+    {
+      "event_id": "relationship_23_the_wedding",
+      "category": "relationship",
+      "domain": "relationship",
+      "subtype": "the_wedding",
+      "enabled": true,
+      "rarity": "common",
+      "weight": 1.0,
+      "priority": 100,
+      "exclusive_group": null,
+      "pool_id": null,
+      "trigger": {
+        "type": "scheduled"
+      },
+      "participants": {
+        "primary": {
+          "type": "character",
+          "source": "context"
+        },
+        "candidate": {
+          "type": "relationship_npc",
+          "source": "context"
+        }
+      },
+      "requirements": {
+        "all": [
+          {
+            "type": "is_alive",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "is_family_member",
+            "target": "primary",
+            "operator": "==",
+            "value": true
+          },
+          {
+            "type": "has_spouse",
+            "target": "primary",
+            "operator": "==",
+            "value": false
+          },
+          {
+            "type": "relationship_status",
+            "target": "candidate",
+            "operator": "==",
+            "value": "dating"
+          }
+        ]
+      },
+      "repeat": {
+        "mode": "once_per_character_pair"
+      },
+      "cooldown": null,
+      "behavior": {
+        "blocking": true,
+        "pause_game": true
+      },
+      "content": {
+        "title": "THE WEDDING",
+        "subtitle": null,
+        "description": "The wedding day has arrived. Family and friends gather as {character_name} and {candidate_name} prepare to begin a new chapter together.\n\nHow much the family spends on the celebration is up to you."
+      },
+      "presentation": {
+        "template": "standard_event"
+      },
+      "choices": [
+        {
+          "choice_id": "keep_it_simple",
+          "title": "KEEP IT SIMPLE",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": 1
+              },
+              {
+                "type": "stat_change",
+                "target": "candidate",
+                "stat": "happiness",
+                "amount": 1
+              },
+              {
+                "type": "relationship_marry",
+                "primary": "primary",
+                "target": "candidate"
+              }
+            ]
+          },
+          "description": "A simple wedding.",
+          "cost": {
+            "currency": "money",
+            "amount": 500
+          }
+        },
+        {
+          "choice_id": "make_it_special",
+          "title": "MAKE IT SPECIAL",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": 4
+              },
+              {
+                "type": "stat_change",
+                "target": "candidate",
+                "stat": "happiness",
+                "amount": 4
+              },
+              {
+                "type": "relationship_marry",
+                "primary": "primary",
+                "target": "candidate"
+              }
+            ]
+          },
+          "description": "Make the day feel special.",
+          "cost": {
+            "currency": "money",
+            "amount": 10000
+          }
+        },
+        {
+          "choice_id": "go_all_out",
+          "title": "GO ALL OUT",
+          "resolution": {
+            "mode": "deterministic",
+            "effects": [
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "happiness",
+                "amount": 8
+              },
+              {
+                "type": "stat_change",
+                "target": "candidate",
+                "stat": "happiness",
+                "amount": 8
+              },
+              {
+                "type": "stat_change",
+                "target": "primary",
+                "stat": "social",
+                "amount": 2
+              },
+              {
+                "type": "stat_change",
+                "target": "candidate",
+                "stat": "social",
+                "amount": 2
+              },
+              {
+                "type": "relationship_marry",
+                "primary": "primary",
+                "target": "candidate"
+              }
+            ]
+          },
+          "description": "Plan an unforgettable celebration.",
+          "cost": {
+            "currency": "money",
+            "amount": 30000
+          }
+        }
+      ],
+      "metadata": {
+        "logical_event_number": 23
+      }
+    }
+  ]
 }
