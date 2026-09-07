@@ -1,6 +1,668 @@
 {
   "schema_version": 1,
   "category": "career",
-  "pools": [],
-  "events": []
+  "pools": [
+	{
+	  "pool_id": "career_random",
+	  "selection_mode": "weighted_one",
+	  "selection_scope": "save",
+	  "activation_chance": 0.015,
+	  "max_events": 1
+	}
+  ],
+  "events": [
+	{
+	  "event_id": "career_performance_review",
+	  "category": "career",
+	  "domain": "career",
+	  "subtype": "performance_review",
+	  "enabled": true,
+	  "rarity": "common",
+	  "weight": 1.0,
+	  "priority": 0,
+	  "exclusive_group": null,
+	  "pool_id": "career_random",
+	  "trigger": {
+		"type": "calendar",
+		"cadence": {
+		  "unit": "month",
+		  "interval": 1
+		}
+	  },
+	  "participants": {
+		"primary": {
+		  "type": "character",
+		  "source": "trigger"
+		}
+	  },
+	  "requirements": {
+		"all": [
+		  {
+			"type": "is_alive",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "employed"
+		  },
+		  {
+			"type": "business_role",
+			"target": "primary",
+			"operator": "==",
+			"value": ""
+		  }
+		]
+	  },
+	  "repeat": {
+		"mode": "repeatable"
+	  },
+	  "cooldown": {
+		"scope": "character",
+		"unit": "year",
+		"value": 5
+	  },
+	  "behavior": {
+		"blocking": true,
+		"pause_game": true
+	  },
+	  "content": {
+		"title": "Performance Review",
+		"subtitle": null,
+		"description": "Your performance review has begun. This is your chance to discuss a salary increase."
+	  },
+	  "presentation": {
+		"template": "character_event"
+	  },
+	  "choices": [
+		{
+		  "choice_id": "request_raise_25",
+		  "title": "Ask for a 25% raise",
+		  "description": "A bold request.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.375
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "social",
+				"weight": 0.375
+			  }
+			],
+			"success": {
+			  "outcome_id": "raise_25_success",
+			  "effects": [
+				{
+				  "type": "salary_increase",
+				  "target": "primary",
+				  "amount": 25,
+				  "amount_mode": "percentage",
+				  "feedback": {
+					"mode": "custom",
+					"text": "Your request was accepted. Salary increased by 25%."
+				  }
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "raise_25_failure",
+			  "effects": []
+			}
+		  }
+		},
+		{
+		  "choice_id": "request_raise_15",
+		  "title": "Ask for a 15% raise",
+		  "description": "A moderate request.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.9
+			  }
+			],
+			"success": {
+			  "outcome_id": "raise_15_success",
+			  "effects": [
+				{
+				  "type": "salary_increase",
+				  "target": "primary",
+				  "amount": 15,
+				  "amount_mode": "percentage",
+				  "feedback": {
+					"mode": "custom",
+					"text": "Your request was accepted. Salary increased by 15%."
+				  }
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "raise_15_failure",
+			  "effects": []
+			}
+		  }
+		},
+		{
+		  "choice_id": "request_raise_5",
+		  "title": "Ask for a 5% raise",
+		  "description": "A modest request that is guaranteed to succeed.",
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": [
+			  {
+				"type": "salary_increase",
+				"target": "primary",
+				"amount": 5,
+				"amount_mode": "percentage",
+				"feedback": {
+				  "mode": "custom",
+				  "text": "Salary increased by 5%."
+				}
+			  }
+			]
+		  }
+		}
+	  ]
+	},
+	{
+	  "event_id": "career_company_restructuring",
+	  "category": "career",
+	  "domain": "career",
+	  "subtype": "company_restructuring",
+	  "enabled": true,
+	  "rarity": "common",
+	  "weight": 1.0,
+	  "priority": 0,
+	  "exclusive_group": null,
+	  "pool_id": "career_random",
+	  "trigger": {
+		"type": "calendar",
+		"cadence": {
+		  "unit": "month",
+		  "interval": 1
+		}
+	  },
+	  "participants": {
+		"primary": {
+		  "type": "character",
+		  "source": "trigger"
+		}
+	  },
+	  "requirements": {
+		"all": [
+		  {
+			"type": "is_alive",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "employed"
+		  },
+		  {
+			"type": "business_role",
+			"target": "primary",
+			"operator": "==",
+			"value": ""
+		  }
+		]
+	  },
+	  "repeat": {
+		"mode": "repeatable"
+	  },
+	  "cooldown": null,
+	  "behavior": {
+		"blocking": true,
+		"pause_game": true
+	  },
+	  "content": {
+		"title": "Company Restructuring",
+		"subtitle": null,
+		"description": "Your position is at risk."
+	  },
+	  "presentation": {
+		"template": "character_event"
+	  },
+	  "choices": [
+		{
+		  "choice_id": "do_not_object",
+		  "title": "Don't object",
+		  "description": "Accept the decision and leave.",
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": [
+			  {
+				"type": "job_remove",
+				"target": "primary"
+			  }
+			]
+		  }
+		},
+		{
+		  "choice_id": "challenge_decision",
+		  "title": "Challenge the decision",
+		  "description": "Try to keep your position.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.4
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "discipline",
+				"weight": 0.4
+			  }
+			],
+			"success": {
+			  "outcome_id": "keep_job",
+			  "effects": []
+			},
+			"failure": {
+			  "outcome_id": "lose_job",
+			  "effects": [
+				{
+				  "type": "job_remove",
+				  "target": "primary"
+				}
+			  ]
+			}
+		  }
+		},
+		{
+		  "choice_id": "stand_your_ground",
+		  "title": "Stand your ground",
+		  "description": "Requires 80 Confidence.",
+		  "requirements": {
+			"all": [
+			  {
+				"type": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"operator": ">=",
+				"value": 80
+			  }
+			]
+		  },
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": []
+		  }
+		}
+	  ]
+	},
+	{
+	  "event_id": "career_workplace_conflict",
+	  "category": "career",
+	  "domain": "career",
+	  "subtype": "workplace_conflict",
+	  "enabled": true,
+	  "rarity": "common",
+	  "weight": 1.0,
+	  "priority": 0,
+	  "exclusive_group": null,
+	  "pool_id": "career_random",
+	  "trigger": {
+		"type": "calendar",
+		"cadence": {
+		  "unit": "month",
+		  "interval": 1
+		}
+	  },
+	  "participants": {
+		"primary": {
+		  "type": "character",
+		  "source": "trigger"
+		}
+	  },
+	  "requirements": {
+		"all": [
+		  {
+			"type": "is_alive",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "employed"
+		  },
+		  {
+			"type": "business_role",
+			"target": "primary",
+			"operator": "==",
+			"value": ""
+		  }
+		]
+	  },
+	  "repeat": {
+		"mode": "repeatable"
+	  },
+	  "cooldown": null,
+	  "behavior": {
+		"blocking": true,
+		"pause_game": true
+	  },
+	  "content": {
+		"title": "Workplace Conflict",
+		"subtitle": null,
+		"description": "A conflict has started at work."
+	  },
+	  "presentation": {
+		"template": "character_event"
+	  },
+	  "choices": [
+		{
+		  "choice_id": "seek_compromise",
+		  "title": "Seek compromise",
+		  "description": "Try to calm things down.",
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": []
+		  }
+		},
+		{
+		  "choice_id": "defend_yourself",
+		  "title": "Defend yourself",
+		  "description": "Stand up for your position.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.4
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "social",
+				"weight": 0.4
+			  }
+			],
+			"success": {
+			  "outcome_id": "defense_success",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "confidence",
+				  "amount": 3
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "defense_failure",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "social",
+				  "amount": -3
+				}
+			  ]
+			}
+		  }
+		},
+		{
+		  "choice_id": "push_back_hard",
+		  "title": "Push back hard",
+		  "description": "Take a harder stance.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.3
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "social",
+				"weight": 0.3
+			  }
+			],
+			"success": {
+			  "outcome_id": "pushback_success",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "confidence",
+				  "amount": 5
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "pushback_failure",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "social",
+				  "amount": -5
+				}
+			  ]
+			}
+		  }
+		}
+	  ]
+	},
+	{
+	  "event_id": "career_heavy_workload",
+	  "category": "career",
+	  "domain": "career",
+	  "subtype": "heavy_workload",
+	  "enabled": true,
+	  "rarity": "common",
+	  "weight": 1.0,
+	  "priority": 0,
+	  "exclusive_group": null,
+	  "pool_id": "career_random",
+	  "trigger": {
+		"type": "calendar",
+		"cadence": {
+		  "unit": "month",
+		  "interval": 1
+		}
+	  },
+	  "participants": {
+		"primary": {
+		  "type": "character",
+		  "source": "trigger"
+		}
+	  },
+	  "requirements": {
+		"all": [
+		  {
+			"type": "is_alive",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "employment_status",
+			"target": "primary",
+			"operator": "==",
+			"value": "employed"
+		  },
+		  {
+			"type": "business_role",
+			"target": "primary",
+			"operator": "==",
+			"value": ""
+		  }
+		]
+	  },
+	  "repeat": {
+		"mode": "repeatable"
+	  },
+	  "cooldown": null,
+	  "behavior": {
+		"blocking": true,
+		"pause_game": true
+	  },
+	  "content": {
+		"title": "Heavy Workload",
+		"subtitle": null,
+		"description": "Your workload has increased."
+	  },
+	  "presentation": {
+		"template": "character_event"
+	  },
+	  "choices": [
+		{
+		  "choice_id": "keep_your_pace",
+		  "title": "Keep your pace",
+		  "description": "Continue at a steady pace.",
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": []
+		  }
+		},
+		{
+		  "choice_id": "push_through",
+		  "title": "Push through",
+		  "description": "Work harder for a while.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "discipline",
+				"weight": 0.4
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "health",
+				"weight": 0.4
+			  }
+			],
+			"success": {
+			  "outcome_id": "workload_success",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "discipline",
+				  "amount": 3
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "workload_failure",
+			  "effects": [
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "health",
+				  "amount": -3
+				},
+				{
+				  "type": "stat_change",
+				  "target": "primary",
+				  "stat": "happiness",
+				  "amount": -3
+				}
+			  ]
+			}
+		  }
+		},
+		{
+		  "choice_id": "ask_for_compensation",
+		  "title": "Ask for compensation",
+		  "description": "Ask to be paid for the extra work.",
+		  "resolution": {
+			"mode": "score_check",
+			"check_mode": "probability",
+			"sources": [
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "confidence",
+				"weight": 0.35
+			  },
+			  {
+				"source": "stat",
+				"target": "primary",
+				"stat": "social",
+				"weight": 0.35
+			  }
+			],
+			"success": {
+			  "outcome_id": "compensation_success",
+			  "effects": [
+				{
+				  "type": "salary_increase",
+				  "target": "primary",
+				  "amount": 5,
+				  "amount_mode": "percentage"
+				}
+			  ]
+			},
+			"failure": {
+			  "outcome_id": "compensation_failure",
+			  "effects": []
+			}
+		  }
+		}
+	  ]
+	}
+  ]
 }

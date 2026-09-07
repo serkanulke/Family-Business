@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dxq8853wkl5fr"]
+
+[ext_resource type="Script" uid="uid://vnqq3e2mhqlf" path="res://Tests/EventCareerProductionTest.gd" id="1_career"]
+
+[node name="EventCareerProductionTest" type="Node" unique_id=919414328]
+script = ExtResource("1_career")

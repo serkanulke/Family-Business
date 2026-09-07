@@ -1141,8 +1141,19 @@ func _validate_score_check(source: String, event_id: String, path: String, resol
 					_add(source, event_id, source_path + ".stat", "Unknown canonical stat '%s'." % stat)
 			if not _is_number(score_source.get("weight", null)):
 				_add(source, event_id, source_path + ".weight", "Score source weight must be numeric.")
-	if not _is_number(resolution.get("threshold", null)):
-		_add(source, event_id, path + ".threshold", "score_check threshold must be numeric.")
+	var check_mode := "threshold"
+	if resolution.has("check_mode"):
+		if typeof(resolution["check_mode"]) != TYPE_STRING:
+			_add(source, event_id, path + ".check_mode", "score_check check_mode must be a String.")
+		else:
+			check_mode = String(resolution["check_mode"])
+	if check_mode not in ["threshold", "probability"]:
+		_add(source, event_id, path + ".check_mode", "score_check check_mode must be threshold or probability.")
+	elif check_mode == "threshold":
+		if not _is_number(resolution.get("threshold", null)):
+			_add(source, event_id, path + ".threshold", "threshold score_check requires a numeric threshold.")
+	elif resolution.has("threshold"):
+		_add(source, event_id, path + ".threshold", "probability score_check must not define a threshold.")
 	var seen_ids: Dictionary = {}
 	for result_key_value in ["success", "failure"]:
 		var result_key := String(result_key_value)
@@ -1252,6 +1263,10 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 				or not is_equal_approx(float(salary_amount), floor(float(salary_amount)))
 			):
 				_add(source, event_id, path + ".amount", "salary_increase amount must be a positive integer.")
+			if effect.has("amount_mode"):
+				var amount_mode := String(effect.get("amount_mode", ""))
+				if amount_mode not in ["fixed", "percentage"]:
+					_add(source, event_id, path + ".amount_mode", "salary_increase amount_mode must be fixed or percentage.")
 		"education_enroll":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
 			_validate_reference(source, event_id, path + ".school_id", effect.get("school_id", null), _school_ids, "school_id")
@@ -1451,8 +1466,13 @@ func _validate_event_flow_cycles() -> void:
 		_collect_event_effects(validated_events_by_id[event_id], effects_with_paths)
 		for wrapper in effects_with_paths:
 			var effect: Dictionary = wrapper["effect"]
-			if String(effect.get("type", "")) not in ["queue_event", "schedule_event"]:
+
+			# schedule_event always requires a positive calendar delay, so it
+			# intentionally breaks synchronous recursion. Delayed Event flows
+			# may return to an earlier Event or reschedule the same Event.
+			if String(effect.get("type", "")) != "queue_event":
 				continue
+
 			var target := String(effect.get("event_id", ""))
 			if validated_events_by_id.has(target):
 				graph[event_id].append({"target": target, "path": wrapper["path"]})
@@ -1464,7 +1484,7 @@ func _validate_event_flow_cycles() -> void:
 			if target == event_id or _graph_path_exists(graph, target, event_id, {}):
 				_add(String(_event_sources.get(event_id, "<memory>")), event_id,
 					String(edge["path"]) + ".event_id",
-					"Statically detectable circular Event queue/schedule chain: '%s' -> '%s'." % [event_id, target])
+					"Statically detectable circular Event queue chain: '%s' -> '%s'." % [event_id, target])
 
 
 func _graph_path_exists(graph: Dictionary, current: String, goal: String, visited: Dictionary) -> bool:

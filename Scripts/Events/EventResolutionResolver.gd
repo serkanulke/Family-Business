@@ -101,12 +101,29 @@ func _resolve_score_check(resolution: Dictionary, participants: Dictionary, cont
 		var contribution := float(query["actual"]) * float(source.get("weight", 0.0))
 		score += contribution
 		source_results.append({"source": source.duplicate(true), "actual": query["actual"], "contribution": contribution})
-	var threshold := float(resolution.get("threshold", 0.0))
-	var result_key := "success" if score >= threshold else "failure"
+	var check_mode := String(resolution.get("check_mode", "threshold"))
+	var result_key := ""
+	var details := {"score": score, "sources": source_results}
+	match check_mode:
+		"threshold":
+			var threshold := float(resolution.get("threshold", 0.0))
+			details["threshold"] = threshold
+			result_key = "success" if score >= threshold else "failure"
+		"probability":
+			var chance_percent := clampf(score, 0.0, 100.0)
+			var roll_percent := random.randf() * 100.0
+			details["chance_percent"] = chance_percent
+			details["roll_percent"] = roll_percent
+			result_key = "success" if roll_percent < chance_percent else "failure"
+		_:
+			return {
+				"valid": false,
+				"failure_reasons": [_failure("invalid_score_check_mode", "Event score check mode is unavailable.")]
+			}
 	var outcome = resolution.get(result_key, {})
 	if typeof(outcome) != TYPE_DICTIONARY:
 		return {"valid": false, "failure_reasons": [_failure("score_outcome_unavailable", "The score outcome is unavailable.")]}
-	return _outcome_result("score_check", outcome, {"score": score, "threshold": threshold, "sources": source_results})
+	return _outcome_result("score_check", outcome, details)
 
 
 func _outcome_result(mode: String, outcome: Dictionary, details: Dictionary) -> Dictionary:

@@ -725,18 +725,76 @@ func _test_event_flow_references_and_cycles() -> void:
 		"event_id": "not_found",
 		"delay": {"unit": "month", "value": 1}
 	}]
-	_expect_invalid_event(missing, "Missing queued/scheduled Event target is rejected", "does not exist")
+	_expect_invalid_event(
+		missing,
+		"Missing queued/scheduled Event target is rejected",
+		"does not exist"
+	)
 
+	# A delayed schedule_event breaks synchronous recursion, so returning to an
+	# earlier Event after a positive delay is valid.
 	var event_a := _base_event("cycle_a", "general")
 	var event_b := _base_event("cycle_b", "general")
-	event_a["choices"][0]["resolution"]["effects"] = [{"type": "queue_event", "event_id": "cycle_b"}]
-	event_b["choices"][0]["resolution"]["effects"] = [{"type": "schedule_event", "event_id": "cycle_a", "delay": {"unit": "day", "value": 1}}]
-	var cycle_registry := _registry_for("general", [event_a, event_b])
-	_assert_invalid(cycle_registry, "Statically detectable Event chain cycle is rejected", "circular Event queue/schedule chain")
+	event_a["choices"][0]["resolution"]["effects"] = [{
+		"type": "queue_event",
+		"event_id": "cycle_b"
+	}]
+	event_b["choices"][0]["resolution"]["effects"] = [{
+		"type": "schedule_event",
+		"event_id": "cycle_a",
+		"delay": {"unit": "day", "value": 1}
+	}]
+	var delayed_cycle_registry := _registry_for("general", [event_a, event_b])
+	_assert_true(
+		delayed_cycle_registry.is_valid,
+		"Delayed schedule_event may return to an earlier Event",
+		delayed_cycle_registry.get_diagnostic_text()
+	)
+
+	# Re-scheduling the same Event is also valid when schedule_event carries a
+	# strictly positive delay.
+	var scheduled_self_cycle := _base_event("scheduled_self_cycle", "general")
+	scheduled_self_cycle["trigger"] = {"type": "scheduled"}
+	scheduled_self_cycle["choices"][0]["resolution"]["effects"] = [{
+		"type": "schedule_event",
+		"event_id": "scheduled_self_cycle",
+		"delay": {"unit": "month", "value": 1}
+	}]
+	var scheduled_self_registry := _registry_for("general", [scheduled_self_cycle])
+	_assert_true(
+		scheduled_self_registry.is_valid,
+		"Delayed schedule_event may reschedule the same Event",
+		scheduled_self_registry.get_diagnostic_text()
+	)
+
+	# Immediate queue_event cycles must still be rejected.
+	var queue_cycle_a := _base_event("queue_cycle_a", "general")
+	var queue_cycle_b := _base_event("queue_cycle_b", "general")
+	queue_cycle_a["choices"][0]["resolution"]["effects"] = [{
+		"type": "queue_event",
+		"event_id": "queue_cycle_b"
+	}]
+	queue_cycle_b["choices"][0]["resolution"]["effects"] = [{
+		"type": "queue_event",
+		"event_id": "queue_cycle_a"
+	}]
+	var queue_cycle_registry := _registry_for("general", [queue_cycle_a, queue_cycle_b])
+	_assert_invalid(
+		queue_cycle_registry,
+		"Immediate queue_event cycle is rejected",
+		"circular Event queue chain"
+	)
 
 	var self_cycle := _base_event("self_cycle", "general")
-	self_cycle["choices"][0]["resolution"]["effects"] = [{"type": "queue_event", "event_id": "self_cycle"}]
-	_expect_invalid_event(self_cycle, "Direct self-queue chain is rejected", "circular Event queue/schedule chain")
+	self_cycle["choices"][0]["resolution"]["effects"] = [{
+		"type": "queue_event",
+		"event_id": "self_cycle"
+	}]
+	_expect_invalid_event(
+		self_cycle,
+		"Direct self-queue chain is rejected",
+		"circular Event queue chain"
+	)
 
 
 func _test_job_event_tags_schema() -> void:

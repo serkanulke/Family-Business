@@ -126,6 +126,10 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 			var character := CharacterManager.get_character_by_id(int(plan["character_id"]))
 			if character.get("job_id", null) == null or String(character.get("company_id", "")).is_empty():
 				return _invalid(index, "external_job_unavailable", "The Character has no external salary to increase.")
+			var amount_mode := String(effect.get("amount_mode", "fixed"))
+			if amount_mode not in ["fixed", "percentage"]:
+				return _invalid(index, "invalid_salary_increase_mode", "salary_increase amount_mode must be fixed or percentage.")
+			plan["salary_increase_mode"] = amount_mode
 		"education_enroll":
 			var school_id := int(effect.get("school_id", 0))
 			if not EducationManager.can_enroll_character_in_school(int(plan["character_id"]), school_id):
@@ -274,8 +278,15 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			var company_id_value = character.get("company_id", null)
 			var job_id := 0 if job_id_value == null else int(job_id_value)
 			var company_id := "" if company_id_value == null else String(company_id_value)
-			result["success"] = CareerManager.increase_external_salary(character_id, int(effect.get("amount", 0)))
-			result.merge({"target_character_id": character_id, "job_id": job_id, "company_id": company_id, "job_name": String(CareerManager.get_job_by_id(job_id).get("job_name", "")), "company_name": String(CareerManager.get_company_by_id(company_id).get("company_name", "")), "before": before, "after": int(character.get("salary", before)), "requested_amount": int(effect.get("amount", 0)), "applied_amount": int(character.get("salary", before)) - before}, true)
+			var amount_mode := String(plan.get("salary_increase_mode", "fixed"))
+			var authored_amount := int(effect.get("amount", 0))
+			var requested_amount := authored_amount
+			if amount_mode == "percentage":
+				requested_amount = int(round(float(before) * float(authored_amount) / 100.0))
+			result["success"] = requested_amount > 0 and CareerManager.increase_external_salary(character_id, requested_amount)
+			result.merge({"target_character_id": character_id, "job_id": job_id, "company_id": company_id, "job_name": String(CareerManager.get_job_by_id(job_id).get("job_name", "")), "company_name": String(CareerManager.get_company_by_id(company_id).get("company_name", "")), "before": before, "after": int(character.get("salary", before)), "requested_amount": requested_amount, "applied_amount": int(character.get("salary", before)) - before, "amount_mode": amount_mode}, true)
+			if amount_mode == "percentage":
+				result["requested_percentage"] = authored_amount
 		"education_enroll":
 			result["success"] = EducationManager.enroll_character_in_school(
 				character_id,
