@@ -1,0 +1,95 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+SaveManager runtime tests
+========================================
+Time reset: 1985-01-26
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [4] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [5] start_new_game (res://Autoload/GameManager.gd:367)
+       [6] _create_test_game (res://Tests/SaveManagerRuntimeTest.gd:169)
+       [7] _ready (res://Tests/SaveManagerRuntimeTest.gd:35)
+WARNING: Character 1 has no eligible portrait for gender 'male', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [2] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [3] start_new_game (res://Autoload/GameManager.gd:367)
+       [4] _create_test_game (res://Tests/SaveManagerRuntimeTest.gd:169)
+       [5] _ready (res://Tests/SaveManagerRuntimeTest.gd:35)
+Character started without a major: 1
+Starting job assigned: Warehouse Worker | Salary: 1800 | Character: 1
+Starting character created: 1 | Name: William | Gender: male | Age: 21 | Major: <null> | Job: 1002 | Salary: 1800
+Starting company assigned: MetroWorks Services | Character: 1 | Job: 1002
+Worker NPCs generated: 10 | Total: 10
+Worker NPC pool reset. | Initial: 10 | Next generation in months: 2
+Game saved. | Save ID: 1788883523018 | Family: Johnson | Money: 15000 | Date: 1985-01-26
+New game started. | Character ID: 1 | Name: William | Family: Johnson | Money: 15000 | Diamonds: 0 | Date: 1985-01-26
+[PASS] Test game creates a real starting character
+[PASS] New game owns a positive dynamic save ID
+Game saved. | Save ID: 1788883523018 | Family: Johnson | Money: 32100 | Date: 1992-06-12
+[PASS] Runtime state can be written to the current save file
+[PASS] Current dynamic save is reported as existing
+[PASS] Slot summary stores the real family name
+[PASS] Slot summary stores the real family money
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] normalize_character_portraits (res://Autoload/CharacterManager.gd:917)
+       [4] apply_save_snapshot (res://Autoload/SaveManager.gd:509)
+       [5] load_game (res://Autoload/SaveManager.gd:233)
+       [6] _ready (res://Tests/SaveManagerRuntimeTest.gd:99)
+WARNING: Character 1 has no eligible portrait for gender 'male', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] normalize_character_portraits (res://Autoload/CharacterManager.gd:917)
+       [2] apply_save_snapshot (res://Autoload/SaveManager.gd:509)
+       [3] load_game (res://Autoload/SaveManager.gd:233)
+       [4] _ready (res://Tests/SaveManagerRuntimeTest.gd:99)
+Game loaded. | Save ID: 1788883523018 | Family: Johnson | Money: 32100 | Date: 1992-06-12
+[PASS] Saved dynamic file can be loaded
+[PASS] Family name is restored
+[PASS] Family money is restored
+[PASS] Diamonds are restored
+[PASS] Characters are restored
+[PASS] Worker NPC pool is restored
+[PASS] Game date is restored
+[PASS] Character ID is normalized to int
+[PASS] Partner ID is normalized to int
+[PASS] Linked Character ID is normalized to int
+[PASS] Children IDs are normalized to unique ints
+[PASS] Rejected-by Character IDs are normalized to unique ints
+[PASS] Nullable Character ID fields remain null
+
+SaveManager runtime tests: 19 passed / 0 failed
+========================================
+ALL SAVE MANAGER RUNTIME TESTS PASSED.
+EXTERNAL SALARIES PAID | Date: 1992-07-01 | Characters: 1 | Total: 1800 | Family Money: 33900
+EXTERNAL SALARIES PAID | Date: 1992-08-01 | Characters: 1 | Total: 1800 | Family Money: 34700
+Worker NPCs generated: 2 | Total: 12
+EXTERNAL SALARIES PAID | Date: 1992-09-01 | Characters: 1 | Total: 1800 | Family Money: 35500
+Worker NPCs generated: 3 | Total: 15
+EXTERNAL SALARIES PAID | Date: 1992-10-01 | Characters: 1 | Total: 1800 | Family Money: 36300

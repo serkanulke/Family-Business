@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BuyBuildingModal.tscn" id="5_buy_building_modal"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/House/HouseModal.tscn" id="6_house_modal"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/House/BuyHouseModal.tscn" id="7_buy_house_modal"]
+[ext_resource type="PackedScene" path="res://UI/EventPresentation/EventPresentation.tscn" id="8_event_presentation"]
 
 [node name="Main" type="Node" unique_id=1660465117]
 script = ExtResource("2_main")
@@ -35,3 +36,5 @@ visible = false
 
 [node name="BuyHouseModal" parent="ModalLayer" unique_id=426818295 instance=ExtResource("7_buy_house_modal")]
 visible = false
+
+[node name="EventPresentation" parent="." instance=ExtResource("8_event_presentation")]

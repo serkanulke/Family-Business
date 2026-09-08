@@ -137,16 +137,19 @@ CareerManager's existing daily/monthly offer probability logic remains authorita
 
 ### Presentation data
 
-`EventPresentationResolver` currently resolves player-facing Event content from canonical runtime data. Supported dynamic tags are:
+`EventPresentationResolver` resolves player-facing Event content from canonical runtime data. Supported dynamic tags are:
 
 - `{character_name}`
+- `{participant_role_name}` for any resolved numeric Character participant role, such as `{candidate_name}`
 - `{job}`
 - `{company_name}`
 - `{salary}`
 
 Unknown/unresolved tags remain visible rather than being silently deleted.
 
-There is not yet a complete shared player-facing Event modal/presentation scene wired for all production Event categories.
+`UI/EventPresentation/EventPresentation.tscn` is the shared blocking presentation layer. It observes `EventManager.active_event_changed` and `queue_changed`, reads the active definition/instance, and delegates choice resolution back to `EventManager`. Event art and enabled choice icons come only from authored resource paths; locked choices use the shared lock icon. Character stat result feedback is built only from applied Event effect results.
+
+The UI may ask `EventManager` for active choice availability and for a validated player-selected Character-group update. These are narrow runtime exposures: requirements, costs, participant eligibility, resolution, and queue ownership remain in the Event backend and authoritative managers.
 
 ## 5. Production Event Content
 

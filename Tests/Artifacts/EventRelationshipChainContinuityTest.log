@@ -1,0 +1,27 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Relationship continuity fixture registry validates
+[PASS] Relationship source Event binds the existing candidate by exact ID
+[PASS] Relationship status mutation changes candidate to dating
+[PASS] Dating Character leaves the canonical candidate discovery pool
+[PASS] Completed Event preserves the exact Relationship participant IDs
+[PASS] Chain follow-up reuses the dating Character by exact ID without candidate-pool lookup
+[PASS] Scheduled follow-up persists the exact Relationship participant ID
+[PASS] Scheduled follow-up resolves the dating Character by exact ID after it left the candidate pool
+[PASS] Dating Relationship can reach an explicit authored end choice
+[PASS] Dating breakup clears status, link, and active candidate index
+[PASS] Dating breakup records the family Character once in pair rejection history
+========================================
+Event Relationship chain continuity tests: 11 passed / 0 failed
+========================================

@@ -1,0 +1,115 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Event Phase 1 static data tests starting
+========================================
+[PASS] All production category files load with mandatory Education, Age / Lifecycle, and Job Offer Events
+[PASS] All production categories receive category lookups
+[PASS] Valid registry exposes event, category, and pool lookups
+[PASS] Category/file mismatch is rejected
+[PASS] Unsupported schema version is rejected
+[PASS] Malformed Event JSON is rejected safely
+[PASS] Non-Dictionary Event root is rejected
+[PASS] Missing/invalid root structure is rejected
+[PASS] Duplicate event_id across category files is rejected
+[PASS] Duplicate choice_id inside an Event is rejected
+[PASS] Duplicate outcome_id inside a resolution is rejected
+[PASS] Missing pool reference is rejected
+[PASS] Unsupported pool selection mode is rejected
+[PASS] Invalid pool max_events is rejected
+[PASS] Unsupported trigger type is rejected
+[PASS] Invalid calendar cadence unit and interval are rejected
+[PASS] Manual pool trigger requires pool_id
+[PASS] Relationship Events cannot use manual triggers
+[PASS] Direct manual trigger rejects a pool reference
+[PASS] Valid annual exact-date and calendar-window structures load
+[PASS] Malformed exact-date/date-window structure is rejected
+[PASS] Impossible annual calendar date is rejected
+[PASS] Impossible ISO calendar date is rejected
+[PASS] Optional Event metadata Dictionary is accepted
+[PASS] Non-Dictionary Event metadata is rejected
+[PASS] Participant group min greater than max is rejected
+[PASS] Structurally invalid participant relation references are rejected
+[PASS] Malformed participant selection_ui is rejected
+[PASS] Unsupported requirement type is rejected
+[PASS] Unsupported Item flag requirement is rejected
+[PASS] D-156/D-157 rejects removed requirement career_level
+[PASS] D-156/D-157 rejects removed requirement education_level
+[PASS] D-156/D-157 rejects removed requirement relationship_exists
+[PASS] D-156/D-157 rejects removed requirement relationship_level
+[PASS] Invalid recursive requirement structure is rejected
+[PASS] Unknown canonical stat name is rejected
+[PASS] Incompatible requirement operator is rejected
+[PASS] Unknown statically resolvable data reference is rejected
+[PASS] relationship_status requirement requires a non-empty String
+[PASS] Invalid repeat mode is rejected
+[PASS] Invalid cooldown scope is rejected
+[PASS] Invalid cooldown unit is rejected
+[PASS] Invalid cooldown value is rejected
+[PASS] Family Agency 60-month event cooldown is valid
+[PASS] Family Agency 5-year event cooldown is valid
+[PASS] Family Agency cooldown below 60 months is rejected
+[PASS] Family Agency global/family cooldown is rejected
+[PASS] Family Agency Event without cooldown is rejected
+[PASS] Arbitrary day count is not treated as 60 calendar months
+[PASS] Invalid presentation/resource/scene-geometry structure is rejected
+[PASS] Invalid cost currency is rejected
+[PASS] Negative Event cost is rejected
+[PASS] Invalid resolution mode is rejected
+[PASS] Invalid weighted outcome weight/modifier/effects structure is rejected
+[PASS] Unsupported effect and arbitrary method name are rejected
+[PASS] Invalid effect participant target is rejected
+[PASS] Invalid effect data reference is rejected
+[PASS] Unsupported effect feedback mode is rejected
+[PASS] Custom effect feedback requires player-facing text
+[PASS] Valid custom effect feedback is accepted
+[PASS] Custom feedback cannot expose an internal flag ID
+[PASS] relationship_status_set cannot bypass marriage
+[PASS] relationship_status_set accepts null as the explicit Relationship end operation
+[PASS] relationship_status_set still rejects non-string non-null values
+[PASS] Event-owned temporary flag duration is rejected
+[PASS] D-154 rejects the removed generic business_effect
+[PASS] D-155 rejects the removed damage_item effect
+[PASS] D-156/D-157 rejects removed effect relationship_start
+[PASS] D-156/D-157 rejects removed effect relationship_change
+[PASS] D-156/D-157 rejects removed effect relationship_status_change
+[PASS] D-156/D-157 rejects removed effect relationship_end
+[PASS] D-156/D-157 rejects removed effect job_assign
+[PASS] D-156/D-157 rejects removed effect job_change
+[PASS] D-156/D-157 rejects removed effect career_progress
+[PASS] D-156/D-157 rejects removed effect education_change
+[PASS] D-156/D-157 rejects removed effect education_complete
+[PASS] D-156/D-157 rejects removed effect house_assignment
+[PASS] D-156/D-157 rejects removed effect business_role_change
+[PASS] Missing queued/scheduled Event target is rejected
+[PASS] Delayed schedule_event may return to an earlier Event
+[PASS] Delayed schedule_event may reschedule the same Event
+[PASS] Immediate queue_event cycle is rejected
+[PASS] Direct self-queue chain is rejected
+[PASS] Optional Job event_tags may be absent
+[PASS] Valid Job event_tags String Array is accepted
+[PASS] Malformed Job event_tags is rejected
+[PASS] Non-String Job event_tag is rejected
+[PASS] Complete approved effect whitelist is structurally representable
+[PASS] Valid score_check resolution structure is accepted
+[PASS] All five trigger families and valid manual/calendar structures are representable
+[PASS] All seven approved repeat modes are representable
+[PASS] All approved cooldown scopes and calendar units are representable
+[PASS] All approved requirement families except unauthored Job tags are structurally representable
+
+========================================
+Event Phase 1 tests: 93 passed / 0 failed
+========================================
+ALL EVENT PHASE 1 TESTS PASSED.

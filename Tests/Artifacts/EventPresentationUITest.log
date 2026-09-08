@@ -1,0 +1,131 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[RelationshipNPCDebug] Family Character list refreshed: 3 display entries.
+[RelationshipNPCDebug] Relationship NPC debug panel ready.
+Use a disposable test save: forcing a scheduled event changes that save's runtime state.
+[PASS] Event UI fixture registry validates
+[PASS] Single Character Event activates through EventManager
+[PASS] One Character uses the single-character layout
+[PASS] Single Event shows one Character chip
+[PASS] Event art binds from presentation.art_path
+[PASS] Event choices are generated from Event JSON
+[PASS] Enabled choice uses its authored icon_path
+[PASS] Locked choice replaces its normal icon with the shared lock asset
+[PASS] Long Character name and age stay on one ellipsized line
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Runtime requirement change refreshes enabled state and restores authored icon
+[PASS] Character chip opens the existing Character Card above the Event
+[PASS] Closing Character Card restores the active Event modal
+[PASS] Character stat changes open Event Result
+[PASS] One affected Character renders one result row
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Continue closes the final Event Result
+[PASS] Event UI fixture registry validates
+[PASS] Relationship Event activates with resolved participant roles
+[PASS] Two Characters use the relationship layout
+[PASS] Relationship layout shows two equal Character chips
+[PASS] Relationship participant token resolves from the bound Character
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Relationship stat effects open Event Result
+[PASS] Multiple affected Characters render separate result rows
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Event UI fixture registry validates
+[PASS] Manual group Event opens from Event runtime availability
+[PASS] Character-group definition uses the Group Event layout
+[PASS] Group Event starts with no invented participant count
+[PASS] Empty group uses the selection action label
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Group action opens Select Participants bottom sheet
+[PASS] Participant bottom sheet blocks above the Event
+[PASS] Candidate cards come from family Character selection rules
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Select/Remove state tracks the pending backend selection
+[PASS] Confirmed selection activates through EventManager with exact participant IDs
+[PASS] Group count refreshes from active Event participants
+[PASS] Group count uses correct plural text
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (./servers/rendering/dummy/storage/texture_storage.h:110)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:439)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+SCRIPT ERROR: Cannot call method 'save_png' on a null value.
+   at: _capture (res://Tests/EventPresentationUITest.gd:441)
+   GDScript backtrace (most recent call first):
+       [0] _capture (res://Tests/EventPresentationUITest.gd:441)
+       [1] _wait_frames (res://Tests/EventPresentationUITest.gd:430)
+[PASS] Active Group Event can reopen participant selection
+[PASS] Active group rebind uses EventManager participant validation
+[PASS] Event UI fixture registry validates
+[PASS] Missing art_path leaves the Event art area safe and empty
+[PASS] Missing enabled choice icon_path remains empty without a fallback mapping
+
+========================================
+Event Presentation UI tests: 39 passed / 0 failed
+========================================

@@ -1,0 +1,73 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+
+========================================
+Relationship production tests starting
+========================================
+[PASS] Production Event registry validates
+[PASS] Relationship JSON represents 23 logical Events with 27 technical definitions
+[PASS] No unapproved recurring 30+ Meet Someone definition exists
+[PASS] No unapproved recurring 30+ Meet Someone pool exists
+[PASS] relationship_meet_18_20_pool uses approved monthly activation chance
+[PASS] relationship_meet_21_23_pool uses approved monthly activation chance
+[PASS] relationship_meet_24_26_pool uses approved monthly activation chance
+[PASS] relationship_meet_27_29_pool uses approved monthly activation chance
+[PASS] relationship_01_meet_18_20 uses approved age band 18-20
+[PASS] relationship_01_meet_18_20 is checked monthly
+[PASS] relationship_01_meet_21_23 uses approved age band 21-23
+[PASS] relationship_01_meet_21_23 is checked monthly
+[PASS] relationship_01_meet_24_26 uses approved age band 24-26
+[PASS] relationship_01_meet_24_26 is checked monthly
+[PASS] relationship_01_meet_27_29 uses approved age band 27-29
+[PASS] relationship_01_meet_27_29 is checked monthly
+[PASS] Meet Someone is guaranteed from age 30 when no first opportunity was seen
+[PASS] Guaranteed age-30 Event is not permanently locked by an earlier Meet Someone
+[PASS] relationship_01_meet_18_20 remains repeatable without a seen-lock or new cooldown
+[PASS] relationship_01_meet_21_23 remains repeatable without a seen-lock or new cooldown
+[PASS] relationship_01_meet_24_26 remains repeatable without a seen-lock or new cooldown
+[PASS] relationship_01_meet_27_29 remains repeatable without a seen-lock or new cooldown
+[PASS] relationship_01_meet_guaranteed_30 remains repeatable without a seen-lock or new cooldown
+[PASS] relationship_01_meet_18_20 resolves a pool-first candidate for the selected primary Character
+[PASS] relationship_01_meet_21_23 resolves a pool-first candidate for the selected primary Character
+[PASS] relationship_01_meet_24_26 resolves a pool-first candidate for the selected primary Character
+[PASS] relationship_01_meet_27_29 resolves a pool-first candidate for the selected primary Character
+[PASS] relationship_01_meet_guaranteed_30 resolves a pool-first candidate for the selected primary Character
+[PASS] Every follow-up Event reuses the exact bound primary and candidate
+[PASS] All Relationship schedule_event flows preserve participants/context and target scheduled Events
+[PASS] Relationship immediate queue flow is only the proposal Answer chain
+[PASS] Event 7 starts dating and schedules Event 9 three months later
+[PASS] Event 8 READY NOW starts dating and schedules Event 9 three months later
+[PASS] Dating is the only Event-authored Relationship status in this chain
+[PASS] All pre-dating rejection/end choices have no Happiness penalty
+[PASS] Dating-end choices use approved -3 / -6 / -10 Happiness stages
+[PASS] Every explicit rejection or breakup clears the active Relationship link
+[PASS] No breakup/ex-partner/divorced parallel Event state is invented
+[PASS] Event 20 NOT YET schedules Event 20 again after 6 months
+[PASS] Event 20 I'M READY advances to Event 21
+[PASS] Event 21 WAIT FOR A BETTER TIME schedules Event 21 again after 3 months
+[PASS] Proposal immediately queues Event 22 THE ANSWER
+[PASS] Event 22 accepts the proposal but marriage happens only at Event 23
+[PASS] KEEP IT SIMPLE costs 500, gives +1 Happiness each, then marries
+[PASS] MAKE IT SPECIAL costs 10,000, gives +4 Happiness each, then marries
+[PASS] GO ALL OUT costs 30,000, gives +8 Happiness each, +2 Social, then marries
+[PASS] KEEP IT SIMPLE invokes canonical marriage exactly once
+[PASS] MAKE IT SPECIAL invokes canonical marriage exactly once
+[PASS] GO ALL OUT invokes canonical marriage exactly once
+[PASS] All Relationship choice titles are at most 28 characters including spaces
+[PASS] LET THINGS DEVELOP NATURALLY is preserved exactly at the 28-character limit
+
+========================================
+Relationship production tests: 51 passed / 0 failed
+========================================
+ALL RELATIONSHIP PRODUCTION TESTS PASSED.

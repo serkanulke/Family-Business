@@ -344,6 +344,8 @@ If a malformed or unnecessary Event would be required only to exercise an edge c
 
 ## 15. Presentation Status
 
-`EventPresentationResolver` exists, but the complete shared production Event modal/UI layer is still incomplete.
+`EventPresentationResolver` and the shared `EventPresentation` scene are implemented and wired into `Main`.
 
-Future UI must consume resolved Event content and runtime choices/effects. It must not duplicate manager logic or hardcode Job/Company presentation rules.
+The production presentation layer consumes the active Event definition/instance, resolved content, bound participants, `presentation.art_path`, per-choice `icon_path`, backend choice availability/costs, and applied stat-effect results. It supports single, Relationship, and Character-group layouts plus the backend-driven player-selection sheet. It does not own an Event queue, duplicate requirement/effect logic, or hardcode Event-specific visuals.
+
+Production JSON art/icon metadata and production callers/content for manual Character-group Events remain separate content/integration work.

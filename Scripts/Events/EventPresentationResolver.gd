@@ -42,17 +42,32 @@ static func _build_replacements(
 ) -> Dictionary:
 	var replacements: Dictionary = {}
 
-	var character_id := int(
-		participants.get(
-			"primary",
-			context.get("character_id", 0)
+	for participant_name_value in participants:
+		var participant_name := String(participant_name_value)
+		var participant_value = participants[participant_name]
+		if typeof(participant_value) not in [TYPE_INT, TYPE_FLOAT]:
+			continue
+		var character := CharacterManager.get_character_by_id(
+			int(participant_value)
 		)
-	)
-	if character_id > 0:
-		var character := CharacterManager.get_character_by_id(character_id)
-		var character_name := String(character.get("first_name", ""))
-		if not character_name.is_empty():
-			replacements["character_name"] = character_name
+		var resolved_name := String(character.get("first_name", ""))
+		if resolved_name.is_empty():
+			continue
+		replacements["%s_name" % participant_name] = resolved_name
+		if participant_name == "primary":
+			replacements["character_name"] = resolved_name
+
+	if not replacements.has("character_name"):
+		var context_character_id := int(context.get("character_id", 0))
+		if context_character_id > 0:
+			var context_character := CharacterManager.get_character_by_id(
+				context_character_id
+			)
+			var context_character_name := String(
+				context_character.get("first_name", "")
+			)
+			if not context_character_name.is_empty():
+				replacements["character_name"] = context_character_name
 
 	if context.has("job_id"):
 		var job := CareerManager.get_job_by_id(int(context.get("job_id", 0)))

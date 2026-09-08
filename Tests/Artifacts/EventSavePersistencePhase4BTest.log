@@ -1,0 +1,209 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Phase 4B fixture registry validates
+[PASS] Save version 6 stores one canonical event_system payload
+[PASS] Complete Event export is JSON-compatible
+[PASS] Empty Event state survives a complete snapshot round trip
+[PASS] Version 5 migrates existing gameplay with a clean Event runtime
+[PASS] A migrated game writes the current version 6 schema
+[PASS] Representative version 5 fixture writes to the real save path
+Game loaded. | Save ID: 46002 | Family: Phase4B | Money: 43210 | Date: 2000-01-01
+[PASS] Representative version 5 save loads with gameplay preserved and clean Event state
+WARNING: Save data has no valid event_system section; Event runtime was reset safely.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] apply_save_snapshot (res://Autoload/SaveManager.gd:669)
+       [1] _test_schema_empty_migration_and_corruption (res://Tests/EventSavePersistencePhase4BTest.gd:70)
+       [2] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:26)
+[PASS] A version 6 save missing event_system recovers with empty Event state
+WARNING: Save data has no valid event_system section; Event runtime was reset safely.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] apply_save_snapshot (res://Autoload/SaveManager.gd:669)
+       [1] _test_schema_empty_migration_and_corruption (res://Tests/EventSavePersistencePhase4BTest.gd:75)
+       [2] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:26)
+[PASS] Wrong Event root type resets only Event state and preserves loaded gameplay
+WARNING: Event runtime state was rejected and reset safely: Event runtime counter 'next_event_instance_number' must be a positive integer.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] apply_save_snapshot (res://Autoload/SaveManager.gd:672)
+       [1] _test_schema_empty_migration_and_corruption (res://Tests/EventSavePersistencePhase4BTest.gd:79)
+       [2] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:26)
+[PASS] Invalid Event counter is rejected with a diagnostic and safe reset
+[PASS] Phase 4B fixture registry validates
+WARNING: Event runtime state was rejected and reset safely: A restored active Event has invalid participant/context/result data.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] apply_save_snapshot (res://Autoload/SaveManager.gd:672)
+       [1] _test_schema_empty_migration_and_corruption (res://Tests/EventSavePersistencePhase4BTest.gd:86)
+       [2] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:26)
+[PASS] Malformed EventInstance executes nothing and resets the Event subsection
+[PASS] Phase 4B fixture registry validates
+[PASS] Phase 4B fixture registry validates
+WARNING: Event runtime state was rejected and reset safely: A restored active Event references missing definition 'corrupt_active'.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] apply_save_snapshot (res://Autoload/SaveManager.gd:672)
+       [1] _test_schema_empty_migration_and_corruption (res://Tests/EventSavePersistencePhase4BTest.gd:92)
+       [2] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:26)
+[PASS] Missing active definition is rejected without substitution or effect execution
+[PASS] Phase 4B fixture registry validates
+[PASS] Representative stat, money, Item, and salary effects resolve before save
+Game saved. | Save ID: 46001 | Family: Phase4B | Money: 1125 | Date: 2000-01-01
+[PASS] Version 6 Event state writes through the real SaveManager file path
+Game loaded. | Save ID: 46001 | Family: Phase4B | Money: 1125 | Date: 2000-01-01
+[PASS] Version 6 Event state loads through the real SaveManager file path
+[PASS] Load restores stat and money exactly once without replay
+[PASS] Authoritative Career salary effect is not replayed
+[PASS] Relationship rejection history and active candidate index survive the real save/load path
+[PASS] Item creation effect is not replayed or duplicated
+[PASS] Completed history restores without executing historical effects
+[PASS] Phase 4B fixture registry validates
+[PASS] Active blocking x1 snapshot imports
+[PASS] Active blocking x1 Event restores the same bound instance while paused
+[PASS] Completing restored Event resumes exact x1 state
+[PASS] Phase 4B fixture registry validates
+[PASS] Active blocking x2 snapshot imports
+[PASS] Active blocking x2 Event restores the same bound instance while paused
+[PASS] Completing restored Event resumes exact x2 state
+[PASS] Phase 4B fixture registry validates
+[PASS] Active blocking x3 snapshot imports
+[PASS] Active blocking x3 Event restores the same bound instance while paused
+[PASS] Completing restored Event resumes exact x3 state
+[PASS] Phase 4B fixture registry validates
+[PASS] Manually paused active Event restores as active and paused
+[PASS] Completing restored Event preserves manual pause
+[PASS] Phase 4B fixture registry validates
+[PASS] Active A and queued B retain stable IDs and order
+[PASS] Queued B activates without resuming simulation between blocking Events
+[PASS] Queue completion restores the original x2 state
+[PASS] Phase 4B fixture registry validates
+[PASS] History, repeat, and cooldown snapshot imports
+[PASS] All five story-history queries remain true after load
+[PASS] History remains distinguishable for another Character
+[PASS] Participant pair and House/Business context remain bound
+[PASS] Repeat mode once remains consumed after load
+[PASS] Repeat mode once_per_character remains consumed after load
+[PASS] Repeat mode once_per_character_pair remains consumed after load
+[PASS] Repeat mode once_per_family remains consumed after load
+[PASS] Repeat mode once_per_house remains consumed after load
+[PASS] Repeat mode once_per_business remains consumed after load
+[PASS] once_per_character leaves another Character eligible
+[PASS] once_per_character_pair leaves another normalized pair eligible
+[PASS] once_per_house leaves another House eligible
+[PASS] once_per_business leaves another Business eligible
+[PASS] Cooldown scope event remains locked before expiry
+[PASS] Cooldown scope event opens exactly at saved expiry
+[PASS] Cooldown scope character remains locked before expiry
+[PASS] Cooldown scope character opens exactly at saved expiry
+[PASS] Cooldown scope character_pair remains locked before expiry
+[PASS] Cooldown scope character_pair opens exactly at saved expiry
+[PASS] Cooldown scope family remains locked before expiry
+[PASS] Cooldown scope family opens exactly at saved expiry
+[PASS] Cooldown scope house remains locked before expiry
+[PASS] Cooldown scope house opens exactly at saved expiry
+[PASS] Cooldown scope business remains locked before expiry
+[PASS] Cooldown scope business opens exactly at saved expiry
+[PASS] Phase 4B fixture registry validates
+[PASS] Schedules, counters, ledgers, and RNG snapshot imports
+[PASS] Pool and resolution RNG streams continue from saved state
+[PASS] Selection and calendar occurrence ledgers survive load
+[PASS] Same semantic occurrence cannot queue twice after load
+[PASS] EventInstance counter continues without collision
+[PASS] ScheduledEvent counter continues without collision
+[PASS] Scheduled identity, due date, source, participants, and context are preserved
+[PASS] Scheduled cancellation persists across load
+[PASS] Restored schedule never fires early
+[PASS] Due processing queues valid schedule and expires revalidation failure normally
+[PASS] A restored scheduled occurrence fires only once
+[PASS] Cancelled and expired scheduled state cannot return as pending after load
+[PASS] Phase 4B fixture registry validates
+[PASS] Previous save fixture completes a real Event before New Game
+Game saved. | Save ID: 46021 | Family: Phase4B | Money: 10000 | Date: 2000-01-01
+[PASS] Previous save captures Event history before New Game
+Game saved. | Save ID: 46021 | Family: Phase4B | Money: 10000 | Date: 2000-01-01
+Characters reset for new game.
+Time reset: 1985-01-26
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Female/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [4] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [5] start_new_game (res://Autoload/GameManager.gd:367)
+       [6] _test_new_game_preserves_previous_event_save (res://Tests/EventSavePersistencePhase4BTest.gd:340)
+       [7] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:31)
+WARNING: Character 1 has no eligible portrait for gender 'female', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [2] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [3] start_new_game (res://Autoload/GameManager.gd:367)
+       [4] _test_new_game_preserves_previous_event_save (res://Tests/EventSavePersistencePhase4BTest.gd:340)
+       [5] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:31)
+No eligible starting major for character: 1
+Starting job assigned: Sales Representative | Salary: 2200 | Character: 1
+Starting character created: 1 | Name: Fresh | Gender: female | Age: 19 | Major: <null> | Job: 1007 | Salary: 2200
+Starting company assigned: BrightSide Retail & Media | Character: 1 | Job: 1007
+Worker NPCs generated: 10 | Total: 10
+Worker NPC pool reset. | Initial: 10 | Next generation in months: 3
+Game saved. | Save ID: 1788883677916 | Family: FreshSave | Money: 15000 | Date: 1985-01-26
+New game started. | Character ID: 1 | Name: Fresh | Family: FreshSave | Money: 15000 | Diamonds: 0 | Date: 1985-01-26
+[PASS] New Game creates a separate save after preserving the previous one
+[PASS] New Game still resets current Event runtime state
+Game loaded. | Save ID: 46021 | Family: Phase4B | Money: 10000 | Date: 2000-01-01
+[PASS] Previous Event save remains loadable after New Game
+[PASS] New Game does not overwrite the previous save with reset Event state
+[PASS] Phase 4B fixture registry validates
+[PASS] add_flag writes only canonical Character flag state
+[PASS] Event runtime no longer persists Event-owned temporary flag state
+[PASS] Legacy version 6 effect_runtime_state is ignored while canonical Character flags restore normally
+[PASS] New-game reset fixture contains prior Event state
+Characters reset for new game.
+Time reset: 1985-01-26
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [4] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [5] start_new_game (res://Autoload/GameManager.gd:367)
+       [6] _test_flag_persistence_and_new_game_reset (res://Tests/EventSavePersistencePhase4BTest.gd:392)
+       [7] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:32)
+WARNING: Character 1 has no eligible portrait for gender 'male', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_base_starting_character (res://Autoload/CharacterManager.gd:2725)
+       [2] create_starting_character (res://Autoload/CharacterManager.gd:2747)
+       [3] start_new_game (res://Autoload/GameManager.gd:367)
+       [4] _test_flag_persistence_and_new_game_reset (res://Tests/EventSavePersistencePhase4BTest.gd:392)
+       [5] _ready (res://Tests/EventSavePersistencePhase4BTest.gd:32)
+No eligible starting major for character: 1
+Starting job assigned: Warehouse Worker | Salary: 1800 | Character: 1
+Starting character created: 1 | Name: Reset | Gender: male | Age: 19 | Major: <null> | Job: 1002 | Salary: 1800
+Starting company assigned: PrimeCity Workforce | Character: 1 | Job: 1002
+Worker NPCs generated: 11 | Total: 11
+Worker NPC pool reset. | Initial: 11 | Next generation in months: 1
+Game saved. | Save ID: 1788883677974 | Family: EventReset | Money: 15000 | Date: 1985-01-26
+New game started. | Character ID: 1 | Name: Reset | Family: EventReset | Money: 15000 | Diamonds: 0 | Date: 1985-01-26
+[PASS] Normal new-game flow clears all Event runtime state and counters
+========================================
+Event Phase 4B persistence tests: 97 passed / 0 failed
+========================================

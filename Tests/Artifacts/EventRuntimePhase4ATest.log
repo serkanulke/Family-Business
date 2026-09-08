@@ -1,0 +1,128 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Phase 4A fixture registry validates
+[PASS] Deterministic fixture activates
+[PASS] Deterministic choice resolves every effect
+[PASS] Stat feedback reports clamp-aware applied amount
+[PASS] Event and choice costs commit with economy effects
+[PASS] Custom flag feedback hides the internal flag ID
+[PASS] Story history records instance and choice
+[PASS] History and repeat state commit only on completion
+[PASS] Cooldown begins at successful completion
+[PASS] Phase 4A fixture registry validates
+[PASS] Flag removal is an explicit Event effect rather than an EventManager timer
+[PASS] Phase 4A fixture registry validates
+[PASS] Choice requirements are revalidated immediately before resolution
+[PASS] Phase 4A fixture registry validates
+[PASS] Effect preflight prevents partial mutation and cost commitment
+[PASS] Failed Item effect returns a structured failure result
+[PASS] Failed resolution writes no completed history or repeat state
+[PASS] Phase 4A fixture registry validates
+[PASS] Conflicting authoritative mutations fail before any cost or domain change
+[PASS] Atomic conflict returns a structured failure result
+[PASS] Phase 4A fixture registry validates
+[PASS] Failed weighted preflight restores the resolution RNG stream
+[PASS] Failed weighted preflight leaves the active Event available for retry
+JOB OFFER | Character: 1 | Job: Cashier | Company: MetroWorks Services | Salary: 1200
+[PASS] Phase 4A fixture registry validates
+WARNING: Character 1 has no eligible portrait for gender 'female', skin tone '', and life stage 'adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] normalize_character_portraits (res://Autoload/CharacterManager.gd:917)
+       [2] apply_save_snapshot (res://Autoload/SaveManager.gd:509)
+       [3] _restore_resolution_transaction (res://Autoload/EventManager.gd:1459)
+       [4] resolve_active_event (res://Autoload/EventManager.gd:532)
+       [5] _test_resolution_transaction_rollback (res://Tests/EventRuntimePhase4ATest.gd:145)
+       [6] _ready (res://Tests/EventRuntimePhase4ATest.gd:17)
+WARNING: Character 2 has no eligible portrait for gender 'female', skin tone '', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] normalize_character_portraits (res://Autoload/CharacterManager.gd:917)
+       [2] apply_save_snapshot (res://Autoload/SaveManager.gd:509)
+       [3] _restore_resolution_transaction (res://Autoload/EventManager.gd:1459)
+       [4] resolve_active_event (res://Autoload/EventManager.gd:532)
+       [5] _test_resolution_transaction_rollback (res://Tests/EventRuntimePhase4ATest.gd:145)
+       [6] _ready (res://Tests/EventRuntimePhase4ATest.gd:17)
+WARNING: Character 3 has no eligible portrait for gender 'female', skin tone '', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] normalize_character_portraits (res://Autoload/CharacterManager.gd:917)
+       [2] apply_save_snapshot (res://Autoload/SaveManager.gd:509)
+       [3] _restore_resolution_transaction (res://Autoload/EventManager.gd:1459)
+       [4] resolve_active_event (res://Autoload/EventManager.gd:532)
+       [5] _test_resolution_transaction_rollback (res://Tests/EventRuntimePhase4ATest.gd:145)
+       [6] _ready (res://Tests/EventRuntimePhase4ATest.gd:17)
+[PASS] Apply-time failure is reported after an earlier effect actually ran
+[PASS] Apply-time rollback restores Event cost, economy mutation, and Career state
+[PASS] Apply-time rollback restores the original active Event with no completion state
+[PASS] Apply-time rollback restores the weighted resolution RNG stream
+[PASS] Weighted outcome applies requirement-based weight modifiers
+[PASS] Weighted RNG state exports and imports deterministically
+[PASS] Score check combines authoritative numeric sources deterministically
+[PASS] Score check selects authored failure below threshold
+[PASS] Phase 4A fixture registry validates
+[PASS] remove_item selects nearest expiration deterministically
+[PASS] Item effect never takes an instance equipped by another Character
+[PASS] Phase 4A fixture registry validates
+[PASS] equip_item chooses an eligible family-owned matching instance
+[PASS] Phase 4A fixture registry validates
+[PASS] unequip_item affects only the target Character's matching Item
+[PASS] Phase 4A fixture registry validates
+[PASS] add_item creates a canonical ItemManager instance
+JOB OFFER | Character: 1 | Job: Cashier | Company: MetroWorks Services | Salary: 1200
+[PASS] Phase 4A fixture registry validates
+JOB OFFER ACCEPTED | Character: 1 | Job: 1001 | Company: metro_works_services | Salary: 1200
+[PASS] accept_job_offer delegates to CareerManager and reports canonical Job/Company data
+[PASS] Phase 4A fixture registry validates
+[PASS] salary_increase changes only authoritative external salary and reports the actual delta
+[PASS] Phase 4A fixture registry validates
+[PASS] job_remove delegates external-employment cleanup and reports prior career state
+JOB OFFER | Character: 1 | Job: Cashier | Company: MetroWorks Services | Salary: 1200
+[PASS] Phase 4A fixture registry validates
+JOB OFFER REJECTED | Character: 1
+[PASS] reject_job_offer clears only CareerManager's active offer and reports canonical offer data
+[PASS] Phase 4A fixture registry validates
+Character enrolled in school: 1 | School: 1001
+[PASS] education_enroll delegates the active EducationManager enrollment flow
+[PASS] Phase 4A fixture registry validates
+[PASS] remove_from_house delegates exact Character cleanup and preserves unrelated residents
+[PASS] Phase 4A fixture registry validates
+FAMILY BUSINESS UPGRADED | ID: business_0001 | Level: 2 | Cost: 150000
+[PASS] business_upgrade delegates canonical cost, slots, and level mutation
+[PASS] Phase 4A fixture registry validates
+[PASS] relationship_status_set delegates narrow external Relationship status mutation
+[PASS] Phase 4A fixture registry validates
+[PASS] relationship_marry delegates RelationshipNpcManager family entry and canonical spouse House placement
+[PASS] Phase 4A fixture registry validates
+[PASS] relationship_divorce delegates partner, House, and external-spouse cleanup
+[PASS] Phase 4A fixture registry validates
+[PASS] relationship_marry revalidates the age boundary at final Event resolution
+[PASS] Phase 4A fixture registry validates
+[PASS] queue_event creates a bound follow-up behind the active Event
+[PASS] schedule_event preserves inherited bindings and chain source
+[PASS] Phase 4A fixture registry validates
+[PASS] cancel_scheduled_event cancels an exact pending target
+[PASS] Phase 4A fixture registry validates
+[PASS] Runtime state imports from its JSON-safe export
+[PASS] Import restores active queue state and story history
+[PASS] Import does not replay already-applied or pending effects
+[PASS] Imported active Event resolves exactly once
+[PASS] Runtime reset clears every Phase 4A Event state surface
+[PASS] Phase 4A fixture registry validates
+========================================
+Event Phase 4A tests: 75 passed / 0 failed
+========================================

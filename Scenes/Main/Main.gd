@@ -10,11 +10,15 @@ const MAP_SCENE := preload("res://UI/Map.tscn")
 @onready var buy_building_modal: BuyBuildingModal = $ModalLayer/BuyBuildingModal
 @onready var house_modal: HouseModal = $ModalLayer/HouseModal
 @onready var buy_house_modal: BuyHouseModal = $ModalLayer/BuyHouseModal
+@onready var event_presentation: EventPresentation = $EventPresentation
 
 var map_screen: MapScreen
 
 
 func _ready() -> void:
+	event_presentation.set_character_card(
+		family_tree_screen.get_node_or_null("CharacterCard")
+	)
 	if not main_hud.screen_requested.is_connected(_on_screen_requested):
 		main_hud.screen_requested.connect(_on_screen_requested)
 	if not buy_building_modal.purchase_completed.is_connected(_on_building_purchase_completed):
@@ -30,6 +34,13 @@ func _ready() -> void:
 	if not buy_house_modal.purchase_completed.is_connected(_on_house_purchase_completed):
 		buy_house_modal.purchase_completed.connect(_on_house_purchase_completed)
 	_show_family_tree()
+
+
+func begin_manual_event(
+	event_id: String,
+	runtime_context: Dictionary = {}
+) -> bool:
+	return event_presentation.begin_manual_event(event_id, runtime_context)
 
 
 func show_screen(screen_id: String) -> void:

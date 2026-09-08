@@ -98,8 +98,10 @@ The Event backend should not be broadly refactored while authoring these categor
 ## Partial / Missing Approved Work
 
 ### Shared player-facing Event presentation
-- `EventPresentationResolver` exists and can resolve current dynamic Job Offer tokens.
-- A complete shared production Event modal/presentation layer consuming active Event content/choices/effect feedback is still incomplete.
+- `UI/EventPresentation/EventPresentation.tscn` is instantiated by `Scenes/Main/Main.tscn` and presents blocking active Events from `EventManager`.
+- The shared modal supports single-Character, two-Character Relationship, and Character-group headers; data-authored Event art and choice icons; live backend-derived enabled/locked choice states; existing Character Card routing; player-selected Character-group bottom sheets; and Character stat-change result cards from applied `EffectResult` records.
+- Missing `presentation.art_path` or `choice.icon_path` remains safe and visually empty. Production Event JSON asset metadata is still unauthored.
+- No production Lifestyle/Family Agency Character-group Event or live caller currently exists; the shared manual-entry contract is implemented and covered by fixtures, but production group content/integration remains incomplete.
 
 ### Career production Events
 - CareerManager backend is implemented.

@@ -1,0 +1,38 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[RelationshipNPCDebug] Family Character list refreshed: 0 display entries.
+[RelationshipNPCDebug] Relationship NPC debug panel ready.
+Use a disposable test save: forcing a scheduled event changes that save's runtime state.
+[PASS] Main owns the production Family Tree and one shared HUD
+[PASS] Date, balances, and the reference navigation exist only in Main shared UI
+[PASS] Family Tree retains only its screen-specific time controls
+[PASS] Map navigation activates only the Map screen and its independent camera
+[PASS] Shared reference navigation switches to the correct Map active state
+[PASS] Owned family-business property opens the shared BusinessModal with its instance ID
+[PASS] Unowned family-business property opens the shared BuyBuildingModal with stable metadata
+[PASS] Open BuyBuildingModal consumes pointer drag before it can pan the Map
+[PASS] Unowned House opens the House purchase flow, not owned management
+[PASS] Owned House opens management for the exact House instance
+[PASS] Land opens no modal and Main owns one reusable instance of each property modal
+FAMILY BUSINESS CREATED | ID: business_0001 | Type: cafe | Plot: cafe_02 | New Construction: false | Cost: 25000
+[PASS] Successful Map purchase deducts once and transitions directly into BusinessModal
+[PASS] Successful purchase refreshes the authored Map tag and shared money HUD
+[PASS] Main dispatches desktop drag through fullscreen UI to the active Map camera
+[PASS] Map has no duplicate navigation/top values and Family Tree-only controls are hidden
+[PASS] Repeated Family Tree/Map navigation reuses both screen and HUD without duplicates
+[PASS] Family Tree returns with its original camera and no Map canvas content remains visible
+Main / shared navigation tests: 17 passed / 0 failed
+ALL MAIN / SHARED NAVIGATION TESTS PASSED.

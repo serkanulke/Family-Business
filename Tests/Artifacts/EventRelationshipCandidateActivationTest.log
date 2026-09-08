@@ -1,0 +1,146 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Relationship candidate activation fixture registry validates
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [4] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [5] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [6] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [7] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [8] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [9] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [10] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:35)
+       [11] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+WARNING: Character 2 has no eligible portrait for gender 'male', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [2] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [3] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [4] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [5] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [6] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [7] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [8] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:35)
+       [9] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+[PASS] Automatic Meet Someone fixture becomes active
+[PASS] A new Relationship NPC is bound before the first Event is presented
+[PASS] The first modal target is a canonical external candidate Character
+[PASS] Rejecting the encounter releases the persistent NPC and records the pair
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Female/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [4] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [5] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [6] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [7] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [8] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [9] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [10] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:82)
+       [11] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+WARNING: Character 3 has no eligible portrait for gender 'female', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [2] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [3] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [4] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [5] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [6] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [7] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [8] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:82)
+       [9] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+[PASS] The same family Character may receive another Meet Someone occurrence
+[PASS] A later Meet Someone occurrence cannot reuse the NPC rejected by that Character
+[PASS] Continuing the encounter preserves its active candidate link
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Female/Mixed/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [4] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [5] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [6] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [7] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [8] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [9] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [10] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:118)
+       [11] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+WARNING: Character 4 has no eligible portrait for gender 'female', skin tone 'mixed', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [2] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [3] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [4] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [5] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [6] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [7] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [8] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:118)
+       [9] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+[PASS] Meet Someone can bind another NPC while an existing candidate remains active
+[PASS] Multiple candidate links for one Family Character remain active concurrently
+[PASS] One of several candidates may be selected for marriage
+[PASS] Marriage cuts the primary Character's links to all unselected Relationship NPCs
+[PASS] An old candidate cannot continue Relationship progression while the primary Character is married
+[PASS] The selected spouse can later divorce through the canonical manager
+[PASS] A cleared Relationship NPC link does not return after the selected marriage later ends
+[PASS] A Relationship NPC whose link was cleared by marriage cannot resume by exact ID
+WARNING: Portrait folder could not be opened: res://Resources/Characters/Male/Dark/YoungAdult
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] get_available_portrait_variants (res://Autoload/CharacterManager.gd:564)
+       [1] select_random_portrait_variant (res://Autoload/CharacterManager.gd:616)
+       [2] ensure_character_portrait (res://Autoload/CharacterManager.gd:865)
+       [3] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [4] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [5] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [6] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [7] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [8] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [9] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [10] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:204)
+       [11] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+WARNING: Character 5 has no eligible portrait for gender 'male', skin tone 'dark', and life stage 'young_adult'; using the default avatar.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] ensure_character_portrait (res://Autoload/CharacterManager.gd:891)
+       [1] create_persistent_relationship_npc (res://Autoload/RelationshipNPCManager.gd:394)
+       [2] create_relationship_candidate (res://Autoload/RelationshipNPCManager.gd:298)
+       [3] _materialize_activation_participants (res://Autoload/EventManager.gd:1246)
+       [4] _activate_next_event (res://Autoload/EventManager.gd:1161)
+       [5] _select_and_queue (res://Autoload/EventManager.gd:1100)
+       [6] _select_and_queue_with_automatic_character_fanout (res://Autoload/EventManager.gd:756)
+       [7] dispatch_system_trigger (res://Autoload/EventManager.gd:108)
+       [8] _run_tests (res://Tests/EventRelationshipCandidateActivationTest.gd:204)
+       [9] _ready (res://Tests/EventRelationshipCandidateActivationTest.gd:17)
+[PASS] A generated candidate that fails final participant validation is never presented
+[PASS] Failed activation releases the unpresented NPC without deletion or rejection history
+========================================
+Event Relationship candidate activation tests: 18 passed / 0 failed
+========================================

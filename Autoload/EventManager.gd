@@ -307,36 +307,204 @@ func complete_active_event() -> bool:
 	return _finish_active_event("completed")
 
 
+func get_active_choice_availability(choice_id: String = "") -> Dictionary:
+	if active_event == null:
+		return _choice_availability_failure(
+			choice_id,
+			"no_active_event",
+			"There is no active Event to resolve."
+		)
+	var event := registry.get_event(active_event.event_id)
+	if event.is_empty():
+		return _choice_availability_failure(
+			choice_id,
+			"definition_missing",
+			"The active Event definition is unavailable."
+		)
+	var availability := runtime_service.get_resolved_availability(
+		active_event.event_id,
+		active_event.participants,
+		active_event.context
+	)
+	if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+		return {
+			"choice_id": choice_id,
+			"available": false,
+			"status": String(availability.get("status", "locked_requirements")),
+			"failure_reasons": availability.get("failure_reasons", []).duplicate(true),
+			"choice": {}
+		}
+
+	var choice: Dictionary = {}
+	var choices_value = event.get("choices", [])
+	if typeof(choices_value) == TYPE_ARRAY and not choices_value.is_empty():
+		for value in choices_value:
+			if (
+				typeof(value) == TYPE_DICTIONARY
+				and String(value.get("choice_id", "")) == choice_id
+			):
+				choice = value
+				break
+		if choice.is_empty():
+			return _choice_availability_failure(
+				choice_id,
+				"choice_unavailable",
+				"The selected Event choice is unavailable."
+			)
+		var choice_requirements := runtime_service.requirement_evaluator.evaluate(
+			choice.get("requirements", {"all": []}),
+			active_event.participants,
+			active_event.context
+		)
+		if not bool(choice_requirements.get("eligible", false)):
+			return {
+				"choice_id": choice_id,
+				"available": false,
+				"status": EventRuntimeService.LOCKED_REQUIREMENTS,
+				"failure_reasons": choice_requirements.get(
+					"failure_reasons", []
+				).duplicate(true),
+				"choice": choice.duplicate(true)
+			}
+	elif not choice_id.is_empty():
+		return _choice_availability_failure(
+			choice_id,
+			"choice_unavailable",
+			"This Event does not accept a choice."
+		)
+
+	var money_cost := (
+		_cost_amount(event.get("cost", null), "money")
+		+ _cost_amount(choice.get("cost", null), "money")
+	)
+	var diamond_cost := (
+		_cost_amount(event.get("cost", null), "diamonds")
+		+ _cost_amount(choice.get("cost", null), "diamonds")
+	)
+	if GameManager.family_money < money_cost or GameManager.diamonds < diamond_cost:
+		return _choice_availability_failure(
+			choice_id,
+			"locked_cost",
+			"The family cannot currently afford this Event choice.",
+			choice,
+			EventRuntimeService.LOCKED_COST
+		)
+	return {
+		"choice_id": choice_id,
+		"available": true,
+		"status": EventRuntimeService.AVAILABLE,
+		"failure_reasons": [],
+		"choice": choice.duplicate(true),
+		"money_cost": money_cost,
+		"diamond_cost": diamond_cost
+	}
+
+
+func get_active_choice_states() -> Array:
+	var result: Array = []
+	if active_event == null or registry == null:
+		return result
+	var event := registry.get_event(active_event.event_id)
+	var choices_value = event.get("choices", [])
+	if typeof(choices_value) != TYPE_ARRAY:
+		return result
+	for choice_value in choices_value:
+		if typeof(choice_value) != TYPE_DICTIONARY:
+			continue
+		result.append(
+			get_active_choice_availability(
+				String(choice_value.get("choice_id", ""))
+			)
+		)
+	return result
+
+
+func set_active_character_group_selection(
+	participant_name: String,
+	selected_character_ids: Array
+) -> Dictionary:
+	if active_event == null or registry == null:
+		return {
+			"updated": false,
+			"failure_reasons": [
+				{
+					"code": "no_active_event",
+					"message": "There is no active Event to update."
+				}
+			]
+		}
+	var event := registry.get_event(active_event.event_id)
+	var definitions_value = event.get("participants", {})
+	if typeof(definitions_value) != TYPE_DICTIONARY:
+		return {
+			"updated": false,
+			"failure_reasons": [
+				{
+					"code": "invalid_participants",
+					"message": "Event participants are unavailable."
+				}
+			]
+		}
+	var definition_value = definitions_value.get(participant_name, {})
+	if (
+		typeof(definition_value) != TYPE_DICTIONARY
+		or String(definition_value.get("type", "")) != "character_group"
+		or String(definition_value.get("source", "")) != "player_selected"
+	):
+		return {
+			"updated": false,
+			"failure_reasons": [
+				{
+					"code": "participant_selection_unavailable",
+					"message": "This Event participant does not support Character selection."
+				}
+			]
+		}
+	var proposed_participants := active_event.participants.duplicate(true)
+	proposed_participants[participant_name] = selected_character_ids.duplicate()
+	var availability := runtime_service.get_resolved_availability(
+		active_event.event_id,
+		proposed_participants,
+		active_event.context
+	)
+	if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
+		return {
+			"updated": false,
+			"failure_reasons": availability.get(
+				"failure_reasons", []
+			).duplicate(true)
+		}
+	active_event.participants = proposed_participants
+	active_event_changed.emit(active_event.to_dictionary())
+	_emit_queue_state()
+	return {
+		"updated": true,
+		"participants": active_event.participants.duplicate(true),
+		"failure_reasons": []
+	}
+
+
 func resolve_active_event(choice_id: String = "") -> Dictionary:
 	if active_event == null:
 		return _resolution_failure("no_active_event", "There is no active Event to resolve.")
 	var event := registry.get_event(active_event.event_id)
 	if event.is_empty():
 		return _resolution_failure("definition_missing", "The active Event definition is unavailable.")
-	var availability := runtime_service.get_resolved_availability(active_event.event_id, active_event.participants, active_event.context)
-	if String(availability.get("status", "")) != EventRuntimeService.AVAILABLE:
-		return {"resolved": false, "failure_reasons": availability.get("failure_reasons", []).duplicate(true), "effect_results": []}
-	var choice: Dictionary = {}
-	var choices_value = event.get("choices", [])
-	if typeof(choices_value) == TYPE_ARRAY and not choices_value.is_empty():
-		for value in choices_value:
-			if typeof(value) == TYPE_DICTIONARY and String(value.get("choice_id", "")) == choice_id:
-				choice = value
-				break
-		if choice.is_empty():
-			return _resolution_failure("choice_unavailable", "The selected Event choice is unavailable.")
-		var choice_requirements := runtime_service.requirement_evaluator.evaluate(choice.get("requirements", {"all": []}), active_event.participants, active_event.context)
-		if not bool(choice_requirements.get("eligible", false)):
-			return {"resolved": false, "failure_reasons": choice_requirements.get("failure_reasons", []).duplicate(true), "effect_results": []}
-	elif not choice_id.is_empty():
-		return _resolution_failure("choice_unavailable", "This Event does not accept a choice.")
+	var choice_availability := get_active_choice_availability(choice_id)
+	if not bool(choice_availability.get("available", false)):
+		return {
+			"resolved": false,
+			"failure_reasons": choice_availability.get(
+				"failure_reasons", []
+			).duplicate(true),
+			"effect_results": []
+		}
+	var choice: Dictionary = choice_availability.get("choice", {})
 	var resolution_value = choice.get("resolution", null) if not choice.is_empty() else event.get("default_resolution", null)
 	if typeof(resolution_value) != TYPE_DICTIONARY:
 		return _resolution_failure("resolution_unavailable", "The Event resolution is unavailable.")
-	var money_cost := _cost_amount(event.get("cost", null), "money") + _cost_amount(choice.get("cost", null), "money")
-	var diamond_cost := _cost_amount(event.get("cost", null), "diamonds") + _cost_amount(choice.get("cost", null), "diamonds")
-	if GameManager.family_money < money_cost or GameManager.diamonds < diamond_cost:
-		return _resolution_failure("locked_cost", "The family cannot currently afford this Event choice.")
+	var money_cost := int(choice_availability.get("money_cost", 0))
+	var diamond_cost := int(choice_availability.get("diamond_cost", 0))
 
 	# A failed resolution must be a true no-op, including the weighted RNG stream.
 	var resolution_random_state := resolution_resolver.export_state()
@@ -1296,6 +1464,24 @@ func _restore_resolution_transaction(snapshot: Dictionary) -> bool:
 
 func _resolution_failure(code: String, message: String) -> Dictionary:
 	return {"resolved": false, "failure_reasons": [{"code": code, "message": message}], "effect_results": []}
+
+
+func _choice_availability_failure(
+	choice_id: String,
+	code: String,
+	message: String,
+	choice: Dictionary = {},
+	status: String = EventRuntimeService.LOCKED_REQUIREMENTS
+) -> Dictionary:
+	return {
+		"choice_id": choice_id,
+		"available": false,
+		"status": status,
+		"failure_reasons": [{"code": code, "message": message}],
+		"choice": choice.duplicate(true),
+		"money_cost": 0,
+		"diamond_cost": 0
+	}
 
 
 func _rebuild_runtime_indexes() -> void:

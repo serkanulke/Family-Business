@@ -1,0 +1,130 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+Characters loaded: 0
+Majors loaded: 16
+Jobs loaded: 88
+Schools loaded: 12
+Companies loaded: 90
+Company validation: no invalid job IDs.
+Company validation: every job has at least 5 companies.
+Family businesses loaded: 0
+Business types loaded: 12
+Worker NPCs loaded: 0
+Items loaded: 261
+[PASS] Phase 2 manual fixture registry validates
+[PASS] Recursive all true
+[PASS] Recursive all false
+[PASS] Recursive any true
+[PASS] Recursive any false
+[PASS] Recursive none true
+[PASS] Recursive none false
+[PASS] Nested all/any/none combination
+[PASS] Operator == works
+[PASS] Operator != works
+[PASS] Operator > works
+[PASS] Operator >= works
+[PASS] Operator < works
+[PASS] Operator <= works
+[PASS] Operator in works
+[PASS] Operator not_in works
+[PASS] Operator contains works
+[PASS] Operator not_contains works
+[PASS] Invalid runtime value is rejected without coercion
+[PASS] Requirement type stat evaluates from authoritative/query-provider state
+[PASS] Requirement type flag evaluates from authoritative/query-provider state
+[PASS] Requirement type age evaluates from authoritative/query-provider state
+[PASS] Requirement type life_stage evaluates from authoritative/query-provider state
+[PASS] Requirement type gender evaluates from authoritative/query-provider state
+[PASS] Requirement type is_alive evaluates from authoritative/query-provider state
+[PASS] Requirement type is_family_member evaluates from authoritative/query-provider state
+[PASS] Requirement type has_child evaluates from authoritative/query-provider state
+[PASS] Requirement type has_parent evaluates from authoritative/query-provider state
+[PASS] Requirement type has_spouse evaluates from authoritative/query-provider state
+[PASS] Requirement type relationship_status evaluates from authoritative/query-provider state
+[PASS] Requirement type family_member_count evaluates from authoritative/query-provider state
+[PASS] Requirement type employment_status evaluates from authoritative/query-provider state
+[PASS] Requirement type job evaluates from authoritative/query-provider state
+[PASS] Requirement type job_tag evaluates from authoritative/query-provider state
+[PASS] Requirement type education_stage evaluates from authoritative/query-provider state
+[PASS] Requirement type school evaluates from authoritative/query-provider state
+[PASS] Requirement type school_type evaluates from authoritative/query-provider state
+[PASS] Requirement type major evaluates from authoritative/query-provider state
+[PASS] Requirement type lifestyle_score evaluates from authoritative/query-provider state
+[PASS] Requirement type equipped_item evaluates from authoritative/query-provider state
+[PASS] Requirement type item_type evaluates from authoritative/query-provider state
+[PASS] Requirement type item_rarity evaluates from authoritative/query-provider state
+[PASS] Requirement type money evaluates from authoritative/query-provider state
+[PASS] Requirement type diamonds evaluates from authoritative/query-provider state
+[PASS] Requirement type house_assignment evaluates from authoritative/query-provider state
+[PASS] Requirement type house_level evaluates from authoritative/query-provider state
+[PASS] Requirement type household_status evaluates from authoritative/query-provider state
+[PASS] Requirement type household_perk evaluates from authoritative/query-provider state
+[PASS] Requirement type business_owned evaluates from authoritative/query-provider state
+[PASS] Requirement type business_type evaluates from authoritative/query-provider state
+[PASS] Requirement type business_level evaluates from authoritative/query-provider state
+[PASS] Requirement type business_role evaluates from authoritative/query-provider state
+[PASS] Requirement type event_seen evaluates from authoritative/query-provider state
+[PASS] Requirement type event_completed evaluates from authoritative/query-provider state
+[PASS] Requirement type event_not_completed evaluates from authoritative/query-provider state
+[PASS] Requirement type choice_made evaluates from authoritative/query-provider state
+[PASS] Requirement type outcome_reached evaluates from authoritative/query-provider state
+[PASS] Requirement type entitlement evaluates from authoritative/query-provider state
+[PASS] Requirement type date evaluates from authoritative/query-provider state
+[PASS] Requirement type year evaluates from authoritative/query-provider state
+[PASS] Requirement type month evaluates from authoritative/query-provider state
+[PASS] Missing entitlement cleanly returns a readable locked reason
+[PASS] Unsupported item_flag requirement cannot fall back to Item data
+[PASS] Lifestyle 59 does not satisfy >= 60
+[PASS] Lifestyle 60 satisfies >= 60
+[PASS] Job without event_tags does not satisfy job_tag
+[PASS] Family Business assignment counts as employed without an external job
+[PASS] Character with neither external job nor Family Business assignment is unemployed
+[PASS] Retirement remains authoritative over employment sources
+[PASS] Relationship Event lookup uses only the RelationshipNPCManager candidate pool
+[PASS] Relationship candidate lookup respects the manager-owned linked Character
+[PASS] Trigger primary resolves
+[PASS] Spouse, parent, and child resolve from canonical family links
+[PASS] Primary House source resolves
+[PASS] Owned family Business context resolves
+[PASS] Inherited/provided Event context resolves
+[PASS] Relationship NPC source resolves an existing candidate
+[PASS] Exact group prepares all family candidates
+[PASS] Candidate result includes readable ineligibility reasons
+[PASS] Exact five-person group accepts five eligible family members
+[PASS] Exact group rejects too few
+[PASS] Ranged group accepts minimum
+[PASS] Ranged group rejects too many
+[PASS] Group rejects duplicate Character IDs
+[PASS] Group rejects an ineligible candidate
+[PASS] Exact group rechecks every selected Character
+[PASS] Runtime definition lookup by event_id
+[PASS] Runtime lookup by category with enabled filter
+[PASS] Runtime lookup by domain
+[PASS] Runtime lookup by manual source includes disabled when requested
+[PASS] Runtime lookup by pool_id
+[PASS] Runtime content lookup
+[PASS] Runtime presentation lookup
+[PASS] Direct manual discovery returns definitions without selection
+[PASS] Manual available state
+[PASS] Manual locked_requirements state
+[PASS] Manual locked_cost state
+[PASS] Manual locked_cooldown provider state
+[PASS] Manual completed_non_repeatable provider state
+[PASS] Disabled manual definition is explicit
+[PASS] Locked result contains a player-readable reason
+[PASS] Pool discovery returns eligible candidates without weighted execution
+[PASS] Family Agency manual source uses common discovery
+[PASS] Common discovery returns every definition for a supported manual source
+[PASS] Manual discovery prepares participant-group selection
+[PASS] Available manual Event creates activatable instances
+[PASS] Runtime instance IDs are deterministic and unique
+[PASS] EventInstance links definition and trigger
+[PASS] EventInstance preserves participants, context, and source instance
+[PASS] EventInstance does not duplicate static display data
+[PASS] Definition and participant are revalidated immediately before activation
+[PASS] Definition enabled state is revalidated before activation
+[PASS] Phase 2 discovery/evaluation/instance creation does not mutate gameplay state
+========================================
+Event Phase 2 tests: 113 passed / 0 failed
+========================================
+ALL EVENT PHASE 2 TESTS PASSED.

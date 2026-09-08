@@ -148,19 +148,17 @@ Player-initiated manual flow. Preserve per-Event Agency cooldown and entitlement
 
 ## 4. Shared Event Presentation Work
 
-`EventPresentationResolver` currently resolves dynamic Job Offer content.
+The shared production Event presentation is implemented and wired into `Main`. It consumes:
 
-A complete common player-facing Event modal still needs to consume:
+- resolved title/subtitle/description and participant-role names;
+- single, Relationship, and Character-group participant layouts;
+- data-authored Event art and enabled choice icons;
+- backend-derived choice cost/locked state;
+- applied Character stat `EffectResult` feedback;
+- the existing blocking queue/pause lifecycle;
+- backend-prepared player-selected Character-group candidates and min/max validation.
 
-- resolved title/subtitle/description;
-- participants;
-- art/icon/template metadata;
-- choices;
-- choice cost/locked state;
-- EffectResult feedback;
-- blocking pause lifecycle.
-
-Do not design the visual treatment independently when an approved reference exists.
+Remaining presentation-related content work is to author production `presentation.art_path` and `choice.icon_path` values. Production Lifestyle/Family Agency group content and its live caller are also still absent; fixtures do not make those categories complete.
 
 ## 5. Final Category Completion Checklist
 
