@@ -134,6 +134,8 @@ func _ready() -> void:
 		"Game date is restored"
 	)
 
+	_test_character_id_normalization()
+
 	SaveManager.current_save_id = -1
 	_cleanup_test_saves()
 
@@ -188,6 +190,81 @@ func _create_test_game() -> void:
 	TimeManager.current_year = 1992
 	TimeManager.speed_multiplier = 2.0
 	TimeManager.is_paused = false
+
+
+func _test_character_id_normalization() -> void:
+	var original_characters := CharacterManager.characters
+
+	CharacterManager.characters = [
+		{
+			"character_id": 1.0,
+			"partner_id": 2.0,
+			"linked_character_id": 3.0,
+			"children_ids": [4.0, 5.0, 4.0],
+			"rejected_by_character_ids": [6.0, 7.0, 6.0]
+		},
+		{
+			"character_id": 2.0,
+			"partner_id": null,
+			"linked_character_id": null,
+			"children_ids": [],
+			"rejected_by_character_ids": []
+		}
+	]
+
+	CharacterManager.normalize_character_ids()
+
+	var character: Dictionary = CharacterManager.characters[0]
+	var nullable_character: Dictionary = CharacterManager.characters[1]
+	var children: Array = character.get("children_ids", [])
+	var rejected_by: Array = character.get(
+		"rejected_by_character_ids",
+		[]
+	)
+
+	_assert_true(
+		typeof(character.get("character_id")) == TYPE_INT
+		and int(character.get("character_id")) == 1,
+		"Character ID is normalized to int"
+	)
+
+	_assert_true(
+		typeof(character.get("partner_id")) == TYPE_INT
+		and int(character.get("partner_id")) == 2,
+		"Partner ID is normalized to int"
+	)
+
+	_assert_true(
+		typeof(character.get("linked_character_id")) == TYPE_INT
+		and int(character.get("linked_character_id")) == 3,
+		"Linked Character ID is normalized to int"
+	)
+
+	_assert_true(
+		children.size() == 2
+		and typeof(children[0]) == TYPE_INT
+		and typeof(children[1]) == TYPE_INT
+		and int(children[0]) == 4
+		and int(children[1]) == 5,
+		"Children IDs are normalized to unique ints"
+	)
+
+	_assert_true(
+		rejected_by.size() == 2
+		and typeof(rejected_by[0]) == TYPE_INT
+		and typeof(rejected_by[1]) == TYPE_INT
+		and int(rejected_by[0]) == 6
+		and int(rejected_by[1]) == 7,
+		"Rejected-by Character IDs are normalized to unique ints"
+	)
+
+	_assert_true(
+		nullable_character.get("partner_id", null) == null
+		and nullable_character.get("linked_character_id", null) == null,
+		"Nullable Character ID fields remain null"
+	)
+
+	CharacterManager.characters = original_characters
 
 
 func _test_load_game_screen_binding() -> void:

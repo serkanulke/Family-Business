@@ -1351,6 +1351,64 @@ func normalize_character_ids() -> void:
 			)
 		)
 
+		_normalize_nullable_character_id_field(
+			character,
+			"partner_id"
+		)
+		_normalize_nullable_character_id_field(
+			character,
+			"linked_character_id"
+		)
+		_normalize_character_id_array_field(
+			character,
+			"children_ids"
+		)
+		_normalize_character_id_array_field(
+			character,
+			"rejected_by_character_ids"
+		)
+
+
+func _normalize_nullable_character_id_field(
+	character: Dictionary,
+	field_name: String
+) -> void:
+	if not character.has(field_name):
+		return
+
+	var value = character.get(field_name, null)
+	if value == null:
+		return
+
+	character[field_name] = int(value)
+
+
+func _normalize_character_id_array_field(
+	character: Dictionary,
+	field_name: String
+) -> void:
+	if not character.has(field_name):
+		return
+
+	var values = character.get(field_name, [])
+	if typeof(values) != TYPE_ARRAY:
+		character[field_name] = []
+		return
+
+	var normalized_ids: Array[int] = []
+	for value in values:
+		if value == null:
+			continue
+
+		var character_id := int(value)
+		if (
+			character_id > 0
+			and character_id not in normalized_ids
+		):
+			normalized_ids.append(character_id)
+
+	character[field_name] = normalized_ids
+
 
 func normalize_character_flag_ids() -> void:
 	for character_value in characters:
