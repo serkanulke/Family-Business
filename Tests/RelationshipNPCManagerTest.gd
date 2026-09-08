@@ -61,6 +61,8 @@ func _ready() -> void:
 func _run_tests() -> void:
 	_test_age_rules()
 	_test_generation()
+	_test_pool_reuse_and_rejection_history()
+	_test_technical_candidate_release()
 	_test_external_relationship_status_mutation()
 	_test_marriage_conversion()
 	_test_marriage_final_revalidation()
@@ -120,6 +122,7 @@ func _make_family_character_with_parents(
 func _reset_world() -> void:
 	CharacterManager.characters = []
 	CharacterManager.next_character_id = 1
+	manager.relationship_candidate_ids.clear()
 
 
 func _test_age_rules() -> void:
@@ -163,6 +166,130 @@ func _test_generation() -> void:
 	)
 
 
+func _test_pool_reuse_and_rejection_history() -> void:
+	_reset_world()
+	GameManager.set_same_sex_marriage_enabled(false, false)
+
+	var family_a := _make_family_character(30, "male")
+	var family_b := _make_family_character(31, "male")
+	var family_a_id := int(family_a["character_id"])
+	var family_b_id := int(family_b["character_id"])
+	var standalone: Dictionary = manager.create_persistent_relationship_npc(
+		family_a_id
+	)
+	var standalone_id := int(standalone.get("character_id", 0))
+
+	_assert_true(
+		standalone_id > 0
+		and standalone.get("linked_character_id", null) == null
+		and not standalone.has("relationship_status")
+		and not manager.relationship_candidate_ids.has(standalone_id),
+		"Relationship NPC creation persists an independent unassigned Character"
+	)
+
+	var assigned: bool = manager.assign_relationship_candidate(
+		standalone_id,
+		family_a_id
+	)
+	var double_assignment_blocked: bool = not manager.assign_relationship_candidate(
+		standalone_id,
+		family_b_id
+	)
+	standalone["rejected_by_character_ids"] = [family_a_id]
+	var rejected: bool = manager.release_external_relationship(
+		standalone_id,
+		family_a_id,
+		true
+	)
+	_assert_true(
+		assigned
+		and double_assignment_blocked
+		and rejected
+		and standalone.get("linked_character_id", null) == null
+		and not standalone.has("relationship_status")
+		and standalone.get("rejected_by_character_ids", []).count(
+			family_a_id
+		) == 1,
+		"Explicit rejection releases the NPC and records the pair without duplicates"
+	)
+
+	var family_a_next: Dictionary = manager.create_relationship_candidate(
+		family_a_id
+	)
+	var family_a_next_id := int(family_a_next.get("character_id", 0))
+	var character_count_before_family_b := CharacterManager.characters.size()
+	var family_b_candidate: Dictionary = manager.create_relationship_candidate(
+		family_b_id
+	)
+	_assert_true(
+		family_a_next_id > 0
+		and family_a_next_id != standalone_id
+		and int(family_b_candidate.get("character_id", 0)) == standalone_id
+		and CharacterManager.characters.size() == character_count_before_family_b,
+		"Pool skips a rejected pair but reuses the same NPC for another eligible Family Character"
+	)
+	_assert_true(
+		manager.relationship_candidate_ids.has(family_a_next_id)
+		and manager.relationship_candidate_ids.has(standalone_id),
+		"Different NPCs can remain linked to different Family Characters concurrently"
+	)
+
+	var dating_started: bool = manager.set_external_relationship_status(
+		standalone_id,
+		"dating"
+	)
+	_assert_true(
+		dating_started
+		and not manager.relationship_candidate_ids.has(standalone_id)
+		and int(standalone.get("linked_character_id", 0)) == family_b_id,
+		"Candidate to dating keeps the link and removes the stale candidate index entry"
+	)
+
+	var family_b_next: Dictionary = manager.create_relationship_candidate(
+		family_b_id
+	)
+	_assert_true(
+		int(family_b_next.get("character_id", 0)) > 0
+		and int(family_b_next.get("character_id", 0)) != standalone_id
+		and manager.relationship_candidate_ids.has(
+			int(family_b_next.get("character_id", 0))
+		),
+		"A Family Character may receive another candidate while already dating"
+	)
+
+
+func _test_technical_candidate_release() -> void:
+	_reset_world()
+	GameManager.set_same_sex_marriage_enabled(false, false)
+
+	var family_character := _make_family_character(30, "male")
+	var family_id := int(family_character["character_id"])
+	var candidate: Dictionary = manager.create_relationship_candidate(family_id)
+	var candidate_id := int(candidate.get("character_id", 0))
+	var character_count := CharacterManager.characters.size()
+	var released: bool = manager.discard_unpresented_relationship_candidate(
+		candidate_id,
+		family_id
+	)
+	_assert_true(
+		released
+		and CharacterManager.characters.size() == character_count
+		and not CharacterManager.get_character_by_id(candidate_id).is_empty()
+		and candidate.get("linked_character_id", null) == null
+		and not candidate.has("relationship_status")
+		and candidate.get("rejected_by_character_ids", []).is_empty()
+		and not manager.relationship_candidate_ids.has(candidate_id),
+		"Technical activation release preserves the NPC without writing rejection history"
+	)
+
+	var reused: Dictionary = manager.create_relationship_candidate(family_id)
+	_assert_true(
+		int(reused.get("character_id", 0)) == candidate_id
+		and CharacterManager.characters.size() == character_count,
+		"Technically released NPC returns to the derived pool"
+	)
+
+
 func _test_external_relationship_status_mutation() -> void:
 	_reset_world()
 
@@ -183,7 +310,10 @@ func _test_external_relationship_status_mutation() -> void:
 	_assert_true(
 		status_changed
 		and manager_owned_rejected
-		and String(candidate.get("relationship_status", "")) == "dating",
+		and String(candidate.get("relationship_status", "")) == "dating"
+		and not manager.relationship_candidate_ids.has(
+			int(candidate["character_id"])
+		),
 		"External Relationship status is mutable without bypassing marriage/divorce"
 	)
 

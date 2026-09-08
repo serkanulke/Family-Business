@@ -57,7 +57,7 @@ func _ready() -> void:
 	_test_first_opportunity_pools()
 	_test_first_opportunity_age_bands()
 	_test_guaranteed_first_opportunity_at_30()
-	_test_first_opportunity_is_single_per_character()
+	_test_meet_someone_is_repeatable()
 	_test_candidate_materialization_contract()
 	_test_followup_participant_continuity()
 	_test_scheduled_flow_targets_and_context()
@@ -65,6 +65,7 @@ func _ready() -> void:
 	_test_dating_start()
 	_test_pre_dating_rejections_have_no_happiness_loss()
 	_test_dating_end_happiness_penalties()
+	_test_relationship_end_cleanup_effects()
 	_test_no_invented_breakup_effects_or_statuses()
 	_test_event_20_delayed_loop()
 	_test_event_21_delayed_loop()
@@ -169,52 +170,24 @@ func _test_guaranteed_first_opportunity_at_30() -> void:
 		str(event)
 	)
 
-	var excluded_ids := _event_seen_none_ids(event)
-	var excludes_all_probabilistic_first_events := true
-	for event_id in PROBABILISTIC_FIRST_EVENTS:
-		if String(event_id) not in excluded_ids:
-			excludes_all_probabilistic_first_events = false
-			break
-
 	_assert(
-		excludes_all_probabilistic_first_events
-		and excluded_ids.size() == 4,
-		"Guaranteed age-30 Event is blocked after any earlier first opportunity",
-		str(excluded_ids)
+		_event_seen_none_ids(event).is_empty(),
+		"Guaranteed age-30 Event is not permanently locked by an earlier Meet Someone",
+		str(event.get("requirements", {}))
 	)
 
 
-func _test_first_opportunity_is_single_per_character() -> void:
+func _test_meet_someone_is_repeatable() -> void:
 	for event_id_value in FIRST_OPPORTUNITY_EVENTS:
 		var event_id := String(event_id_value)
 		var event := registry.get_event(event_id)
 
 		_assert(
-			String(event.get("repeat", {}).get("mode", "")) == "once_per_character",
-			"%s is first-opportunity scoped once per Character" % event_id
-		)
-
-		var excluded_ids := _event_seen_none_ids(event)
-		var expected_other_ids: Array = []
-		for other_id_value in FIRST_OPPORTUNITY_EVENTS:
-			var other_id := String(other_id_value)
-			if other_id != event_id:
-				expected_other_ids.append(other_id)
-
-		# Guaranteed-at-30 only needs to exclude the four probabilistic versions.
-		if event_id == "relationship_01_meet_guaranteed_30":
-			expected_other_ids = PROBABILISTIC_FIRST_EVENTS.duplicate()
-
-		var exclusive := true
-		for expected_id_value in expected_other_ids:
-			if String(expected_id_value) not in excluded_ids:
-				exclusive = false
-				break
-
-		_assert(
-			exclusive,
-			"%s cannot become a second first opportunity" % event_id,
-			"excluded=%s" % str(excluded_ids)
+			String(event.get("repeat", {}).get("mode", "")) == "repeatable"
+			and _event_seen_none_ids(event).is_empty()
+			and event.get("cooldown", null) == null,
+			"%s remains repeatable without a seen-lock or new cooldown" % event_id,
+			str(event)
 		)
 
 
@@ -232,7 +205,7 @@ func _test_candidate_materialization_contract() -> void:
 			and String(candidate.get("type", "")) == "relationship_npc"
 			and String(candidate.get("source", "")) == "new_relationship_npc"
 			and String(candidate.get("from", "")) == "primary",
-			"%s creates the candidate only from the selected primary Character" % event_id,
+			"%s resolves a pool-first candidate for the selected primary Character" % event_id,
 			str(participants)
 		)
 
@@ -389,7 +362,7 @@ func _test_dating_start() -> void:
 		str(event_8_effects)
 	)
 
-	var status_set_count := 0
+	var dating_status_set_count := 0
 	var invalid_status := ""
 	for event_value in registry.get_events_for_category("relationship", true):
 		if typeof(event_value) != TYPE_DICTIONARY:
@@ -401,14 +374,18 @@ func _test_dating_start() -> void:
 			var effect: Dictionary = effect_value
 			if String(effect.get("type", "")) != "relationship_status_set":
 				continue
-			status_set_count += 1
-			if String(effect.get("value", "")) != "dating":
+			var status_value = effect.get("value", null)
+			if status_value == null:
+				continue
+			if String(status_value) == "dating":
+				dating_status_set_count += 1
+			else:
 				invalid_status = String(effect.get("value", ""))
 
 	_assert(
-		status_set_count == 2 and invalid_status.is_empty(),
+		dating_status_set_count == 2 and invalid_status.is_empty(),
 		"Dating is the only Event-authored Relationship status in this chain",
-		"count=%d invalid=%s" % [status_set_count, invalid_status]
+		"count=%d invalid=%s" % [dating_status_set_count, invalid_status]
 	)
 
 
@@ -477,6 +454,45 @@ func _test_dating_end_happiness_penalties() -> void:
 	)
 
 
+func _test_relationship_end_cleanup_effects() -> void:
+	var cases := [
+		["relationship_01_meet_18_20", "not_interested"],
+		["relationship_01_meet_21_23", "not_interested"],
+		["relationship_01_meet_24_26", "not_interested"],
+		["relationship_01_meet_27_29", "not_interested"],
+		["relationship_01_meet_guaranteed_30", "not_interested"],
+		["relationship_02_message_later", "politely_decline"],
+		["relationship_06_keeping_it_casual", "just_be_friends"],
+		["relationship_07_more_than_friends", "dont_feel_same"],
+		["relationship_08_some_time_later", "end_this"],
+		["relationship_12_something_feels_off", "end_relationship"],
+		["relationship_16_honest_conversation", "end_relationship"],
+		["relationship_18_more_time_together", "end_relationship"],
+		["relationship_19_difficult_choice", "end_things_here"]
+	]
+	var ok := true
+	var detail := ""
+	for case_value in cases:
+		var case: Array = case_value
+		if not _has_exact_effect(
+			_choice_effects(String(case[0]), String(case[1])),
+			{
+				"type": "relationship_status_set",
+				"target": "candidate",
+				"value": null
+			}
+		):
+			ok = false
+			detail = "%s/%s" % [String(case[0]), String(case[1])]
+			break
+
+	_assert(
+		ok,
+		"Every explicit rejection or breakup clears the active Relationship link",
+		detail
+	)
+
+
 func _test_no_invented_breakup_effects_or_statuses() -> void:
 	var forbidden_types := [
 		"relationship_end_dating",
@@ -501,6 +517,7 @@ func _test_no_invented_breakup_effects_or_statuses() -> void:
 				break
 			if (
 				effect_type == "relationship_status_set"
+				and effect.get("value", null) != null
 				and String(effect.get("value", "")) != "dating"
 			):
 				forbidden_status = String(effect.get("value", ""))

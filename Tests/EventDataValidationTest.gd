@@ -661,6 +661,41 @@ func _test_effect_validation() -> void:
 		"relationship"
 	)
 
+	var clear_relationship_status := _base_event(
+		"clear_relationship_status",
+		"relationship"
+	)
+	clear_relationship_status["choices"][0]["resolution"]["effects"] = [{
+		"type": "relationship_status_set",
+		"target": "primary",
+		"value": null
+	}]
+	var clear_relationship_registry := _registry_for(
+		"relationship",
+		[clear_relationship_status]
+	)
+	_assert_true(
+		clear_relationship_registry.is_valid,
+		"relationship_status_set accepts null as the explicit Relationship end operation",
+		clear_relationship_registry.get_diagnostic_text()
+	)
+
+	var invalid_relationship_status := _base_event(
+		"invalid_relationship_status",
+		"relationship"
+	)
+	invalid_relationship_status["choices"][0]["resolution"]["effects"] = [{
+		"type": "relationship_status_set",
+		"target": "primary",
+		"value": 7
+	}]
+	_expect_invalid_event(
+		invalid_relationship_status,
+		"relationship_status_set still rejects non-string non-null values",
+		"must be a non-empty String",
+		"relationship"
+	)
+
 	var timed_flag := _base_event("unsupported_timed_flag", "general")
 	timed_flag["choices"][0]["resolution"]["effects"] = [{
 		"type": "add_flag",

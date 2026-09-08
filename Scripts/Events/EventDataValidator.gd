@@ -1234,19 +1234,20 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 				)
 		"relationship_status_set":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
-			var relationship_status := _required_string(
-				source,
-				event_id,
-				path + ".value",
-				effect.get("value", null)
-			)
-			if relationship_status in ["married", "divorced"]:
-				_add(
+			if not effect.has("value") or effect.get("value", null) != null:
+				var relationship_status := _required_string(
 					source,
 					event_id,
 					path + ".value",
-					"relationship_status_set cannot write manager-owned status '%s'; use relationship_marry or relationship_divorce." % relationship_status
+					effect.get("value", null)
 				)
+				if relationship_status in ["married", "divorced"]:
+					_add(
+						source,
+						event_id,
+						path + ".value",
+						"relationship_status_set cannot write manager-owned status '%s'; use relationship_marry or relationship_divorce." % relationship_status
+					)
 		"relationship_marry", "relationship_divorce":
 			_validate_effect_target(source, event_id, path, effect, "primary", participant_names)
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)

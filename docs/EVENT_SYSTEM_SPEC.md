@@ -254,7 +254,7 @@ Event effects are whitelist-based data operations. JSON never contains executabl
 Current manager-aligned principles:
 
 - stat/flag operations use Character state;
-- Relationship uses narrow `relationship_status_set`, `relationship_marry`, `relationship_divorce`;
+- Relationship uses narrow `relationship_status_set`, `relationship_marry`, `relationship_divorce`; explicit `relationship_status_set.value = null` delegates candidate/dating release and rejection recording to RelationshipNpcManager;
 - Money/Diamond operations use family resources;
 - Job Offer acceptance/rejection delegates to CareerManager active-offer behavior;
 - external `job_remove` and positive `salary_increase` remain narrow Career operations;
@@ -296,12 +296,14 @@ SaveManager stores one Event runtime subsection.
 For participant source `new_relationship_npc`:
 
 - discovery/availability checks are read-only;
-- candidate creation occurs only after the Event wins selection and passes final revalidation;
-- exact generated Character ID is bound before first presentation;
-- activation failure before commit discards the unpresented candidate;
+- assignment occurs only after the Event wins selection and passes final revalidation;
+- RelationshipNpcManager first selects an eligible unassigned external Relationship NPC from `CharacterManager.characters`, excluding an NPC previously rejected by the same family Character;
+- a new persistent external Character is generated only when that reusable pool is empty;
+- the exact selected or generated Character ID is bound before first presentation;
+- activation failure before commit releases the unpresented NPC back to the pool and never deletes its Character record;
 - later chain/scheduled Events preserve exact participant IDs.
 
-Marriage/rejection cleanup remains RelationshipNpcManager-owned.
+Marriage, rejection-history mutation, and assignment cleanup remain RelationshipNpcManager-owned. A family Character may have more than one active candidate/dating link; one NPC cannot be assigned to more than one family Character at the same time.
 
 ## 13. Production Content State
 
@@ -314,8 +316,10 @@ Marriage/rejection cleanup remains RelationshipNpcManager-owned.
 ### Next
 - Career.
 
+### Authored production set
+- Relationship: 27 definitions covering the 23 numbered Meet Someone/dating/marriage Events.
+
 ### Not yet authored
-- Relationship
 - Household
 - Business
 - Health

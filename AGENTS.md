@@ -18,7 +18,7 @@ Do not introduce continuous hidden simulation, autonomous NPC behavior, new mete
 
 The authoritative gameplay design source is the existing Google Docs GDD:
 
-https://docs.google.com/document/d/1HZtUIWQbsv9_jlnWxuWCbPhk4MviQm9bTuiMSxqBVCE/edit?tab=t.0
+https://docs.google.com/document/d/1mNb2bBS07yFKGTklTWMAoBtfSMjrZq8Fji6BuXQf9hU/edit?tab=t.0
 
 Before implementing or changing gameplay:
 
@@ -30,19 +30,12 @@ Before implementing or changing gameplay:
 
 Before editing the GDD itself, first report the exact proposed changes to the project owner in Turkish and wait for explicit approval. Do not silently add, reinterpret, or resolve gameplay decisions.
 
-### 2. Event Authoring Guide
 
-For production Event JSON/schema authoring, use the current Event Authoring Guide together with GDD Section 14:
-
-https://docs.google.com/document/d/15hkCdEh04VpaqxRUfah1BY7yeuijAgLFRMQz47k3Ldg/edit
-
-The Guide describes the approved authoring contract. Repository code remains the factual source for what the validator/runtime actually supports.
-
-### 3. Current Repository
+### 2. Current Repository
 
 The current `main` branch is the factual source for implemented code, data, scenes, assets, and tests. Inspect the actual manager, JSON, scene/UI adapter, and tests before changing an existing system.
 
-### 4. Repository Documentation
+### 3. Repository Documentation
 
 - `docs/ARCHITECTURE.md` — current technical boundaries and responsibilities.
 - `docs/DATA_SCHEMA.md` — current static/runtime/save schemas and known legacy-data status.

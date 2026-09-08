@@ -69,8 +69,14 @@ func _run_tests() -> void:
 	var first_reject: Dictionary = EventManager.resolve_active_event("reject")
 	_assert(
 		bool(first_reject.get("resolved", false))
-		and not CharacterManager.get_character_by_id(first_candidate_id).is_empty(),
-		"Rejecting the encounter keeps the shown candidate Character"
+		and not CharacterManager.get_character_by_id(first_candidate_id).is_empty()
+		and first_candidate.get("linked_character_id", null) == null
+		and not first_candidate.has("relationship_status")
+		and first_candidate.get("rejected_by_character_ids", []).count(1) == 1
+		and not RelationshipNpcManager.relationship_candidate_ids.has(
+			first_candidate_id
+		),
+		"Rejecting the encounter releases the persistent NPC and records the pair"
 	)
 
 	var second_result: Dictionary = EventManager.dispatch_system_trigger(
@@ -100,41 +106,64 @@ func _run_tests() -> void:
 				0
 			)
 		) == 1,
-		"A later Meet Someone occurrence creates a different candidate for the same Character"
+		"A later Meet Someone occurrence cannot reuse the NPC rejected by that Character"
 	)
+	var second_continue: Dictionary = EventManager.resolve_active_event("continue")
 	_assert(
-		RelationshipNpcManager.get_relationship_candidate_ids_for(1).size() == 2,
-		"Multiple pre-dating candidates remain concurrently available"
+		bool(second_continue.get("resolved", false))
+		and RelationshipNpcManager.get_relationship_candidate_ids_for(1).size() == 1,
+		"Continuing the encounter preserves its active candidate link"
 	)
 
-	var second_reject: Dictionary = EventManager.resolve_active_event("reject")
+	var third_result: Dictionary = EventManager.dispatch_system_trigger(
+		"relationship_opportunity",
+		{
+			"trigger_character_id": 1,
+			"trigger_participants": {"primary": 1}
+		},
+		"relationship_opportunity:third"
+	)
+	var third_candidate_id := (
+		int(EventManager.active_event.participants.get("target", 0))
+		if EventManager.active_event != null
+		else 0
+	)
 	_assert(
-		bool(second_reject.get("resolved", false)),
-		"The second encounter resolves without deleting either candidate"
+		not third_result.get("queued_instances", []).is_empty()
+		and third_candidate_id > 0
+		and third_candidate_id != first_candidate_id
+		and third_candidate_id != second_candidate_id,
+		"Meet Someone can bind another NPC while an existing candidate remains active"
+	)
+	var third_continue: Dictionary = EventManager.resolve_active_event("continue")
+	_assert(
+		bool(third_continue.get("resolved", false))
+		and RelationshipNpcManager.get_relationship_candidate_ids_for(1).size() == 2,
+		"Multiple candidate links for one Family Character remain active concurrently"
 	)
 
 	var married: bool = RelationshipNpcManager.make_candidate_family_member(
-		first_candidate_id,
+		second_candidate_id,
 		1
 	)
 	_assert(
 		married,
 		"One of several candidates may be selected for marriage"
 	)
-	var second_candidate_after_marriage := (
-		CharacterManager.get_character_by_id(second_candidate_id)
+	var third_candidate_after_marriage := (
+		CharacterManager.get_character_by_id(third_candidate_id)
 	)
 	_assert(
-		not second_candidate_after_marriage.is_empty()
-		and second_candidate_after_marriage.get("linked_character_id", null) == null
-		and not RelationshipNpcManager.relationship_candidate_ids.has(second_candidate_id)
+		not third_candidate_after_marriage.is_empty()
+		and third_candidate_after_marriage.get("linked_character_id", null) == null
+		and not RelationshipNpcManager.relationship_candidate_ids.has(third_candidate_id)
 		and RelationshipNpcManager.get_relationship_candidate_ids_for(1).is_empty(),
 		"Marriage cuts the primary Character's links to all unselected Relationship NPCs"
 	)
 
 	var blocked_chain: Dictionary = EventManager.activate_chain(
 		"candidate_followup",
-		{"primary": 1, "target": second_candidate_id}
+		{"primary": 1, "target": third_candidate_id}
 	)
 	_assert(
 		not bool(blocked_chain.get("queued", false)),
@@ -143,7 +172,7 @@ func _run_tests() -> void:
 
 	var divorced: bool = RelationshipNpcManager.divorce_characters(
 		1,
-		first_candidate_id
+		second_candidate_id
 	)
 	_assert(
 		divorced,
@@ -151,9 +180,9 @@ func _run_tests() -> void:
 	)
 	_assert(
 		not RelationshipNpcManager.get_relationship_candidate_ids_for(1).has(
-			second_candidate_id
+			third_candidate_id
 		)
-		and CharacterManager.get_character_by_id(second_candidate_id).get(
+		and CharacterManager.get_character_by_id(third_candidate_id).get(
 			"linked_character_id",
 			null
 		) == null,
@@ -162,7 +191,7 @@ func _run_tests() -> void:
 
 	var resumed_chain: Dictionary = EventManager.activate_chain(
 		"candidate_followup",
-		{"primary": 1, "target": second_candidate_id}
+		{"primary": 1, "target": third_candidate_id}
 	)
 	_assert(
 		not bool(resumed_chain.get("queued", false)),
@@ -171,6 +200,7 @@ func _run_tests() -> void:
 
 	var character_count_before := CharacterManager.characters.size()
 	var candidate_count_before := RelationshipNpcManager.relationship_candidate_ids.size()
+	var released_candidate_id := CharacterManager.next_character_id
 	EventManager.dispatch_system_trigger(
 		"invalid_relationship_opportunity",
 		{
@@ -184,9 +214,21 @@ func _run_tests() -> void:
 		"A generated candidate that fails final participant validation is never presented"
 	)
 	_assert(
-		CharacterManager.characters.size() == character_count_before
-		and RelationshipNpcManager.relationship_candidate_ids.size() == candidate_count_before,
-		"Failed activation discards the unpresented generated candidate without orphan state"
+		CharacterManager.characters.size() == character_count_before + 1
+		and RelationshipNpcManager.relationship_candidate_ids.size() == candidate_count_before
+		and not CharacterManager.get_character_by_id(released_candidate_id).is_empty()
+		and CharacterManager.get_character_by_id(released_candidate_id).get(
+			"linked_character_id",
+			null
+		) == null
+		and not CharacterManager.get_character_by_id(released_candidate_id).has(
+			"relationship_status"
+		)
+		and CharacterManager.get_character_by_id(released_candidate_id).get(
+			"rejected_by_character_ids",
+			[]
+		).is_empty(),
+		"Failed activation releases the unpresented NPC without deletion or rejection history"
 	)
 
 
@@ -288,6 +330,21 @@ func _meet_event(
 			{
 				"choice_id": "reject",
 				"title": "Not interested",
+				"requirements": {"all": []},
+				"resolution": {
+					"mode": "deterministic",
+					"effects": [
+						{
+							"type": "relationship_status_set",
+							"target": "target",
+							"value": null
+						}
+					]
+				}
+			},
+			{
+				"choice_id": "continue",
+				"title": "Continue",
 				"requirements": {"all": []},
 				"resolution": {
 					"mode": "deterministic",

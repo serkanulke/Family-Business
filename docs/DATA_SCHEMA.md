@@ -98,7 +98,10 @@ character_type = "relationship_npc"
 linked_character_id
 relationship_status
 relationship_cooldown_until
+rejected_by_character_ids
 ```
+
+`linked_character_id` and `relationship_status` exist only while the external Character is actively assigned as a candidate/dating partner, or while an older status such as `divorced` is authoritative. `rejected_by_character_ids` is a deduplicated list of family Character IDs that rejected that NPC; it prevents the same pair from being matched again without removing the NPC from the reusable pool.
 
 Age is derived from `birth_date`; it is not a mutable stored age field.
 

@@ -1,0 +1,74 @@
+diff --git a/Autoload/RelationshipNPCManager.gd b/Autoload/RelationshipNPCManager.gd
+--- a/Autoload/RelationshipNPCManager.gd
++++ b/Autoload/RelationshipNPCManager.gd
+@@
+ 	if not are_married_partners(
+ 		first_character,
+ 		second_character
+ 	):
+ 		return false
+
++	_record_former_spouse_pair_block(
++		first_character,
++		second_character
++	)
++	_record_former_spouse_pair_block(
++		second_character,
++		first_character
++	)
++
+ 	first_character["partner_id"] = null
+ 	second_character["partner_id"] = null
+@@
+ 	return true
+
+
++func _record_former_spouse_pair_block(
++	relationship_character: Dictionary,
++	former_partner: Dictionary
++) -> void:
++	if String(
++		relationship_character.get(
++			"character_type",
++			""
++		)
++	) != "relationship_npc":
++		return
++
++	var former_partner_id := int(
++		former_partner.get(
++			"character_id",
++			0
++		)
++	)
++
++	if former_partner_id <= 0:
++		return
++
++	var rejected_value = relationship_character.get(
++		"rejected_by_character_ids",
++		[]
++	)
++
++	var rejected_ids: Array = (
++		rejected_value
++		if typeof(rejected_value) == TYPE_ARRAY
++		else []
++	)
++
++	for rejected_id_value in rejected_ids:
++		if int(rejected_id_value) == former_partner_id:
++			relationship_character[
++				"rejected_by_character_ids"
++			] = rejected_ids
++			return
++
++	rejected_ids.append(former_partner_id)
++	relationship_character[
++		"rejected_by_character_ids"
++	] = rejected_ids
++
++
+ func _handle_character_after_divorce(
+ 	character: Dictionary
+ ) -> void:

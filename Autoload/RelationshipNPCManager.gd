@@ -286,6 +286,43 @@ func create_relationship_candidate(
 	):
 		return {}
 
+	var available_candidates := get_available_relationship_npcs_for(
+		linked_character_id
+	)
+	var candidate: Dictionary = {}
+	if not available_candidates.is_empty():
+		candidate = available_candidates[
+			rng.randi_range(0, available_candidates.size() - 1)
+		]
+	else:
+		candidate = create_persistent_relationship_npc(
+			linked_character_id
+		)
+
+	if candidate.is_empty():
+		return {}
+
+	if not assign_relationship_candidate(
+		int(candidate.get("character_id", 0)),
+		linked_character_id
+	):
+		return {}
+
+	return candidate
+
+
+func create_persistent_relationship_npc(
+	generation_context_character_id: int
+) -> Dictionary:
+	var linked_character := CharacterManager.get_character_by_id(
+		generation_context_character_id
+	)
+
+	if not is_character_relationship_eligible(
+		linked_character
+	):
+		return {}
+
 	var age_bounds := get_candidate_age_bounds(
 		linked_character
 	)
@@ -328,8 +365,8 @@ func create_relationship_candidate(
 			candidate_age
 		),
 		"is_player_family": false,
-		"linked_character_id": linked_character_id,
-		"relationship_status": "candidate",
+		"linked_character_id": null,
+		"rejected_by_character_ids": [],
 		"relationship_cooldown_until": null,
 		"parent_ids": [],
 		"is_adopted": false,
@@ -371,16 +408,139 @@ func create_relationship_candidate(
 		candidate
 	)
 
-	relationship_candidate_ids.append(
-		int(candidate["character_id"])
-	)
+	return candidate
 
-	relationship_candidate_created.emit(
-		int(candidate["character_id"]),
+
+func get_available_relationship_npcs_for(
+	linked_character_id: int
+) -> Array:
+	var linked_character := CharacterManager.get_character_by_id(
 		linked_character_id
 	)
+	if not is_character_relationship_eligible(linked_character):
+		return []
 
-	return candidate
+	var result: Array = []
+	for character_value in CharacterManager.characters:
+		if typeof(character_value) != TYPE_DICTIONARY:
+			continue
+		var candidate: Dictionary = character_value
+		if _is_pool_candidate_currently_eligible(
+			candidate,
+			linked_character
+		):
+			result.append(candidate)
+
+	return result
+
+
+func assign_relationship_candidate(
+	candidate_id: int,
+	linked_character_id: int
+) -> bool:
+	var candidate := CharacterManager.get_character_by_id(candidate_id)
+	var linked_character := CharacterManager.get_character_by_id(
+		linked_character_id
+	)
+	if not _is_pool_candidate_currently_eligible(
+		candidate,
+		linked_character
+	):
+		return false
+
+	candidate["linked_character_id"] = linked_character_id
+	candidate["relationship_status"] = "candidate"
+	if candidate_id not in relationship_candidate_ids:
+		relationship_candidate_ids.append(candidate_id)
+
+	relationship_candidate_created.emit(
+		candidate_id,
+		linked_character_id
+	)
+	return true
+
+
+func _is_pool_candidate_currently_eligible(
+	candidate: Dictionary,
+	linked_character: Dictionary
+) -> bool:
+	if candidate.is_empty() or linked_character.is_empty():
+		return false
+	if String(candidate.get("character_type", "")) != "relationship_npc":
+		return false
+	if (
+		not bool(candidate.get("is_alive", true))
+		or bool(candidate.get("is_player_family", false))
+		or candidate.get("partner_id", null) != null
+		or candidate.get("linked_character_id", null) != null
+		or not is_character_relationship_eligible(linked_character)
+	):
+		return false
+
+	var candidate_id := int(candidate.get("character_id", 0))
+	var linked_character_id := int(
+		linked_character.get("character_id", 0)
+	)
+	if (
+		candidate_id <= 0
+		or linked_character_id <= 0
+		or candidate_id == linked_character_id
+		or _was_rejected_by_character(candidate, linked_character_id)
+	):
+		return false
+
+	var relationship_status_value = candidate.get(
+		"relationship_status",
+		null
+	)
+	var relationship_status := (
+		String(relationship_status_value).strip_edges()
+		if relationship_status_value != null
+		else ""
+	)
+	if relationship_status == "divorced":
+		return can_return_as_relationship_candidate(
+			candidate,
+			linked_character
+		)
+	if not relationship_status.is_empty():
+		return false
+
+	var candidate_age := CharacterManager.get_character_age(candidate)
+	var linked_age := CharacterManager.get_character_age(linked_character)
+	var minimum_age := int(
+		generation_config.get("minimum_relationship_age", 18)
+	)
+	var maximum_age := int(
+		generation_config.get("maximum_relationship_age", 54)
+	)
+	var maximum_age_gap := int(
+		generation_config.get("maximum_age_gap", 14)
+	)
+	if (
+		candidate_age < minimum_age
+		or candidate_age > maximum_age
+		or absi(candidate_age - linked_age) > maximum_age_gap
+	):
+		return false
+
+	return is_marriage_allowed_by_settings(
+		candidate,
+		linked_character
+	)
+
+
+func _was_rejected_by_character(
+	candidate: Dictionary,
+	linked_character_id: int
+) -> bool:
+	var rejected_value = candidate.get("rejected_by_character_ids", [])
+	if typeof(rejected_value) != TYPE_ARRAY:
+		return false
+	for rejected_id_value in rejected_value:
+		if int(rejected_id_value) == linked_character_id:
+			return true
+	return false
 
 
 func get_relationship_candidate_ids_for(
@@ -545,33 +705,63 @@ func discard_unpresented_relationship_candidate(
 	candidate_id: int,
 	linked_character_id: int
 ) -> bool:
+	return release_external_relationship(
+		candidate_id,
+		linked_character_id,
+		false
+	)
+
+
+func can_release_external_relationship(
+	candidate_id: int,
+	linked_character_id: int
+) -> bool:
 	if candidate_id <= 0 or linked_character_id <= 0:
 		return false
-	if not relationship_candidate_ids.has(candidate_id):
-		return false
-
 	var candidate := CharacterManager.get_character_by_id(candidate_id)
 	if (
 		candidate.is_empty()
 		or String(candidate.get("character_type", "")) != "relationship_npc"
-		or String(candidate.get("relationship_status", "")) != "candidate"
+		or not bool(candidate.get("is_alive", true))
 		or bool(candidate.get("is_player_family", false))
 		or candidate.get("partner_id", null) != null
 		or int(candidate.get("linked_character_id", 0)) != linked_character_id
 	):
 		return false
+	return String(
+		candidate.get("relationship_status", "")
+	) in ["candidate", "dating"]
 
+
+func release_external_relationship(
+	candidate_id: int,
+	linked_character_id: int,
+	rejected: bool
+) -> bool:
+	if not can_release_external_relationship(
+		candidate_id,
+		linked_character_id
+	):
+		return false
+
+	var candidate := CharacterManager.get_character_by_id(candidate_id)
+	candidate.erase("relationship_status")
+	candidate["linked_character_id"] = null
 	relationship_candidate_ids.erase(candidate_id)
-	for index in CharacterManager.characters.size():
-		var value = CharacterManager.characters[index]
-		if (
-			typeof(value) == TYPE_DICTIONARY
-			and int(value.get("character_id", 0)) == candidate_id
-		):
-			CharacterManager.characters.remove_at(index)
-			return true
 
-	return false
+	if rejected:
+		var normalized_rejected_ids: Array[int] = []
+		var rejected_value = candidate.get("rejected_by_character_ids", [])
+		if typeof(rejected_value) == TYPE_ARRAY:
+			for rejected_id_value in rejected_value:
+				var rejected_id := int(rejected_id_value)
+				if rejected_id > 0 and rejected_id not in normalized_rejected_ids:
+					normalized_rejected_ids.append(rejected_id)
+		if linked_character_id not in normalized_rejected_ids:
+			normalized_rejected_ids.append(linked_character_id)
+		candidate["rejected_by_character_ids"] = normalized_rejected_ids
+
+	return true
 
 
 func can_set_external_relationship_status(
@@ -664,6 +854,8 @@ func set_external_relationship_status(
 	)
 
 	character["relationship_status"] = normalized_status
+	if normalized_status == "dating":
+		relationship_candidate_ids.erase(character_id)
 	return true
 
 

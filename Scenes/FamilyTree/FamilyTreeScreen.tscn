@@ -1,11 +1,12 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://ckn3fh6nlofvc"]
 
-[ext_resource type="Script" path="res://Scenes/FamilyTree/FamilyTreeScreen.gd" id="1_9a6qe"]
-[ext_resource type="Script" path="res://Scenes/FamilyTree/FamilyNameBinding.gd" id="2_family_name_binding"]
+[ext_resource type="Script" uid="uid://d0jchyuwx7que" path="res://Scenes/FamilyTree/FamilyTreeScreen.gd" id="1_9a6qe"]
+[ext_resource type="Script" uid="uid://qmlmurjqy67e" path="res://Scenes/FamilyTree/FamilyNameBinding.gd" id="2_family_name_binding"]
 [ext_resource type="PackedScene" path="res://UI/CharacterCard/CharacterCard.tscn" id="3_character_card"]
 [ext_resource type="PackedScene" path="res://UI/ItemListShop/ItemListBottomSheet.tscn" id="4_item_list_sheet"]
+[ext_resource type="Script" uid="uid://df7s8v5xto3ru" path="res://Tests/Manual/RelationshipNPCDebugPanel.gd" id="5_riker"]
 
-[node name="FamilyTreeScreen" type="Control"]
+[node name="FamilyTreeScreen" type="Control" unique_id=1284282421]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,9 +15,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_9a6qe")
 
-[node name="FamilyNameBinding" type="Node" parent="."]
+[node name="FamilyNameBinding" type="Node" parent="." unique_id=1382522640]
 script = ExtResource("2_family_name_binding")
 
-[node name="CharacterCard" parent="." instance=ExtResource("3_character_card")]
+[node name="CharacterCard" parent="." unique_id=2046089751 instance=ExtResource("3_character_card")]
 
-[node name="ItemListBottomSheet" parent="." instance=ExtResource("4_item_list_sheet")]
+[node name="ItemListBottomSheet" parent="." unique_id=1103280555 instance=ExtResource("4_item_list_sheet")]
+
+[node name="RelationshipNPCDebugPanel" type="CanvasLayer" parent="." unique_id=614851401]
+script = ExtResource("5_riker")

@@ -94,6 +94,17 @@ func _test_schema_empty_migration_and_corruption() -> void:
 
 func _test_disk_round_trip_without_effect_replay() -> void:
 	_setup_domain_state()
+	var relationship_candidate := _character(4)
+	relationship_candidate.merge({
+		"character_type": "relationship_npc",
+		"is_player_family": false,
+		"linked_character_id": 1,
+		"relationship_status": "candidate",
+		"rejected_by_character_ids": [2, 3]
+	}, true)
+	CharacterManager.characters.append(relationship_candidate)
+	CharacterManager.next_character_id = 5
+	RelationshipNpcManager.relationship_candidate_ids = [4]
 	var effect_event := _event("no_replay", [
 		{"type":"stat_change","target":"primary","stat":"health","amount":7},
 		{"type":"money_change","amount":125},
@@ -117,12 +128,26 @@ func _test_disk_round_trip_without_effect_replay() -> void:
 	CharacterManager.characters[0].health = 1
 	GameManager.family_money = 1
 	CharacterManager.characters[0].salary = 1
+	relationship_candidate["rejected_by_character_ids"] = []
+	RelationshipNpcManager.relationship_candidate_ids = []
 	ItemManager.family_inventory.clear()
 	EventManager.reset_runtime_state()
 	_assert(SaveManager.load_game(TEST_SAVE_ID), "Version 6 Event state loads through the real SaveManager file path")
 	SaveManager.current_save_id = -1
 	_assert(int(CharacterManager.characters[0].health) == saved_health and GameManager.family_money == saved_money, "Load restores stat and money exactly once without replay")
 	_assert(int(CharacterManager.characters[0].salary) == saved_salary, "Authoritative Career salary effect is not replayed")
+	var restored_relationship_candidate := CharacterManager.get_character_by_id(4)
+	var restored_rejected_ids: Array[int] = []
+	for rejected_id_value in restored_relationship_candidate.get(
+		"rejected_by_character_ids",
+		[]
+	):
+		restored_rejected_ids.append(int(rejected_id_value))
+	_assert(
+		restored_rejected_ids == [2, 3]
+		and RelationshipNpcManager.relationship_candidate_ids == [4],
+		"Relationship rejection history and active candidate index survive the real save/load path"
+	)
 	_assert(ItemManager.family_inventory.size() == saved_items, "Item creation effect is not replayed or duplicated")
 	_assert(EventManager.story_history.records.size() == saved_history and EventManager.story_history.has_completed(effect_event.event_id, {"primary":1}, {"token":"saved"}), "Completed history restores without executing historical effects")
 

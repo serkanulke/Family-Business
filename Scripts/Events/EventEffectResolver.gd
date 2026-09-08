@@ -92,13 +92,30 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 			if String(effect.get("stat", "")) not in CharacterManager.CHARACTER_STAT_NAMES:
 				return _invalid(index, "stat_unavailable", "The Character stat is unavailable.")
 		"relationship_status_set":
-			var relationship_status := String(effect.get("value", "")).strip_edges()
-			if not RelationshipNpcManager.can_set_external_relationship_status(
-				int(plan["character_id"]),
-				relationship_status
-			):
-				return _invalid(index, "relationship_status_unavailable", "The Relationship status can no longer be changed.")
-			plan["relationship_status"] = relationship_status
+			if effect.has("value") and effect.get("value", null) == null:
+				var relationship_character := CharacterManager.get_character_by_id(
+					int(plan["character_id"])
+				)
+				var linked_character_id := int(
+					relationship_character.get("linked_character_id", 0)
+				)
+				if not RelationshipNpcManager.can_release_external_relationship(
+					int(plan["character_id"]),
+					linked_character_id
+				):
+					return _invalid(index, "relationship_status_unavailable", "The Relationship status can no longer be changed.")
+				plan["relationship_status_clear"] = true
+				plan["linked_character_id"] = linked_character_id
+			else:
+				var relationship_status := String(
+					effect.get("value", "")
+				).strip_edges()
+				if not RelationshipNpcManager.can_set_external_relationship_status(
+					int(plan["character_id"]),
+					relationship_status
+				):
+					return _invalid(index, "relationship_status_unavailable", "The Relationship status can no longer be changed.")
+				plan["relationship_status"] = relationship_status
 		"relationship_marry":
 			var candidate := CharacterManager.get_character_by_id(int(plan["target_id"]))
 			var partner := CharacterManager.get_character_by_id(int(plan["primary_id"]))
@@ -236,12 +253,28 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 		"relationship_status_set":
 			var character := CharacterManager.get_character_by_id(character_id)
 			var before := String(character.get("relationship_status", ""))
-			var after := String(plan.get("relationship_status", ""))
-			result.merge({
-				"success": RelationshipNpcManager.set_external_relationship_status(
+			var clears_relationship := bool(
+				plan.get("relationship_status_clear", false)
+			)
+			var after = (
+				null
+				if clears_relationship
+				else String(plan.get("relationship_status", ""))
+			)
+			var success := (
+				RelationshipNpcManager.release_external_relationship(
 					character_id,
-					after
-				),
+					int(plan.get("linked_character_id", 0)),
+					true
+				)
+				if clears_relationship
+				else RelationshipNpcManager.set_external_relationship_status(
+					character_id,
+					String(after)
+				)
+			)
+			result.merge({
+				"success": success,
 				"target_character_id": character_id,
 				"before": before,
 				"after": after

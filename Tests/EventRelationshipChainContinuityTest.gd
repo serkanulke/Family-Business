@@ -113,6 +113,27 @@ func _run_test() -> void:
 	)
 	EventManager.cancel_active_event()
 
+	var end_result: Dictionary = EventManager.activate_chain(
+		"relationship_end_dating",
+		bound_participants
+	)
+	_assert(
+		bool(end_result.get("queued", false)),
+		"Dating Relationship can reach an explicit authored end choice"
+	)
+	var ended: Dictionary = EventManager.resolve_active_event("continue")
+	_assert(
+		bool(ended.get("resolved", false))
+		and not candidate.has("relationship_status")
+		and candidate.get("linked_character_id", null) == null
+		and not RelationshipNpcManager.relationship_candidate_ids.has(2),
+		"Dating breakup clears status, link, and active candidate index"
+	)
+	_assert(
+		candidate.get("rejected_by_character_ids", []).count(1) == 1,
+		"Dating breakup records the family Character once in pair rejection history"
+	)
+
 
 func _setup_runtime() -> void:
 	SaveManager.current_save_id = -1
@@ -165,6 +186,27 @@ func _setup_runtime() -> void:
 				"relationship_dating_scheduled",
 				"scheduled",
 				[],
+				{
+					"all": [
+						{
+							"type": "relationship_status",
+							"target": "target",
+							"operator": "==",
+							"value": "dating"
+						}
+					]
+				}
+			),
+			_event(
+				"relationship_end_dating",
+				"chain",
+				[
+					{
+						"type": "relationship_status_set",
+						"target": "target",
+						"value": null
+					}
+				],
 				{
 					"all": [
 						{

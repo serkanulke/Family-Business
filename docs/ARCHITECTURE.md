@@ -66,7 +66,7 @@ Owns family-business type lookup, family-business instances, purchase/upgrade, s
 Owns lightweight Worker NPC generation, availability, retirement, and Worker NPC records used for family-business staffing.
 
 ### RelationshipNpcManager
-Owns Relationship candidate generation/config use, relationship eligibility helpers, marriage family-entry, divorce/remarriage cleanup/cooldown, donor/adoption helpers, and active candidate indexing. Relationship candidates themselves are full Character records in CharacterManager.
+Owns the reusable Relationship NPC pool, fallback generation/config use, per-family rejection history, assignment/release, relationship eligibility helpers, marriage family-entry, divorce/remarriage cleanup/cooldown, donor/adoption helpers, and active candidate indexing. Relationship NPCs themselves are persistent full Character records in CharacterManager; ending or rolling back a candidate interaction releases that Character rather than deleting it.
 
 ### ItemManager
 Owns stable item-definition lookup, family ItemInstances, equipment, expiration, exact Lifestyle Score, purchases, and monthly slot-specific shop stock.

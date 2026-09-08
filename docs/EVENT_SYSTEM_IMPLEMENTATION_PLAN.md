@@ -114,9 +114,9 @@ It changes only current external salary through CareerManager and does not creat
 
 ### 5. Relationship
 
-Backend Relationship rules are already established. Production content must decide and author exact Event eligibility, probability, relative weight, cooldown and chains without inventing a relationship meter/state machine.
+The current production set contains 27 definitions covering the 23 numbered Relationship Events. It uses the approved eligibility, probability, relative weight, cooldown, and chain values without adding a relationship meter/state machine.
 
-Meet Someone uses ordinary save-scoped random pacing and activation-time candidate materialization.
+Meet Someone uses ordinary save-scoped random pacing and activation-time candidate assignment: reuse an eligible unassigned persistent Relationship NPC first, generate only when the pool is empty, and release rather than delete on rejection or failed activation.
 
 ### 6. Household
 

@@ -51,8 +51,9 @@ This document reports repository reality. It does not create gameplay decisions.
 
 ### Relationship backend
 - Relationship candidates are full Characters.
-- Candidate generation/history, family entry, marriage, divorce, remarriage cooldown, donor/adoption helpers, candidate indexing, and marriage cleanup exist.
-- Production Relationship Event content is not yet authored.
+- Meet Someone reuses an eligible unassigned Relationship NPC from the persistent Character pool before generating a new one.
+- Per-family rejection history, assignment/release, family entry, marriage, divorce, remarriage cooldown, donor/adoption helpers, active candidate indexing, and marriage cleanup exist.
+- Explicit Event rejection/end choices release the candidate or dating link without deleting the external Character; failed activation rollback does the same without recording a rejection.
 
 ### House / Household backend
 - Five House levels, roles, role/resident capacity, Household Score/Status, Household Perks, Unhoused handling, upgrade and House economy hooks exist.
@@ -83,7 +84,7 @@ This document reports repository reality. It does not create gameplay decisions.
 | Age / Lifecycle | **Complete core production set** — Retirement + Farewell |
 | Job Offer | **Complete core production set** — 1 generic factual Event |
 | Career | **Next** — production content not authored yet |
-| Relationship | Not authored |
+| Relationship | **Production set authored** — 27 definitions covering 23 numbered Events; pool/rejection cleanup implemented |
 | Household | Not authored |
 | Business | Not authored |
 | Health | Not authored |
@@ -106,8 +107,9 @@ The Event backend should not be broadly refactored while authoring these categor
 - Production random Career balance values such as activation chances and salary-increase amounts must come from approved design/content decisions; do not invent them.
 
 ### Relationship Event content
-- Backend exists; production Event chains/content remain to be authored.
-- Exact Relationship Event probabilities/weights/cooldowns remain GDD open content decisions.
+- `relationship.json` contains the current 27-definition production set covering the 23 numbered Meet Someone/dating/marriage Events.
+- Meet Someone age-band definitions are repeatable and have no cross-band `event_seen` lock; trigger timing, pools, activation chances, weights, and cooldown values remain data-authored.
+- The 13 explicit rejection/end choices release their bound NPC through `relationship_status_set.value = null` and record that family/NPC pair as rejected.
 
 ### Lifestyle / Family Agency
 - Event backend supports manual flows.

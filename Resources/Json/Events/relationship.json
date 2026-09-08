@@ -92,35 +92,11 @@
             "target": "primary",
             "operator": "<=",
             "value": 20
-          },
-          {
-            "none": [
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_21_23"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_24_26"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_27_29"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_guaranteed_30"
-              }
-            ]
           }
         ]
       },
       "repeat": {
-        "mode": "once_per_character"
+        "mode": "repeatable"
       },
       "cooldown": null,
       "behavior": {
@@ -160,7 +136,13 @@
           "title": "NOT INTERESTED",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection here."
         },
@@ -263,35 +245,11 @@
             "target": "primary",
             "operator": "<=",
             "value": 23
-          },
-          {
-            "none": [
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_18_20"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_24_26"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_27_29"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_guaranteed_30"
-              }
-            ]
           }
         ]
       },
       "repeat": {
-        "mode": "once_per_character"
+        "mode": "repeatable"
       },
       "cooldown": null,
       "behavior": {
@@ -331,7 +289,13 @@
           "title": "NOT INTERESTED",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection here."
         },
@@ -434,35 +398,11 @@
             "target": "primary",
             "operator": "<=",
             "value": 26
-          },
-          {
-            "none": [
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_18_20"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_21_23"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_27_29"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_guaranteed_30"
-              }
-            ]
           }
         ]
       },
       "repeat": {
-        "mode": "once_per_character"
+        "mode": "repeatable"
       },
       "cooldown": null,
       "behavior": {
@@ -502,7 +442,13 @@
           "title": "NOT INTERESTED",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection here."
         },
@@ -605,35 +551,11 @@
             "target": "primary",
             "operator": "<=",
             "value": 29
-          },
-          {
-            "none": [
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_18_20"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_21_23"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_24_26"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_guaranteed_30"
-              }
-            ]
           }
         ]
       },
       "repeat": {
-        "mode": "once_per_character"
+        "mode": "repeatable"
       },
       "cooldown": null,
       "behavior": {
@@ -673,7 +595,13 @@
           "title": "NOT INTERESTED",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection here."
         },
@@ -776,35 +704,11 @@
             "target": "primary",
             "operator": "<=",
             "value": 54
-          },
-          {
-            "none": [
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_18_20"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_21_23"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_24_26"
-              },
-              {
-                "type": "event_seen",
-                "operator": "==",
-                "value": "relationship_01_meet_27_29"
-              }
-            ]
           }
         ]
       },
       "repeat": {
-        "mode": "once_per_character"
+        "mode": "repeatable"
       },
       "cooldown": null,
       "behavior": {
@@ -844,7 +748,13 @@
           "title": "NOT INTERESTED",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection here."
         },
@@ -1010,7 +920,13 @@
           "title": "POLITELY DECLINE",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection politely."
         }
@@ -1546,7 +1462,13 @@
           "title": "LET'S JUST BE FRIENDS",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the romantic possibility."
         }
@@ -1672,7 +1594,13 @@
           "title": "I DON'T FEEL THE SAME",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection."
         }
@@ -1788,7 +1716,13 @@
           "title": "WE SHOULD END THIS",
           "resolution": {
             "mode": "deterministic",
-            "effects": []
+            "effects": [
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
+              }
+            ]
           },
           "description": "End the connection."
         }
@@ -2319,6 +2253,11 @@
                 "target": "primary",
                 "stat": "happiness",
                 "amount": -3
+              },
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
               }
             ]
           },
@@ -2852,6 +2791,11 @@
                 "target": "primary",
                 "stat": "happiness",
                 "amount": -6
+              },
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
               }
             ]
           },
@@ -3102,6 +3046,11 @@
                 "target": "primary",
                 "stat": "happiness",
                 "amount": -6
+              },
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
               }
             ]
           },
@@ -3212,6 +3161,11 @@
                 "target": "primary",
                 "stat": "happiness",
                 "amount": -10
+              },
+              {
+                "type": "relationship_status_set",
+                "target": "candidate",
+                "value": null
               }
             ]
           },

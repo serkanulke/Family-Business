@@ -112,7 +112,7 @@ func _setup_runtime_state() -> void:
 	CharacterManager.characters[3]["parent_ids"] = [1]
 	CharacterManager.characters[5]["character_type"] = "relationship_npc"
 	CharacterManager.characters[5]["relationship_status"] = "candidate"
-	CharacterManager.characters[5]["linked_character_id"] = 1
+	CharacterManager.characters[5]["linked_character_id"] = 7
 
 	var unpooled_relationship_character := _character(
 		8,
@@ -125,7 +125,7 @@ func _setup_runtime_state() -> void:
 	)
 	unpooled_relationship_character["character_type"] = "relationship_npc"
 	unpooled_relationship_character["relationship_status"] = "candidate"
-	unpooled_relationship_character["linked_character_id"] = 1
+	unpooled_relationship_character["linked_character_id"] = 7
 	CharacterManager.characters.append(
 		unpooled_relationship_character
 	)
@@ -370,7 +370,7 @@ func _test_relationship_candidate_pool_is_manager_owned() -> void:
 	RelationshipNpcManager.relationship_candidate_ids.append(999999)
 
 	_assert(
-		query_provider.get_relationship_npc_ids(1) == [6],
+		query_provider.get_relationship_npc_ids(7) == [6],
 		"Relationship Event lookup uses only the RelationshipNPCManager candidate pool"
 	)
 	_assert(
@@ -393,7 +393,6 @@ func _test_participant_sources() -> void:
 		"spouse":{"type":"character","source":"relation","relation":"spouse","from":"primary"},
 		"parent":{"type":"character","source":"relation","relation":"parent","from":"primary"},
 		"child":{"type":"character","source":"relation","relation":"child","from":"primary"},
-		"candidate":{"type":"relationship_npc","source":"relationship_npc"},
 		"house":{"type":"house","source":"primary_house"},
 		"business":{"type":"business","source":"owned_business"},
 		"provided":{"type":"context","source":"context"}
@@ -403,10 +402,25 @@ func _test_participant_sources() -> void:
 		"context":{"provided":{"source":"inherited"},"business_instance_id":"business_phase2"}
 	})
 	_assert(resolved.ready and resolved.participants.spouse == 2 and resolved.participants.parent == 3 and resolved.participants.child == 4, "Spouse, parent, and child resolve from canonical family links", _messages(resolved))
-	_assert(resolved.participants.candidate == 6, "Relationship NPC source resolves an existing candidate")
 	_assert(resolved.participants.house == "house_phase2", "Primary House source resolves")
 	_assert(resolved.participants.business == "business_phase2", "Owned family Business context resolves")
 	_assert(typeof(resolved.participants.provided) == TYPE_DICTIONARY, "Inherited/provided Event context resolves")
+
+	var candidate_event := _base_event("relationship_participant_source")
+	candidate_event.participants = {
+		"primary":{"type":"character","source":"player_selected"},
+		"candidate":{"type":"relationship_npc","source":"relationship_npc"}
+	}
+	var candidate_resolved := resolver.resolve(
+		candidate_event,
+		{"selected_participants":{"primary":7}}
+	)
+	_assert(
+		candidate_resolved.ready
+		and candidate_resolved.participants.candidate == 6,
+		"Relationship NPC source resolves an existing candidate",
+		_messages(candidate_resolved)
+	)
 
 
 func _test_group_candidate_preparation_and_validation() -> void:
@@ -449,8 +463,13 @@ func _test_manual_discovery_and_availability() -> void:
 	_assert(String(locked.failure_reasons[0].message).contains("Money"), "Locked result contains a player-readable reason")
 	var pool := service.discover_manual("lifestyle", context, "pool", "manual_pool")
 	_assert(pool.events.size() == 1 and pool.events[0].event_id == "manual_pool_event" and not pool.weighted_selection_performed, "Pool discovery returns eligible candidates without weighted execution")
-	_assert(service.discover_manual("relationship", context, "direct").events.size() == 1, "Relationship manual source uses common discovery")
-	_assert(service.discover_manual("family_agency", context, "direct").events.size() == 1, "Family Agency manual source uses common discovery")
+	var family_agency_direct := service.discover_manual("family_agency", context, "direct")
+	_assert(family_agency_direct.events.size() == 2, "Family Agency manual source uses common discovery")
+	_assert(
+		_status_for(family_agency_direct.events, "agency_extra") == EventRuntimeService.AVAILABLE
+		and _status_for(family_agency_direct.events, "agency_direct") == EventRuntimeService.AVAILABLE,
+		"Common discovery returns every definition for a supported manual source"
+	)
 	var group := service.get_availability("manual_group", {})
 	_assert(group.status == EventRuntimeService.REQUIRES_PARTICIPANTS and group.candidate_groups.has("travel_group"), "Manual discovery prepares participant-group selection")
 
@@ -498,7 +517,7 @@ func _manual_registry() -> EventDataRegistry:
 		_manual_event("manual_group", true, "direct", {"all":[]}, null, true),
 		_manual_event("manual_extra", true, "direct"),
 		_manual_event("manual_pool_event", true, "pool", {"all":[]}, null, false, "manual_pool"),
-		_manual_event("relationship_direct", true, "direct", {"all":[]}, null, false, "", "relationship"),
+		_manual_event("agency_extra", true, "direct", {"all":[]}, null, false, "", "family_agency"),
 		_manual_event("agency_direct", true, "direct", {"all":[]}, null, false, "", "family_agency")
 	]
 	var document := {"schema_version":1,"category":"general","pools":[{"pool_id":"manual_pool","selection_mode":"weighted_one"}],"events":events}
