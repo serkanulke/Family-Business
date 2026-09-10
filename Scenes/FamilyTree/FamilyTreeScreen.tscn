@@ -4,7 +4,6 @@
 [ext_resource type="Script" uid="uid://qmlmurjqy67e" path="res://Scenes/FamilyTree/FamilyNameBinding.gd" id="2_family_name_binding"]
 [ext_resource type="PackedScene" path="res://UI/CharacterCard/CharacterCard.tscn" id="3_character_card"]
 [ext_resource type="PackedScene" path="res://UI/ItemListShop/ItemListBottomSheet.tscn" id="4_item_list_sheet"]
-[ext_resource type="Script" uid="uid://df7s8v5xto3ru" path="res://Tests/Manual/RelationshipNPCDebugPanel.gd" id="5_riker"]
 
 [node name="FamilyTreeScreen" type="Control" unique_id=1284282421]
 layout_mode = 3
@@ -23,4 +22,3 @@ script = ExtResource("2_family_name_binding")
 [node name="ItemListBottomSheet" parent="." unique_id=1103280555 instance=ExtResource("4_item_list_sheet")]
 
 [node name="RelationshipNPCDebugPanel" type="CanvasLayer" parent="." unique_id=614851401]
-script = ExtResource("5_riker")

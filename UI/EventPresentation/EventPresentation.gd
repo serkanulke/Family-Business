@@ -8,6 +8,11 @@ signal manual_event_selection_cancelled(event_id: String)
 const MODAL_WIDTH := 1000.0
 const MODAL_SIDE_MARGIN := 40.0
 const SHEET_TOP := 500.0
+const EVENT_MARGIN_TOP := 48.0
+const EVENT_MARGIN_BOTTOM := 48.0
+const RESULT_MARGIN_TOP := 48.0
+const RESULT_MARGIN_BOTTOM := 48.0
+const RESULT_VIEWPORT_MARGIN := 240.0
 const DIM_OPACITY := 0.82
 
 const FONT_REGULAR := "res://Resources/Fonts/Roboto-Regular.ttf"
@@ -40,11 +45,19 @@ var event_content: VBoxContainer
 var result_panel: PanelContainer
 var result_scroll: ScrollContainer
 var result_content: VBoxContainer
+var result_header: VBoxContainer
+var result_list_content: VBoxContainer
+var result_continue_button: Button
 var participant_overlay: Control
 var participant_dim: ColorRect
 var participant_sheet: PanelContainer
 var participant_scroll: ScrollContainer
 var participant_content: VBoxContainer
+var participant_header: VBoxContainer
+var participant_title: Label
+var participant_subtitle: Label
+var participant_grid: GridContainer
+var participant_confirm_button: Button
 
 var current_instance: Dictionary = {}
 var current_definition: Dictionary = {}
@@ -207,15 +220,15 @@ func _build_interface() -> void:
 	event_panel.clip_contents = true
 	event_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	modal_root.add_child(event_panel)
-	event_scroll = _make_scroll("EventScroll")
-	event_panel.add_child(event_scroll)
-	var event_margin := _make_margin(48, 40, 48, 44)
+	# The approved Event composition is a complete, non-scrolling modal.
+	event_scroll = null
+	var event_margin := _make_margin(48, int(EVENT_MARGIN_TOP), 48, int(EVENT_MARGIN_BOTTOM))
 	event_margin.custom_minimum_size = Vector2(MODAL_WIDTH, 0.0)
-	event_scroll.add_child(event_margin)
+	event_panel.add_child(event_margin)
 	event_content = VBoxContainer.new()
 	event_content.name = "EventContent"
 	event_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	event_content.add_theme_constant_override("separation", 14)
+	event_content.add_theme_constant_override("separation", 0)
 	event_margin.add_child(event_content)
 
 	result_panel = _make_panel("ResultPanel", COLOR_MODAL, 46, Color.TRANSPARENT, 0)
@@ -223,16 +236,17 @@ func _build_interface() -> void:
 	result_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	result_panel.visible = false
 	modal_root.add_child(result_panel)
-	result_scroll = _make_scroll("ResultScroll")
-	result_panel.add_child(result_scroll)
-	var result_margin := _make_margin(48, 42, 48, 44)
+	var result_margin := _make_margin(
+		48, int(RESULT_MARGIN_TOP), 48, int(RESULT_MARGIN_BOTTOM)
+	)
 	result_margin.custom_minimum_size = Vector2(MODAL_WIDTH, 0.0)
-	result_scroll.add_child(result_margin)
+	result_panel.add_child(result_margin)
 	result_content = VBoxContainer.new()
 	result_content.name = "ResultContent"
 	result_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	result_content.add_theme_constant_override("separation", 24)
+	result_content.add_theme_constant_override("separation", 0)
 	result_margin.add_child(result_content)
+	_build_result_structure()
 
 	_build_participant_overlay()
 	modal_root.resized.connect(_layout_all)
@@ -260,16 +274,56 @@ func _build_participant_overlay() -> void:
 	participant_sheet.clip_contents = true
 	participant_sheet.mouse_filter = Control.MOUSE_FILTER_STOP
 	participant_overlay.add_child(participant_sheet)
-	participant_scroll = _make_scroll("ParticipantScroll")
-	participant_sheet.add_child(participant_scroll)
-	var sheet_margin := _make_margin(40, 16, 40, 60)
-	sheet_margin.custom_minimum_size = Vector2(MODAL_WIDTH, 0.0)
-	participant_scroll.add_child(sheet_margin)
+	var sheet_margin := _make_margin(40, 16, 40, 28)
+	sheet_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	participant_sheet.add_child(sheet_margin)
 	participant_content = VBoxContainer.new()
 	participant_content.name = "ParticipantContent"
 	participant_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	participant_content.add_theme_constant_override("separation", 24)
+	participant_content.add_theme_constant_override("separation", 0)
 	sheet_margin.add_child(participant_content)
+
+	participant_header = VBoxContainer.new()
+	participant_header.name = "ParticipantHeader"
+	participant_header.add_theme_constant_override("separation", 0)
+	participant_content.add_child(participant_header)
+	var handle_center := CenterContainer.new()
+	handle_center.custom_minimum_size = Vector2(0.0, 24.0)
+	var handle := _make_panel("Handle", COLOR_HANDLE, 5, Color.TRANSPARENT, 0)
+	handle.custom_minimum_size = Vector2(200.0, 9.0)
+	handle_center.add_child(handle)
+	participant_header.add_child(handle_center)
+	participant_header.add_child(_make_spacer(40.0))
+	participant_title = _make_centered_label(
+		"SELECT PARTICIPANTS", 40, COLOR_BROWN, FONT_EXTRA_BOLD
+	)
+	participant_title.custom_minimum_size = Vector2(0.0, 48.0)
+	participant_header.add_child(participant_title)
+	participant_header.add_child(_make_spacer(8.0))
+	participant_subtitle = _make_centered_label(
+		"", 25, COLOR_BROWN, FONT_REGULAR
+	)
+	participant_subtitle.custom_minimum_size = Vector2(0.0, 32.0)
+	participant_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	participant_header.add_child(participant_subtitle)
+	participant_content.add_child(_make_spacer(36.0))
+
+	participant_scroll = _make_scroll("ParticipantScroll")
+	participant_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	participant_content.add_child(participant_scroll)
+	var grid_margin := _make_margin(0, 0, 0, 0)
+	grid_margin.custom_minimum_size = Vector2(MODAL_WIDTH - 80.0, 0.0)
+	participant_scroll.add_child(grid_margin)
+	participant_grid = GridContainer.new()
+	participant_grid.name = "ParticipantGrid"
+	participant_grid.columns = 2
+	participant_grid.add_theme_constant_override("h_separation", 24)
+	participant_grid.add_theme_constant_override("v_separation", 24)
+	grid_margin.add_child(participant_grid)
+
+	participant_content.add_child(_make_spacer(24.0))
+	participant_confirm_button = _make_participant_confirm_button()
+	participant_content.add_child(participant_confirm_button)
 
 
 func _connect_runtime_signals() -> void:
@@ -331,6 +385,7 @@ func _render_event() -> void:
 	current_layout = _resolve_layout(current_definition, current_instance)
 	_build_context_section()
 	event_content.add_child(_make_horizontal_line())
+	event_content.add_child(_make_spacer(48.0))
 	_build_event_body()
 	event_panel.visible = true
 	result_panel.visible = false
@@ -342,12 +397,20 @@ func _render_event() -> void:
 func _build_context_section() -> void:
 	if current_layout == "group":
 		var group_box := VBoxContainer.new()
-		group_box.custom_minimum_size = Vector2(0.0, 170.0)
-		group_box.alignment = BoxContainer.ALIGNMENT_CENTER
-		group_box.add_theme_constant_override("separation", 14)
-		group_box.add_child(_make_centered_label("EVENT FOR", 23, COLOR_BROWN, FONT_REGULAR))
+		group_box.custom_minimum_size = Vector2(0.0, 215.0)
+		group_box.add_theme_constant_override("separation", 0)
+		var group_label := _make_centered_label(
+			"EVENT FOR", 23, COLOR_BROWN, FONT_REGULAR
+		)
+		group_label.custom_minimum_size = Vector2(0.0, 28.0)
+		group_box.add_child(group_label)
+		group_box.add_child(_make_spacer(17.0))
 		var button_center := CenterContainer.new()
-		group_button = _make_button("GroupParticipantButton", Vector2(360.0, 104.0))
+		var has_selected_group := _selected_group_count() > 0
+		group_button = _make_button(
+			"GroupParticipantButton",
+			Vector2(326.0 if has_selected_group else 440.0, 128.0)
+		)
 		group_button.add_theme_stylebox_override(
 			"normal", _make_style(COLOR_CARD, 24, COLOR_BORDER, 2)
 		)
@@ -355,7 +418,7 @@ func _build_context_section() -> void:
 			"hover", _make_style(Color("#FFFDF9"), 24, COLOR_BORDER, 2)
 		)
 		group_button.add_theme_font_override("font", _font(FONT_EXTRA_BOLD))
-		group_button.add_theme_font_size_override("font_size", 32)
+		group_button.add_theme_font_size_override("font_size", 34 if has_selected_group else 30)
 		group_button.add_theme_color_override("font_color", COLOR_BROWN)
 		group_button.text = _group_button_text()
 		group_button.pressed.connect(open_participant_selection)
@@ -367,21 +430,25 @@ func _build_context_section() -> void:
 	var character_entries := _character_entries()
 	if current_layout == "relationship" and character_entries.size() >= 2:
 		var pair := HBoxContainer.new()
-		pair.custom_minimum_size = Vector2(0.0, 170.0)
-		pair.add_theme_constant_override("separation", 28)
+		pair.custom_minimum_size = Vector2(0.0, 215.0)
+		pair.add_theme_constant_override("separation", 30)
 		pair.add_child(_make_labeled_character_chip("EVENT FOR", character_entries[0]))
 		pair.add_child(_make_labeled_character_chip("WITH", character_entries[1]))
 		event_content.add_child(pair)
 		return
 
 	var single := VBoxContainer.new()
-	single.custom_minimum_size = Vector2(0.0, 170.0)
-	single.alignment = BoxContainer.ALIGNMENT_CENTER
-	single.add_theme_constant_override("separation", 14)
-	single.add_child(_make_centered_label("EVENT FOR", 23, COLOR_BROWN, FONT_REGULAR))
+	single.custom_minimum_size = Vector2(0.0, 215.0)
+	single.add_theme_constant_override("separation", 0)
+	var single_label := _make_centered_label(
+		"EVENT FOR", 23, COLOR_BROWN, FONT_REGULAR
+	)
+	single_label.custom_minimum_size = Vector2(0.0, 28.0)
+	single.add_child(single_label)
+	single.add_child(_make_spacer(17.0))
 	var center := CenterContainer.new()
 	if not character_entries.is_empty():
-		center.add_child(_make_character_chip(character_entries[0], Vector2(440.0, 108.0)))
+		center.add_child(_make_character_chip(character_entries[0], Vector2(440.0, 128.0)))
 	single.add_child(center)
 	event_content.add_child(single)
 
@@ -390,9 +457,11 @@ func _build_event_body() -> void:
 	var presentation := current_definition.get("presentation", {}) as Dictionary
 	var art_path := String(presentation.get("art_path", ""))
 	var art_frame := _make_panel(
-		"EventArtFrame", Color("#F8E9D8"), 28, Color.TRANSPARENT, 0
+		"EventArtFrame", Color("#F8E9D8"), 22, Color.TRANSPARENT, 0
 	)
-	art_frame.custom_minimum_size = Vector2(0.0, 290.0)
+	art_frame.custom_minimum_size = Vector2(
+		0.0, 324.0 if current_layout == "relationship" else 342.0
+	)
 	art_frame.clip_contents = true
 	event_art = TextureRect.new()
 	event_art.name = "EventArt"
@@ -404,6 +473,7 @@ func _build_event_body() -> void:
 	event_art.set_meta("art_path", art_path if event_art.texture != null else "")
 	art_frame.add_child(event_art)
 	event_content.add_child(art_frame)
+	event_content.add_child(_make_spacer(60.0))
 
 	resolved_event_content = EventPresentationResolver.resolve_content(
 		current_definition.get("content", {}),
@@ -419,12 +489,14 @@ func _build_event_body() -> void:
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.custom_minimum_size = Vector2(0.0, 62.0)
 	event_content.add_child(title)
+	event_content.add_child(_make_spacer(10.0))
 
 	var separator_center := CenterContainer.new()
 	separator_center.custom_minimum_size = Vector2(0.0, 24.0)
 	var separator := _make_texture(TITLE_SEPARATOR, Vector2(660.0, 24.0))
 	separator_center.add_child(separator)
 	event_content.add_child(separator_center)
+	event_content.add_child(_make_spacer(32.0))
 
 	var description := _make_centered_label(
 		String(resolved_event_content.get("description", "")),
@@ -433,9 +505,10 @@ func _build_event_body() -> void:
 		FONT_REGULAR
 	)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.custom_minimum_size = Vector2(0.0, 100.0)
+	description.custom_minimum_size = Vector2(0.0, 132.0)
 	description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	event_content.add_child(description)
+	event_content.add_child(_make_spacer(60.0))
 
 	var choices_value = current_definition.get("choices", [])
 	if typeof(choices_value) != TYPE_ARRAY:
@@ -462,6 +535,8 @@ func _build_event_body() -> void:
 		var button := _make_choice_button(choice, state, index)
 		choice_buttons.append(button)
 		event_content.add_child(button)
+		if index < choices_value.size() - 1:
+			event_content.add_child(_make_spacer(18.0))
 
 
 func _make_choice_button(
@@ -481,7 +556,7 @@ func _make_choice_button(
 
 	var button := _make_button(
 		"Choice_%s" % String(choice.get("choice_id", "")),
-		Vector2(0.0, 128.0)
+		Vector2(0.0, 156.0)
 	)
 	button.disabled = not enabled
 	button.set_meta("choice_id", String(choice.get("choice_id", "")))
@@ -571,38 +646,69 @@ func _on_choice_pressed(choice_id: String) -> void:
 	_show_result(character_results)
 
 
-func _show_result(character_results: Array) -> void:
-	_clear_children(result_content)
-	result_character_rows.clear()
-	result_content.add_child(
-		_make_centered_label("EVENT RESULT", 46, COLOR_TEXT, FONT_EXTRA_BOLD)
+func _build_result_structure() -> void:
+	result_header = VBoxContainer.new()
+	result_header.name = "ResultHeader"
+	result_header.add_theme_constant_override("separation", 0)
+	var title := _make_centered_label(
+		"EVENT RESULT", 46, COLOR_TEXT, FONT_EXTRA_BOLD
 	)
+	title.custom_minimum_size = Vector2(0.0, 62.0)
+	result_header.add_child(title)
+	result_header.add_child(_make_spacer(10.0))
 	var separator_center := CenterContainer.new()
-	separator_center.add_child(_make_texture(TITLE_SEPARATOR, Vector2(660.0, 24.0)))
-	result_content.add_child(separator_center)
-	result_content.add_child(
-		_make_centered_label("AFFECTED CHARACTERS", 28, COLOR_BROWN, FONT_REGULAR)
+	separator_center.custom_minimum_size = Vector2(0.0, 24.0)
+	separator_center.add_child(
+		_make_texture(TITLE_SEPARATOR, Vector2(660.0, 24.0))
 	)
+	result_header.add_child(separator_center)
+	result_header.add_child(_make_spacer(24.0))
+	var affected := _make_centered_label(
+		"AFFECTED CHARACTERS", 28, COLOR_BROWN, FONT_REGULAR
+	)
+	affected.custom_minimum_size = Vector2(0.0, 34.0)
+	result_header.add_child(affected)
+	result_content.add_child(result_header)
+	result_content.add_child(_make_spacer(36.0))
+
+	result_scroll = _make_scroll("ResultCharacterScroll")
+	result_content.add_child(result_scroll)
+	result_list_content = VBoxContainer.new()
+	result_list_content.name = "ResultCharacterList"
+	result_list_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result_list_content.add_theme_constant_override("separation", 28)
+	result_scroll.add_child(result_list_content)
+
+	result_content.add_child(_make_spacer(30.0))
+	result_continue_button = _make_button("ContinueButton", Vector2(0.0, 102.0))
+	result_continue_button.text = "CONTINUE"
+	result_continue_button.add_theme_font_override("font", _font(FONT_BOLD))
+	result_continue_button.add_theme_font_size_override("font_size", 30)
+	result_continue_button.add_theme_color_override("font_color", Color.WHITE)
+	result_continue_button.add_theme_stylebox_override(
+		"normal", _make_style(COLOR_PRIMARY, 20, Color.TRANSPARENT, 0)
+	)
+	result_continue_button.add_theme_stylebox_override(
+		"hover", _make_style(
+			COLOR_PRIMARY.lightened(0.03), 20, Color.TRANSPARENT, 0
+		)
+	)
+	result_continue_button.add_theme_stylebox_override(
+		"pressed", _make_style(
+			COLOR_PRIMARY.darkened(0.04), 20, Color.TRANSPARENT, 0
+		)
+	)
+	result_continue_button.pressed.connect(_on_result_continue)
+	result_content.add_child(result_continue_button)
+
+
+func _show_result(character_results: Array) -> void:
+	_clear_children(result_list_content)
+	result_character_rows.clear()
 	for record_value in character_results:
 		var row := _make_result_character_row(record_value)
 		result_character_rows.append(row)
-		result_content.add_child(row)
-	var continue_button := _make_button("ContinueButton", Vector2(0.0, 96.0))
-	continue_button.text = "CONTINUE"
-	continue_button.add_theme_font_override("font", _font(FONT_BOLD))
-	continue_button.add_theme_font_size_override("font_size", 30)
-	continue_button.add_theme_color_override("font_color", Color.WHITE)
-	continue_button.add_theme_stylebox_override(
-		"normal", _make_style(COLOR_PRIMARY, 20, Color.TRANSPARENT, 0)
-	)
-	continue_button.add_theme_stylebox_override(
-		"hover", _make_style(COLOR_PRIMARY.lightened(0.03), 20, Color.TRANSPARENT, 0)
-	)
-	continue_button.add_theme_stylebox_override(
-		"pressed", _make_style(COLOR_PRIMARY.darkened(0.04), 20, Color.TRANSPARENT, 0)
-	)
-	continue_button.pressed.connect(_on_result_continue)
-	result_content.add_child(continue_button)
+		result_list_content.add_child(row)
 	result_is_visible = true
 	event_panel.visible = false
 	result_panel.visible = true
@@ -612,8 +718,8 @@ func _show_result(character_results: Array) -> void:
 
 func _make_result_character_row(record: Dictionary) -> PanelContainer:
 	var panel := _make_panel("ResultCharacter", COLOR_CARD, 26, COLOR_BORDER, 2)
-	panel.custom_minimum_size = Vector2(0.0, 210.0)
-	var margin := _make_margin(24, 22, 24, 22)
+	panel.custom_minimum_size = Vector2(0.0, 244.0)
+	var margin := _make_margin(24, 24, 24, 24)
 	panel.add_child(margin)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 28)
@@ -621,7 +727,7 @@ func _make_result_character_row(record: Dictionary) -> PanelContainer:
 	var character := CharacterManager.get_character_by_id(
 		int(record.get("character_id", 0))
 	)
-	row.add_child(_make_portrait(character, Vector2(150.0, 150.0)))
+	row.add_child(_make_portrait(character, Vector2(180.0, 180.0)))
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	copy.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -738,37 +844,13 @@ func _prepare_candidate_group() -> void:
 
 
 func _rebuild_participant_sheet() -> void:
-	_clear_children(participant_content)
+	_clear_children(participant_grid)
 	participant_cards.clear()
-	var handle_center := CenterContainer.new()
-	handle_center.custom_minimum_size = Vector2(0.0, 24.0)
-	var handle := _make_panel("Handle", COLOR_HANDLE, 5, Color.TRANSPARENT, 0)
-	handle.custom_minimum_size = Vector2(200.0, 9.0)
-	handle_center.add_child(handle)
-	participant_content.add_child(handle_center)
-
 	var selection_ui := current_candidate_group.get("selection_ui", {}) as Dictionary
-	participant_content.add_child(_make_centered_label(
-		String(selection_ui.get("title", "SELECT PARTICIPANTS")),
-		40,
-		COLOR_BROWN,
-		FONT_EXTRA_BOLD
-	))
-	var subtitle := _make_centered_label(
-		String(selection_ui.get("description", "")),
-		25,
-		COLOR_BROWN,
-		FONT_REGULAR
+	participant_title.text = String(
+		selection_ui.get("title", "SELECT PARTICIPANTS")
 	)
-	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	participant_content.add_child(subtitle)
-
-	var grid := GridContainer.new()
-	grid.name = "ParticipantGrid"
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 24)
-	grid.add_theme_constant_override("v_separation", 24)
-	participant_content.add_child(grid)
+	participant_subtitle.text = String(selection_ui.get("description", ""))
 	var show_ineligible := bool(selection_ui.get("show_ineligible", false))
 	for candidate_value in current_candidate_group.get("candidates", []):
 		if typeof(candidate_value) != TYPE_DICTIONARY:
@@ -778,29 +860,31 @@ func _rebuild_participant_sheet() -> void:
 			continue
 		var card := _make_participant_card(candidate, selection_ui)
 		participant_cards.append(card)
-		grid.add_child(card)
+		participant_grid.add_child(card)
+	participant_confirm_button.disabled = not _selection_count_is_valid()
 
-	var confirm := _make_button("ConfirmParticipants", Vector2(0.0, 96.0))
-	confirm.text = "CONFIRM"
-	confirm.disabled = not _selection_count_is_valid()
-	confirm.add_theme_font_override("font", _font(FONT_BOLD))
-	confirm.add_theme_font_size_override("font_size", 30)
-	confirm.add_theme_color_override("font_color", Color.WHITE)
-	confirm.add_theme_color_override("font_disabled_color", COLOR_DISABLED_TEXT)
-	confirm.add_theme_stylebox_override(
+
+func _make_participant_confirm_button() -> Button:
+	var button := _make_button("ConfirmParticipants", Vector2(0.0, 96.0))
+	button.text = "CONFIRM"
+	button.add_theme_font_override("font", _font(FONT_BOLD))
+	button.add_theme_font_size_override("font_size", 30)
+	button.add_theme_color_override("font_color", Color.WHITE)
+	button.add_theme_color_override("font_disabled_color", COLOR_DISABLED_TEXT)
+	button.add_theme_stylebox_override(
 		"normal", _make_style(COLOR_PRIMARY, 20, Color.TRANSPARENT, 0)
 	)
-	confirm.add_theme_stylebox_override(
+	button.add_theme_stylebox_override(
 		"hover", _make_style(COLOR_PRIMARY.lightened(0.03), 20, Color.TRANSPARENT, 0)
 	)
-	confirm.add_theme_stylebox_override(
+	button.add_theme_stylebox_override(
 		"pressed", _make_style(COLOR_PRIMARY.darkened(0.04), 20, Color.TRANSPARENT, 0)
 	)
-	confirm.add_theme_stylebox_override(
+	button.add_theme_stylebox_override(
 		"disabled", _make_style(Color("#E9DBC9"), 20, Color.TRANSPARENT, 0)
 	)
-	confirm.pressed.connect(_confirm_participant_selection)
-	participant_content.add_child(confirm)
+	button.pressed.connect(_confirm_participant_selection)
+	return button
 
 
 func _make_participant_card(
@@ -943,9 +1027,14 @@ func _selection_count_is_valid() -> bool:
 func _make_labeled_character_chip(label_text: String, entry: Dictionary) -> VBoxContainer:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 12)
-	column.add_child(_make_centered_label(label_text, 23, COLOR_BROWN, FONT_REGULAR))
-	column.add_child(_make_character_chip(entry, Vector2(0.0, 108.0)))
+	column.add_theme_constant_override("separation", 0)
+	var label := _make_centered_label(
+		label_text, 23, COLOR_BROWN, FONT_REGULAR
+	)
+	label.custom_minimum_size = Vector2(0.0, 28.0)
+	column.add_child(label)
+	column.add_child(_make_spacer(17.0))
+	column.add_child(_make_character_chip(entry, Vector2(0.0, 128.0)))
 	return column
 
 
@@ -972,7 +1061,7 @@ func _make_character_chip(entry: Dictionary, minimum_size: Vector2) -> Button:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", 16)
 	margin.add_child(row)
-	row.add_child(_make_portrait(character, Vector2(80.0, 80.0)))
+	row.add_child(_make_portrait(character, Vector2(92.0, 92.0)))
 	var label := _make_label(_character_name_age(character), 31, COLOR_BROWN, FONT_BOLD)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -1173,9 +1262,11 @@ func _layout_event_panel() -> void:
 		return
 	var viewport_size := modal_root.size
 	var width := minf(MODAL_WIDTH, viewport_size.x - MODAL_SIDE_MARGIN * 2.0)
-	var choice_count := choice_buttons.size()
-	var target_height := 968.0 + maxf(0.0, float(choice_count - 1) * 142.0)
-	var height := minf(target_height, viewport_size.y - 120.0)
+	var height := (
+		event_content.get_combined_minimum_size().y
+		+ EVENT_MARGIN_TOP
+		+ EVENT_MARGIN_BOTTOM
+	)
 	event_panel.position = Vector2((viewport_size.x - width) * 0.5, (viewport_size.y - height) * 0.5)
 	event_panel.size = Vector2(width, height)
 
@@ -1185,8 +1276,20 @@ func _layout_result_panel() -> void:
 		return
 	var viewport_size := modal_root.size
 	var width := minf(MODAL_WIDTH, viewport_size.x - MODAL_SIDE_MARGIN * 2.0)
-	var target_height := 410.0 + float(result_character_rows.size()) * 230.0
-	var height := minf(maxf(760.0, target_height), viewport_size.y - 180.0)
+	var list_height := result_list_content.get_combined_minimum_size().y
+	var fixed_height := (
+		RESULT_MARGIN_TOP
+		+ result_header.get_combined_minimum_size().y
+		+ 36.0
+		+ 30.0
+		+ result_continue_button.get_combined_minimum_size().y
+		+ RESULT_MARGIN_BOTTOM
+	)
+	var maximum_height := viewport_size.y - RESULT_VIEWPORT_MARGIN
+	var height := minf(fixed_height + list_height, maximum_height)
+	result_scroll.custom_minimum_size = Vector2(
+		0.0, minf(list_height, height - fixed_height)
+	)
 	result_panel.position = Vector2((viewport_size.x - width) * 0.5, (viewport_size.y - height) * 0.5)
 	result_panel.size = Vector2(width, height)
 
@@ -1200,7 +1303,7 @@ func _layout_sheet() -> void:
 	participant_sheet.position = Vector2(left, top)
 	participant_sheet.size = Vector2(
 		viewport_size.x - left * 2.0,
-		viewport_size.y - top + 50.0
+		viewport_size.y - top
 	)
 
 
@@ -1257,6 +1360,13 @@ func _make_margin(left: int, top: int, right: int, bottom: int) -> MarginContain
 	margin.add_theme_constant_override("margin_right", right)
 	margin.add_theme_constant_override("margin_bottom", bottom)
 	return margin
+
+
+func _make_spacer(height: float) -> Control:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0.0, height)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
 
 
 func _make_button(node_name: String, minimum_size: Vector2) -> Button:

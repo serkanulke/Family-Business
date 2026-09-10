@@ -14,6 +14,7 @@ var original_registry: EventDataRegistry
 var render_viewport: SubViewport
 var main: MainScreenController
 var presentation: EventPresentation
+var single_result_height := 0.0
 
 
 func _ready() -> void:
@@ -40,6 +41,7 @@ func _ready() -> void:
 	await _test_relationship_and_multiple_results()
 	await _test_group_participant_selection()
 	await _test_choice_count_variants()
+	await _test_large_result_layout()
 	await _test_missing_optional_resources()
 
 	_restore_state()
@@ -64,6 +66,7 @@ func _test_single_event() -> void:
 	_assert(snapshot.participant_chip_count == 1, "Single Event shows one Character chip")
 	_assert(snapshot.art_path == EVENT_ART, "Event art binds from presentation.art_path")
 	_assert(snapshot.choice_states.size() == 2, "Event choices are generated from Event JSON")
+	_assert(presentation.event_scroll == null, "Main Event modal has no ScrollContainer")
 	_assert(
 		snapshot.choice_states[0].icon_path == HEART_ICON
 		and not snapshot.choice_states[0].disabled,
@@ -109,6 +112,15 @@ func _test_single_event() -> void:
 	snapshot = presentation.get_display_snapshot()
 	_assert(snapshot.result_visible, "Character stat changes open Event Result")
 	_assert(snapshot.result_character_count == 1, "One affected Character renders one result row")
+	single_result_height = presentation.result_panel.size.y
+	_assert(single_result_height < 760.0, "One-character Event Result wraps to its natural content height")
+	_assert(
+		not presentation.result_scroll.is_ancestor_of(presentation.result_header)
+		and not presentation.result_scroll.is_ancestor_of(presentation.result_continue_button)
+		and presentation.result_scroll.is_ancestor_of(presentation.result_list_content),
+		"Event Result keeps header and Continue fixed while only the Character list can scroll"
+	)
+	_assert(not _is_scrollable(presentation.result_scroll), "One-character Event Result does not create blank scrolling space")
 	if _capture_enabled():
 		await _capture("event_ui_result_single.png")
 	presentation.call("_on_result_continue")
@@ -131,6 +143,8 @@ func _test_relationship_and_multiple_results() -> void:
 	var snapshot := presentation.get_display_snapshot()
 	_assert(snapshot.layout == "relationship", "Two Characters use the relationship layout")
 	_assert(snapshot.participant_chip_count == 2, "Relationship layout shows two equal Character chips")
+	_assert(snapshot.choice_states.size() == 3, "Relationship reference state renders three authored choices")
+	_assert(presentation.event_scroll == null, "Three-choice relationship modal remains non-scrolling")
 	_assert(
 		String(snapshot.description).contains("Jordan")
 		and not String(snapshot.description).contains("{candidate_name}"),
@@ -144,6 +158,8 @@ func _test_relationship_and_multiple_results() -> void:
 	snapshot = presentation.get_display_snapshot()
 	_assert(snapshot.result_visible, "Relationship stat effects open Event Result")
 	_assert(snapshot.result_character_count == 2, "Multiple affected Characters render separate result rows")
+	_assert(presentation.result_panel.size.y > single_result_height, "Two-character Event Result grows with its content")
+	_assert(not _is_scrollable(presentation.result_scroll), "Two-character Event Result remains naturally sized without scrolling")
 	if _capture_enabled():
 		await _capture("event_ui_result_multiple.png")
 	presentation.call("_on_result_continue")
@@ -166,11 +182,19 @@ func _test_group_participant_selection() -> void:
 	await _wait_frames(2)
 	snapshot = presentation.get_display_snapshot()
 	_assert(snapshot.participant_sheet_visible, "Participant bottom sheet blocks above the Event")
-	_assert(snapshot.participant_card_count == 3, "Candidate cards come from family Character selection rules")
+	_assert(snapshot.participant_card_count >= 10, "Participant sheet contains enough eligible family cards to exercise scrolling")
+	_assert(
+		not presentation.participant_scroll.is_ancestor_of(presentation.participant_header)
+		and not presentation.participant_scroll.is_ancestor_of(presentation.participant_confirm_button)
+		and presentation.participant_scroll.is_ancestor_of(presentation.participant_grid),
+		"Participant sheet keeps header and Confirm fixed while only the card grid can scroll"
+	)
+	_assert(_is_scrollable(presentation.participant_scroll), "Participant card grid scrolls when family candidates overflow")
+	presentation.call("_toggle_participant", 1)
+	await _wait_frames(2)
 	if _capture_enabled():
 		await _capture("event_ui_select_participants.png")
 
-	presentation.call("_toggle_participant", 1)
 	presentation.call("_toggle_participant", 2)
 	await _wait_frames(2)
 	_assert(presentation.sheet_selected_ids.size() == 2, "Select/Remove state tracks the pending backend selection")
@@ -224,26 +248,73 @@ func _test_missing_optional_resources() -> void:
 func _test_choice_count_variants() -> void:
 	var event := _single_event()
 	event.event_id = "ui_many_choices"
-	for index in range(2):
-		var extra_choice: Dictionary = event.choices[0].duplicate(true)
-		extra_choice.choice_id = "extra_%d" % index
-		extra_choice.title = "EXTRA OPTION %d" % (index + 1)
-		event.choices.append(extra_choice)
+	var extra_choice: Dictionary = event.choices[0].duplicate(true)
+	extra_choice.choice_id = "extra"
+	extra_choice.title = "EXTRA OPTION"
+	event.choices.append(extra_choice)
 	_configure([event])
 	GameManager.set_family_money(1000)
 	EventManager.activate_chain(event.event_id, {"primary": 1})
 	await _wait_frames(3)
 	_assert(
-		presentation.choice_buttons.size() == 4,
+		presentation.choice_buttons.size() == 3,
 		"Three-plus Event choices are generated without fixed choice slots"
 	)
+	_assert(presentation.event_scroll == null, "Three-choice single Event has no main modal scrolling")
 	var last_choice := presentation.choice_buttons[-1]
 	_assert(
 		last_choice.global_position.y + last_choice.size.y
 		<= presentation.event_panel.global_position.y + presentation.event_panel.size.y,
 		"Three-plus Event choices stay inside the bounded production modal"
 	)
+	if _capture_enabled():
+		await _capture("event_ui_single_three_choices.png")
 	EventManager.cancel_active_event()
+	await _wait_frames(2)
+
+
+func _test_large_result_layout() -> void:
+	var event := _large_result_event()
+	_configure([event])
+	var participants := {
+		"primary": 1,
+		"member_2": 2,
+		"member_3": 3,
+		"member_4": 5,
+		"member_5": 6,
+		"member_6": 7
+	}
+	_assert(
+		bool(EventManager.activate_chain(event.event_id, participants).get("queued", false)),
+		"Large-result fixture activates through EventManager"
+	)
+	await _wait_frames(3)
+	presentation.choice_buttons[0].pressed.emit()
+	await _wait_frames(3)
+	var snapshot := presentation.get_display_snapshot()
+	_assert(snapshot.result_character_count == 6, "Overflow Event Result renders every affected Character")
+	_assert(
+		is_equal_approx(presentation.result_panel.size.y, render_viewport.size.y - 240.0),
+		"Overflow Event Result stops at the approved viewport maximum"
+	)
+	_assert(_is_scrollable(presentation.result_scroll), "Only the overflow Character list becomes scrollable")
+	_assert(
+		presentation.result_continue_button.global_position.y
+		+ presentation.result_continue_button.size.y
+		<= presentation.result_panel.global_position.y + presentation.result_panel.size.y,
+		"Fixed Continue button stays visible inside an overflowing Event Result"
+	)
+	var stat_flow := _find_flow_container(presentation.result_character_rows[0])
+	_assert(stat_flow != null and stat_flow.get_child_count() == 8, "All eight stat changes render for one Character")
+	if stat_flow != null:
+		var chip_rows: Dictionary = {}
+		for chip_value in stat_flow.get_children():
+			var chip := chip_value as Control
+			chip_rows[roundi(chip.position.y)] = true
+		_assert(chip_rows.size() >= 2, "Stat-change chips wrap to a second row instead of overflowing horizontally")
+	if _capture_enabled():
+		await _capture("event_ui_result_overflow.png")
+	presentation.call("_on_result_continue")
 	await _wait_frames(2)
 
 
@@ -296,20 +367,75 @@ func _relationship_event() -> Dictionary:
 		"subtitle": null,
 		"description": "{character_name} and {candidate_name} enjoy spending time together."
 	}
+	event.choices = [
+		{
+			"choice_id": "continue",
+			"title": "SHOW INTEREST",
+			"description": "See where the connection leads.",
+			"icon_path": HEART_ICON,
+			"requirements": {"all": []},
+			"resolution": {
+				"mode": "deterministic",
+				"effects": [
+					{"type": "stat_change", "target": "primary", "stat": "health", "amount": 4},
+					{"type": "stat_change", "target": "candidate", "stat": "happiness", "amount": 20},
+					{"type": "stat_change", "target": "candidate", "stat": "creativity", "amount": -10}
+				]
+			}
+		},
+		{
+			"choice_id": "decline",
+			"title": "NOT INTERESTED",
+			"description": "Keep the relationship as it is.",
+			"icon_path": BROKEN_HEART_ICON,
+			"requirements": {"all": []},
+			"resolution": {"mode": "deterministic", "effects": []}
+		},
+		{
+			"choice_id": "dinner",
+			"title": "INVITE TO DINNER",
+			"description": "Requires Confidence (60)",
+			"icon_path": HEART_ICON,
+			"requirements": {"all": [{"type": "money", "operator": ">=", "value": 5000}]},
+			"resolution": {"mode": "deterministic", "effects": []}
+		}
+	]
+	return event
+
+
+func _large_result_event() -> Dictionary:
+	var event := _base_event("ui_large_result")
+	event.participants = {"primary": {"type": "character", "source": "trigger"}}
+	for index in range(2, 7):
+		event.participants["member_%d" % index] = {
+			"type": "character", "source": "trigger"
+		}
+	event.content = {
+		"title": "A FAMILY MOMENT",
+		"subtitle": null,
+		"description": "The whole family is affected by this event."
+	}
+	var effects: Array = []
+	for stat in [
+		"health", "happiness", "logic", "confidence",
+		"social", "attractiveness", "discipline", "creativity"
+	]:
+		effects.append({
+			"type": "stat_change", "target": "primary", "stat": stat, "amount": -1
+		})
+	for index in range(2, 7):
+		effects.append({
+			"type": "stat_change",
+			"target": "member_%d" % index,
+			"stat": "happiness",
+			"amount": -1
+		})
 	event.choices = [{
 		"choice_id": "continue",
-		"title": "SHOW INTEREST",
-		"description": "See where the connection leads.",
-		"icon_path": HEART_ICON,
+		"title": "CONTINUE",
+		"description": "Apply the family-wide result.",
 		"requirements": {"all": []},
-		"resolution": {
-			"mode": "deterministic",
-			"effects": [
-				{"type": "stat_change", "target": "primary", "stat": "health", "amount": 4},
-				{"type": "stat_change", "target": "candidate", "stat": "happiness", "amount": 20},
-				{"type": "stat_change", "target": "candidate", "stat": "creativity", "amount": -10}
-			]
-		}
+		"resolution": {"mode": "deterministic", "effects": effects}
 	}]
 	return event
 
@@ -317,6 +443,7 @@ func _relationship_event() -> Dictionary:
 func _group_event() -> Dictionary:
 	var event := _base_event("ui_group")
 	event.trigger = {"type": "manual", "source": "lifestyle", "mode": "direct"}
+	event.presentation.art_path = EVENT_ART
 	event.participants = {"travel_group": {
 		"type": "character_group",
 		"source": "player_selected",
@@ -340,13 +467,22 @@ func _group_event() -> Dictionary:
 		"subtitle": null,
 		"description": "Choose who will take part in this family event."
 	}
-	event.choices = [{
-		"choice_id": "continue",
-		"title": "CONTINUE",
-		"description": "Begin with the selected participants.",
-		"requirements": {"all": []},
-		"resolution": {"mode": "deterministic", "effects": []}
-	}]
+	event.choices = [
+		{
+			"choice_id": "continue",
+			"title": "CONTINUE",
+			"description": "Begin with the selected participants.",
+			"requirements": {"all": []},
+			"resolution": {"mode": "deterministic", "effects": []}
+		},
+		{
+			"choice_id": "cancel",
+			"title": "NOT THIS TIME",
+			"description": "Keep the family at home.",
+			"requirements": {"all": []},
+			"resolution": {"mode": "deterministic", "effects": []}
+		}
+	]
 	return event
 
 
@@ -394,7 +530,15 @@ func _setup_characters() -> void:
 		_character(1, "Alexandria-Long-Character-Name", true, "1973-01-26", "female", 80),
 		_character(2, "Sam", true, "1968-06-12", "female", 72),
 		_character(3, "Taylor", true, "1978-03-02", "female", 64),
-		_character(4, "Jordan", false, "1972-07-18", "female", 76)
+		_character(4, "Jordan", false, "1972-07-18", "female", 76),
+		_character(5, "Morgan", true, "1970-04-21", "female", 68),
+		_character(6, "Avery", true, "1975-08-15", "female", 70),
+		_character(7, "Casey", true, "1966-11-09", "female", 74),
+		_character(8, "Riley", true, "1977-05-13", "female", 66),
+		_character(9, "Jamie", true, "1969-09-24", "female", 78),
+		_character(10, "Quinn", true, "1974-02-17", "female", 62),
+		_character(11, "Parker", true, "1971-07-06", "female", 69),
+		_character(12, "Drew", true, "1976-12-28", "female", 73)
 	]
 	TimeManager.current_year = 2000
 	TimeManager.current_month = 1
@@ -455,6 +599,21 @@ func _find_label_with_text(root: Node, fragment: String) -> Label:
 		if result != null:
 			return result
 	return null
+
+
+func _find_flow_container(root: Node) -> HFlowContainer:
+	if root is HFlowContainer:
+		return root as HFlowContainer
+	for child in root.get_children():
+		var result := _find_flow_container(child)
+		if result != null:
+			return result
+	return null
+
+
+func _is_scrollable(scroll: ScrollContainer) -> bool:
+	var bar := scroll.get_v_scroll_bar()
+	return bar.max_value > bar.page + 1.0
 
 
 func _wait_frames(count: int) -> void:
