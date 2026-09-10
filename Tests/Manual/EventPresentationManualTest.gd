@@ -9,11 +9,10 @@ const RELATIONSHIP_ART := "res://Resources/Events/relationship/relationship_01.p
 
 var original_state: Dictionary = {}
 var original_registry: EventDataRegistry
-
 var main: MainScreenController
 var presentation: EventPresentation
-
 var control_layer: CanvasLayer
+var control_panel: PanelContainer
 var diagnostics_label: Label
 var current_scenario := "Ready"
 
@@ -24,7 +23,6 @@ func _ready() -> void:
 
 	main = MAIN_SCENE.instantiate() as MainScreenController
 	add_child(main)
-
 	await _wait_frames(5)
 
 	var relationship_debug := main.family_tree_screen.get_node_or_null(
@@ -34,10 +32,8 @@ func _ready() -> void:
 		relationship_debug.visible = false
 
 	presentation = main.event_presentation
-	_build_manual_controls()
-
-	# Open a representative state immediately so F6 shows something useful.
-	await _show_single_three_choices()
+	_build_controls()
+	await _show_single_three()
 
 
 func _exit_tree() -> void:
@@ -45,126 +41,126 @@ func _exit_tree() -> void:
 
 
 func _process(_delta: float) -> void:
-	if presentation == null or diagnostics_label == null:
+	if presentation != null and diagnostics_label != null:
+		_update_diagnostics()
+
+
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventKey):
 		return
-	_update_diagnostics()
+	var key := event as InputEventKey
+	if not key.pressed or key.echo:
+		return
+
+	match key.keycode:
+		KEY_F1:
+			control_panel.visible = not control_panel.visible
+		KEY_1:
+			_show_single_three()
+		KEY_2:
+			_show_relationship()
+		KEY_3:
+			_show_group_empty()
+		KEY_4:
+			_show_group_five()
+		KEY_5:
+			_show_select_sheet()
+		KEY_6:
+			_show_result_one()
+		KEY_7:
+			_show_result_two()
+		KEY_8:
+			_show_result_many()
+		KEY_9:
+			_show_long_name()
 
 
-func _build_manual_controls() -> void:
+func _build_controls() -> void:
 	control_layer = CanvasLayer.new()
-	control_layer.name = "ManualEventUIControls"
 	control_layer.layer = 100
 	add_child(control_layer)
 
-	var panel := PanelContainer.new()
-	panel.name = "ControlPanel"
-	panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	panel.offset_bottom = 300.0
-	control_layer.add_child(panel)
+	control_panel = PanelContainer.new()
+	control_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	control_panel.offset_bottom = 230.0
+	control_layer.add_child(control_panel)
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.08, 0.08, 0.94)
 	style.corner_radius_bottom_left = 18
 	style.corner_radius_bottom_right = 18
-	panel.add_theme_stylebox_override("panel", style)
+	control_panel.add_theme_stylebox_override("panel", style)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_left", 12)
 	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_right", 12)
 	margin.add_theme_constant_override("margin_bottom", 12)
-	panel.add_child(margin)
+	control_panel.add_child(margin)
 
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 8)
 	margin.add_child(root)
 
 	var title := Label.new()
-	title.text = "EVENT UI MANUAL TEST"
+	title.text = "EVENT UI MANUAL TEST — F1 hides/shows this panel"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 24)
+	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", Color.WHITE)
 	root.add_child(title)
 
 	diagnostics_label = Label.new()
-	diagnostics_label.text = "Ready"
 	diagnostics_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	diagnostics_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	diagnostics_label.add_theme_font_size_override("font_size", 18)
+	diagnostics_label.add_theme_font_size_override("font_size", 16)
 	diagnostics_label.add_theme_color_override("font_color", Color("#F4D9B9"))
 	root.add_child(diagnostics_label)
 
-	var row_one := HBoxContainer.new()
-	row_one.add_theme_constant_override("separation", 8)
-	root.add_child(row_one)
-	_add_control_button(row_one, "Single Locked", _show_single_locked)
-	_add_control_button(row_one, "Single Open", _show_single_open)
-	_add_control_button(row_one, "Single 3 Choices", _show_single_three_choices)
-	_add_control_button(row_one, "Long Name", _show_long_name)
+	var row1 := HBoxContainer.new()
+	row1.add_theme_constant_override("separation", 8)
+	root.add_child(row1)
+	_add_button(row1, "1 Single 3", _show_single_three)
+	_add_button(row1, "2 Relationship", _show_relationship)
+	_add_button(row1, "3 Group Empty", _show_group_empty)
+	_add_button(row1, "4 Group 5", _show_group_five)
+	_add_button(row1, "5 Select Sheet", _show_select_sheet)
 
-	var row_two := HBoxContainer.new()
-	row_two.add_theme_constant_override("separation", 8)
-	root.add_child(row_two)
-	_add_control_button(row_two, "Relationship", _show_relationship)
-	_add_control_button(row_two, "Group Empty", _show_group_empty)
-	_add_control_button(row_two, "Group 5", _show_group_five)
-	_add_control_button(row_two, "Select Sheet", _show_group_sheet)
-
-	var row_three := HBoxContainer.new()
-	row_three.add_theme_constant_override("separation", 8)
-	root.add_child(row_three)
-	_add_control_button(row_three, "Result 1", _show_result_single)
-	_add_control_button(row_three, "Result 2", _show_result_relationship)
-	_add_control_button(row_three, "Cancel Active", _cancel_active)
-	_add_control_button(row_three, "Reload Current", _reload_current)
+	var row2 := HBoxContainer.new()
+	row2.add_theme_constant_override("separation", 8)
+	root.add_child(row2)
+	_add_button(row2, "6 Result 1", _show_result_one)
+	_add_button(row2, "7 Result 2", _show_result_two)
+	_add_button(row2, "8 Result 6", _show_result_many)
+	_add_button(row2, "9 Long Name", _show_long_name)
 
 
-func _add_control_button(
-	parent: HBoxContainer,
-	label_text: String,
-	callback: Callable
-) -> void:
+func _add_button(parent: HBoxContainer, text_value: String, callback: Callable) -> void:
 	var button := Button.new()
-	button.text = label_text
-	button.custom_minimum_size = Vector2(0.0, 52.0)
+	button.text = text_value
+	button.custom_minimum_size = Vector2(0.0, 48.0)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_font_size_override("font_size", 17)
+	button.add_theme_font_size_override("font_size", 15)
 	button.pressed.connect(callback)
 	parent.add_child(button)
 
 
-func _show_single_locked() -> void:
-	current_scenario = "Single / 2 Choices / Locked"
-	var event := _single_event("manual_single_locked", false, 2)
-	_configure([event])
-	GameManager.set_family_money(100)
-	EventManager.activate_chain(event["event_id"], {"primary": 1})
-	await _wait_frames(3)
-
-
-func _show_single_open() -> void:
-	current_scenario = "Single / 2 Choices / Open"
-	var event := _single_event("manual_single_open", false, 2)
-	_configure([event])
-	GameManager.set_family_money(1000)
-	EventManager.activate_chain(event["event_id"], {"primary": 2})
-	await _wait_frames(3)
-
-
-func _show_single_three_choices() -> void:
+func _show_single_three() -> void:
 	current_scenario = "Single / 3 Choices"
-	var event := _single_event("manual_single_three", false, 3)
-	_configure([event])
+	_prepare_event()
+	var event := _single_event("manual_single_three", 3)
+	if not _configure([event]):
+		return
 	GameManager.set_family_money(100)
 	EventManager.activate_chain(event["event_id"], {"primary": 2})
 	await _wait_frames(3)
 
 
 func _show_long_name() -> void:
-	current_scenario = "Single / Long Character Name"
-	var event := _single_event("manual_long_name", true, 3)
-	_configure([event])
+	current_scenario = "Single / Long Name"
+	_prepare_event()
+	var event := _single_event("manual_long_name", 3)
+	if not _configure([event]):
+		return
 	GameManager.set_family_money(1000)
 	EventManager.activate_chain(event["event_id"], {"primary": 1})
 	await _wait_frames(3)
@@ -172,163 +168,184 @@ func _show_long_name() -> void:
 
 func _show_relationship() -> void:
 	current_scenario = "Relationship / 3 Choices"
-	var event := _relationship_event("manual_relationship")
-	_configure([event])
+	_prepare_event()
+	var event := _relationship_event()
+	if not _configure([event]):
+		return
 	GameManager.set_family_money(100)
 	EventManager.activate_chain(
 		event["event_id"],
-		{"primary": 2, "candidate": 7}
+		{"primary": 2, "candidate": 50}
 	)
 	await _wait_frames(3)
 
 
 func _show_group_empty() -> void:
-	current_scenario = "Group / No Participants"
+	current_scenario = "Group / Empty"
+	_prepare_event()
 	var event := _group_event("manual_group_empty")
-	_configure([event])
+	if not _configure([event]):
+		return
 	main.begin_manual_event(event["event_id"])
 	await _wait_frames(3)
 
 
 func _show_group_five() -> void:
 	current_scenario = "Group / 5 Participants"
+	_prepare_event()
 	var event := _group_event("manual_group_five")
-	_configure([event])
+	if not _configure([event]):
+		return
 	EventManager.activate_manual_direct(
 		event["event_id"],
-		{
-			"selected_participants": {
-				"travel_group": [1, 2, 3, 4, 5]
-			}
-		}
+		{"selected_participants": {"travel_group": [2, 3, 4, 5, 6]}}
 	)
 	await _wait_frames(3)
 
 
-func _show_group_sheet() -> void:
-	current_scenario = "Group / Select Participants Sheet"
+func _show_select_sheet() -> void:
+	current_scenario = "Select Participants Sheet"
+	_prepare_event()
 	var event := _group_event("manual_group_sheet")
-	_configure([event])
+	if not _configure([event]):
+		return
 	main.begin_manual_event(event["event_id"])
 	await _wait_frames(2)
 	presentation.open_participant_selection()
 	await _wait_frames(3)
 
 
-func _show_result_single() -> void:
-	current_scenario = "Event Result / 1 Character"
-	var event := _single_event("manual_result_single", false, 2)
-	_configure([event])
-	GameManager.set_family_money(1000)
-	EventManager.activate_chain(event["event_id"], {"primary": 2})
-	await _wait_frames(3)
-	if not presentation.choice_buttons.is_empty():
-		presentation.choice_buttons[0].pressed.emit()
+# Result screens use the REAL production result renderer directly.
+# This avoids EventManager resolution state so these visual tests remain stable.
+func _show_result_one() -> void:
+	current_scenario = "Result / 1 Character"
+	_prepare_direct_result()
+	presentation.call("_show_result", [_result_row(2, 3)])
 	await _wait_frames(3)
 
 
-func _show_result_relationship() -> void:
-	current_scenario = "Event Result / 2 Characters"
-	var event := _relationship_event("manual_result_relationship")
-	_configure([event])
-	GameManager.set_family_money(1000)
-	EventManager.activate_chain(
-		event["event_id"],
-		{"primary": 2, "candidate": 7}
+func _show_result_two() -> void:
+	current_scenario = "Result / 2 Characters"
+	_prepare_direct_result()
+	presentation.call(
+		"_show_result",
+		[_result_row(2, 3), _result_row(3, 3)]
 	)
 	await _wait_frames(3)
-	if not presentation.choice_buttons.is_empty():
-		presentation.choice_buttons[0].pressed.emit()
+
+
+func _show_result_many() -> void:
+	current_scenario = "Result / 6 Characters"
+	_prepare_direct_result()
+	var rows: Array = []
+	for character_id in [2, 3, 4, 5, 6, 7]:
+		rows.append(_result_row(character_id, 5))
+	presentation.call("_show_result", rows)
 	await _wait_frames(3)
+
+
+func _result_row(character_id: int, stat_count: int) -> Dictionary:
+	var stats := [
+		{"stat": "health", "amount": 4},
+		{"stat": "happiness", "amount": 20},
+		{"stat": "creativity", "amount": -10},
+		{"stat": "confidence", "amount": 5},
+		{"stat": "social", "amount": -2}
+	]
+	return {
+		"character_id": character_id,
+		"stats": stats.slice(0, stat_count)
+	}
+
+
+func _prepare_event() -> void:
+	_cancel_active()
+	_reset_presentation()
+
+
+func _prepare_direct_result() -> void:
+	_cancel_active()
+	_reset_presentation()
 
 
 func _cancel_active() -> void:
-	current_scenario = "Cancelled"
-	if presentation != null and presentation.participant_overlay.visible:
-		presentation.close_participant_selection()
 	if EventManager.active_event != null:
 		EventManager.cancel_active_event()
-	elif presentation != null:
-		presentation.pending_event_id = ""
-		presentation.pending_runtime_context.clear()
-		presentation.current_instance.clear()
-		presentation.current_definition.clear()
+
+
+func _reset_presentation() -> void:
+	if presentation == null:
+		return
+
+	if presentation.participant_overlay != null:
+		presentation.participant_overlay.visible = false
+
+	presentation.pending_event_id = ""
+	presentation.pending_runtime_context.clear()
+	presentation.current_availability.clear()
+	presentation.current_instance.clear()
+	presentation.current_definition.clear()
+	presentation.current_group_name = ""
+	presentation.current_candidate_group.clear()
+	presentation.sheet_selected_ids.clear()
+	presentation.resolved_event_content.clear()
+	presentation.resolving_choice = false
+	presentation.character_card_open = false
+	presentation.result_is_visible = false
+
+	if presentation.event_panel != null:
+		presentation.event_panel.visible = false
+	if presentation.result_panel != null:
+		presentation.result_panel.visible = false
+	if presentation.modal_root != null:
 		presentation.modal_root.visible = false
-	await _wait_frames(2)
-
-
-func _reload_current() -> void:
-	match current_scenario:
-		"Single / 2 Choices / Locked":
-			await _show_single_locked()
-		"Single / 2 Choices / Open":
-			await _show_single_open()
-		"Single / 3 Choices":
-			await _show_single_three_choices()
-		"Single / Long Character Name":
-			await _show_long_name()
-		"Relationship / 3 Choices":
-			await _show_relationship()
-		"Group / No Participants":
-			await _show_group_empty()
-		"Group / 5 Participants":
-			await _show_group_five()
-		"Group / Select Participants Sheet":
-			await _show_group_sheet()
-		"Event Result / 1 Character":
-			await _show_result_single()
-		"Event Result / 2 Characters":
-			await _show_result_relationship()
-		_:
-			await _show_single_three_choices()
 
 
 func _update_diagnostics() -> void:
 	var mode := "NONE"
 	var panel_size := Vector2.ZERO
-	var scroll: ScrollContainer = null
+	var scroll_text := "n/a"
 
 	if presentation.participant_overlay.visible:
-		mode = "PARTICIPANT SHEET (scroll expected)"
+		mode = "SHEET"
 		panel_size = presentation.participant_sheet.size
-		scroll = presentation.participant_scroll
+		scroll_text = _scroll_text(presentation.participant_scroll)
 	elif presentation.result_is_visible:
 		mode = "RESULT"
 		panel_size = presentation.result_panel.size
-		scroll = presentation.result_scroll
+		scroll_text = _scroll_text(presentation.result_scroll)
 	elif presentation.modal_root.visible:
 		mode = "EVENT"
 		panel_size = presentation.event_panel.size
-		scroll = presentation.event_scroll
+		scroll_text = (
+			"NONE"
+			if presentation.event_scroll == null
+			else _scroll_text(presentation.event_scroll)
+		)
 
-	var scroll_text := "n/a"
-	if scroll != null:
-		var bar := scroll.get_v_scroll_bar()
-		var scrollable := bar.max_value > bar.page + 1.0
-		scroll_text = "%s  max=%.0f page=%.0f value=%.0f" % [
-			"YES" if scrollable else "NO",
-			bar.max_value,
-			bar.page,
-			bar.value
-		]
-
-	diagnostics_label.text = (
-		"%s | %s | panel %.0f×%.0f | vertical scroll: %s"
-		% [
-			current_scenario,
-			mode,
-			panel_size.x,
-			panel_size.y,
-			scroll_text
-		]
-	)
+	diagnostics_label.text = "%s | %s | %.0f×%.0f | scroll: %s" % [
+		current_scenario,
+		mode,
+		panel_size.x,
+		panel_size.y,
+		scroll_text
+	]
 
 
-func _single_event(
-	event_id: String,
-	long_name_fixture: bool,
-	choice_count: int
-) -> Dictionary:
+func _scroll_text(scroll: ScrollContainer) -> String:
+	if scroll == null:
+		return "NONE"
+	var bar := scroll.get_v_scroll_bar()
+	var scrollable := bar.max_value > bar.page + 1.0
+	return "%s (max %.0f / page %.0f)" % [
+		"YES" if scrollable else "NO",
+		bar.max_value,
+		bar.page
+	]
+
+
+
+func _single_event(event_id: String, choice_count: int) -> Dictionary:
 	var event := _base_event(event_id)
 	event["participants"] = {
 		"primary": {
@@ -343,7 +360,7 @@ func _single_event(
 		"description": (
 			"{character_name} has an important decision to make. "
 			+ "This description is intentionally long enough to expose "
-			+ "the real production spacing and modal-height behavior."
+			+ "the production spacing and modal-height behavior."
 		)
 	}
 
@@ -356,26 +373,7 @@ func _single_event(
 			"requirements": {"all": []},
 			"resolution": {
 				"mode": "deterministic",
-				"effects": [
-					{
-						"type": "stat_change",
-						"target": "primary",
-						"stat": "health",
-						"amount": 4
-					},
-					{
-						"type": "stat_change",
-						"target": "primary",
-						"stat": "happiness",
-						"amount": 20
-					},
-					{
-						"type": "stat_change",
-						"target": "primary",
-						"stat": "creativity",
-						"amount": -10
-					}
-				]
+				"effects": []
 			}
 		},
 		{
@@ -403,7 +401,7 @@ func _single_event(
 		choices.append({
 			"choice_id": "third_option",
 			"title": "A THIRD OPTION",
-			"description": "A third production choice used to inspect modal height.",
+			"description": "A third option used to inspect the full modal geometry.",
 			"icon_path": HEART_ICON,
 			"requirements": {"all": []},
 			"resolution": {
@@ -413,18 +411,11 @@ func _single_event(
 		})
 
 	event["choices"] = choices
-
-	if long_name_fixture:
-		event["content"]["description"] = (
-			"{character_name} is intentionally using the long-name fixture. "
-			+ "The Character chip must remain on one line and use ellipsis."
-		)
-
 	return event
 
 
-func _relationship_event(event_id: String) -> Dictionary:
-	var event := _base_event(event_id)
+func _relationship_event() -> Dictionary:
+	var event := _base_event("manual_relationship")
 	event["participants"] = {
 		"primary": {
 			"type": "character",
@@ -453,38 +444,7 @@ func _relationship_event(event_id: String) -> Dictionary:
 			"requirements": {"all": []},
 			"resolution": {
 				"mode": "deterministic",
-				"effects": [
-					{
-						"type": "stat_change",
-						"target": "primary",
-						"stat": "health",
-						"amount": 4
-					},
-					{
-						"type": "stat_change",
-						"target": "primary",
-						"stat": "happiness",
-						"amount": 20
-					},
-					{
-						"type": "stat_change",
-						"target": "candidate",
-						"stat": "health",
-						"amount": 4
-					},
-					{
-						"type": "stat_change",
-						"target": "candidate",
-						"stat": "happiness",
-						"amount": 20
-					},
-					{
-						"type": "stat_change",
-						"target": "candidate",
-						"stat": "creativity",
-						"amount": -10
-					}
-				]
+				"effects": []
 			}
 		},
 		{
@@ -567,10 +527,7 @@ func _group_event(event_id: String) -> Dictionary:
 	event["content"] = {
 		"title": "GROUP EVENT",
 		"subtitle": null,
-		"description": (
-			"Choose which family members will participate in this event. "
-			+ "This fixture uses the real production group-selection contract."
-		)
+		"description": "Choose which family members will participate in this event."
 	}
 	event["choices"] = [
 		{
@@ -632,12 +589,7 @@ func _base_event(event_id: String) -> Dictionary:
 	}
 
 
-func _configure(events: Array) -> void:
-	if presentation != null and presentation.participant_overlay.visible:
-		presentation.close_participant_selection()
-	if EventManager.active_event != null:
-		EventManager.cancel_active_event()
-
+func _configure(events: Array) -> bool:
 	var registry := EventDataRegistry.new()
 	var document := {
 		"schema_version": 1,
@@ -653,9 +605,11 @@ func _configure(events: Array) -> void:
 			"Manual Event UI fixture registry failed validation:\n"
 			+ registry.get_diagnostic_text()
 		)
-		return
+		return false
 
 	EventManager.configure_runtime(registry, null, 77)
+	return true
+
 
 
 func _setup_characters() -> void:
@@ -665,7 +619,7 @@ func _setup_characters() -> void:
 	GameManager.family_money = 1000
 	GameManager.diamonds = 100
 
-	CharacterManager.characters = [
+	var characters: Array = [
 		_character(
 			1,
 			"Alexandria-Long-Character-Name",
@@ -679,8 +633,42 @@ func _setup_characters() -> void:
 		_character(4, "George", true, "1986-01-26", "male", 64),
 		_character(5, "Joshua", true, "1965-01-26", "male", 76),
 		_character(6, "Eric", true, "1988-01-26", "male", 68),
-		_character(7, "Alexandria", false, "1973-01-26", "female", 76)
+		_character(7, "Leroy", true, "1978-01-26", "male", 66)
 	]
+
+	var extra_names := [
+		"Anna", "Mary", "James", "Robert", "Linda", "David",
+		"Susan", "Michael", "Sarah", "Thomas", "Laura", "Daniel",
+		"Julia", "Edward", "Emily", "Henry", "Olivia", "Peter",
+		"Grace", "Samuel"
+	]
+
+	var next_id := 8
+	for extra_name in extra_names:
+		characters.append(
+			_character(
+				next_id,
+				String(extra_name),
+				true,
+				"1975-05-12",
+				"female" if next_id % 2 == 0 else "male",
+				60 + (next_id % 25)
+			)
+		)
+		next_id += 1
+
+	characters.append(
+		_character(
+			50,
+			"Alexandria",
+			false,
+			"1973-01-26",
+			"female",
+			76
+		)
+	)
+
+	CharacterManager.characters = characters
 
 
 func _character(
@@ -744,8 +732,12 @@ func _store_state() -> void:
 func _restore_state() -> void:
 	if original_state.is_empty():
 		return
+
+	_cancel_active()
+
 	if original_registry != null:
 		EventManager.configure_runtime(original_registry)
+
 	CharacterManager.characters = original_state.get("characters", [])
 	GameManager.family_money = int(original_state.get("money", 0))
 	GameManager.diamonds = int(original_state.get("diamonds", 0))

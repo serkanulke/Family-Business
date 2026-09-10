@@ -8,17 +8,17 @@ signal manual_event_selection_cancelled(event_id: String)
 const MODAL_WIDTH := 1000.0
 const MODAL_SIDE_MARGIN := 40.0
 const SHEET_TOP := 500.0
-const EVENT_MARGIN_TOP := 48.0
-const EVENT_MARGIN_BOTTOM := 48.0
-const RESULT_MARGIN_TOP := 48.0
-const RESULT_MARGIN_BOTTOM := 48.0
+const EVENT_MARGIN_TOP := 40.0
+const EVENT_MARGIN_BOTTOM := 40.0
+const RESULT_MARGIN_TOP := 40.0
+const RESULT_MARGIN_BOTTOM := 40.0
 const RESULT_VIEWPORT_MARGIN := 240.0
 const DIM_OPACITY := 0.82
 
 const FONT_REGULAR := "res://Resources/Fonts/Roboto-Regular.ttf"
 const FONT_BOLD := "res://Resources/Fonts/Roboto-Bold.ttf"
 const FONT_EXTRA_BOLD := "res://Resources/Fonts/Roboto-ExtraBold.ttf"
-const ARROW_ICON := "res://Resources/Icons/arrow-right.svg"
+const ARROW_ICON := "res://Resources/Icons/event-modal/event-arrow.svg"
 const LOCK_ICON := "res://Resources/Icons/event-modal/lock.svg"
 const TITLE_SEPARATOR := "res://Resources/Icons/event-modal/event-modal-separator.svg"
 const STAT_ICON_FOLDER := "res://Resources/Icons/stats/"
@@ -222,7 +222,7 @@ func _build_interface() -> void:
 	modal_root.add_child(event_panel)
 	# The approved Event composition is a complete, non-scrolling modal.
 	event_scroll = null
-	var event_margin := _make_margin(48, int(EVENT_MARGIN_TOP), 48, int(EVENT_MARGIN_BOTTOM))
+	var event_margin := _make_margin(40, int(EVENT_MARGIN_TOP), 40, int(EVENT_MARGIN_BOTTOM))
 	event_margin.custom_minimum_size = Vector2(MODAL_WIDTH, 0.0)
 	event_panel.add_child(event_margin)
 	event_content = VBoxContainer.new()
@@ -237,7 +237,7 @@ func _build_interface() -> void:
 	result_panel.visible = false
 	modal_root.add_child(result_panel)
 	var result_margin := _make_margin(
-		48, int(RESULT_MARGIN_TOP), 48, int(RESULT_MARGIN_BOTTOM)
+		40, int(RESULT_MARGIN_TOP), 40, int(RESULT_MARGIN_BOTTOM)
 	)
 	result_margin.custom_minimum_size = Vector2(MODAL_WIDTH, 0.0)
 	result_panel.add_child(result_margin)
@@ -274,7 +274,7 @@ func _build_participant_overlay() -> void:
 	participant_sheet.clip_contents = true
 	participant_sheet.mouse_filter = Control.MOUSE_FILTER_STOP
 	participant_overlay.add_child(participant_sheet)
-	var sheet_margin := _make_margin(40, 16, 40, 28)
+	var sheet_margin := _make_margin(40, 16, 40, 30)
 	sheet_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	participant_sheet.add_child(sheet_margin)
 	participant_content = VBoxContainer.new()
@@ -473,7 +473,7 @@ func _build_event_body() -> void:
 	event_art.set_meta("art_path", art_path if event_art.texture != null else "")
 	art_frame.add_child(event_art)
 	event_content.add_child(art_frame)
-	event_content.add_child(_make_spacer(60.0))
+	event_content.add_child(_make_spacer(40.0))
 
 	resolved_event_content = EventPresentationResolver.resolve_content(
 		current_definition.get("content", {}),
@@ -482,21 +482,21 @@ func _build_event_body() -> void:
 	)
 	var title := _make_centered_label(
 		String(resolved_event_content.get("title", "")),
-		46,
+		48,
 		COLOR_TEXT,
 		FONT_EXTRA_BOLD
 	)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title.custom_minimum_size = Vector2(0.0, 62.0)
+	title.custom_minimum_size = Vector2(0.0, 56.0)
 	event_content.add_child(title)
-	event_content.add_child(_make_spacer(10.0))
+	event_content.add_child(_make_spacer(30.0))
 
 	var separator_center := CenterContainer.new()
-	separator_center.custom_minimum_size = Vector2(0.0, 24.0)
-	var separator := _make_texture(TITLE_SEPARATOR, Vector2(660.0, 24.0))
+	separator_center.custom_minimum_size = Vector2(552.0, 12.0)
+	var separator := _make_texture(TITLE_SEPARATOR, Vector2(552.0, 12.0))
 	separator_center.add_child(separator)
 	event_content.add_child(separator_center)
-	event_content.add_child(_make_spacer(32.0))
+	event_content.add_child(_make_spacer(30.0))
 
 	var description := _make_centered_label(
 		String(resolved_event_content.get("description", "")),
@@ -505,10 +505,9 @@ func _build_event_body() -> void:
 		FONT_REGULAR
 	)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.custom_minimum_size = Vector2(0.0, 132.0)
-	description.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	description.custom_minimum_size = Vector2(0.0, 0.0)
 	event_content.add_child(description)
-	event_content.add_child(_make_spacer(60.0))
+	event_content.add_child(_make_spacer(30.0))
 
 	var choices_value = current_definition.get("choices", [])
 	if typeof(choices_value) != TYPE_ARRAY:
@@ -574,7 +573,7 @@ func _make_choice_button(
 	)
 	button.pressed.connect(_on_choice_pressed.bind(String(choice.get("choice_id", ""))))
 
-	var margin := _make_margin(28, 16, 24, 16)
+	var margin := _make_margin(24, 24, 24, 24)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(margin)
@@ -593,11 +592,11 @@ func _make_choice_button(
 	var copy := VBoxContainer.new()
 	copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	copy.alignment = BoxContainer.ALIGNMENT_CENTER
-	copy.add_theme_constant_override("separation", 2)
+	copy.add_theme_constant_override("separation", 8)
 	copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(copy)
 	var title := _make_label(
-		String(choice.get("title", "")), 31, text_color, FONT_EXTRA_BOLD
+		String(choice.get("title", "")), 36, text_color, FONT_EXTRA_BOLD
 	)
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	copy.add_child(title)
@@ -608,12 +607,12 @@ func _make_choice_button(
 		)
 	description_text = _append_cost_text(description_text, choice.get("cost", null))
 	var description := _make_label(
-		description_text, 25, text_color, FONT_REGULAR
+		description_text, 28, text_color, FONT_REGULAR
 	)
 	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	copy.add_child(description)
 
-	var arrow := _make_texture(ARROW_ICON, Vector2(30.0, 42.0))
+	var arrow := _make_texture(ARROW_ICON, Vector2(58.0, 58.0))
 	arrow.material = _tint_material(text_color)
 	row.add_child(arrow)
 	return button
@@ -1053,7 +1052,7 @@ func _make_character_chip(entry: Dictionary, minimum_size: Vector2) -> Button:
 		"pressed", _make_style(Color("#F7E9DA"), 24, COLOR_BORDER, 2)
 	)
 	button.pressed.connect(_open_character_card.bind(character_id))
-	var margin := _make_margin(14, 12, 18, 12)
+	var margin := _make_margin(24, 12, 24, 12)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(margin)
