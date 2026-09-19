@@ -232,6 +232,19 @@ func get_house_occupancy(house_instance_id: String) -> int:
 	return get_house_occupant_ids(house_instance_id).size()
 
 
+func can_accept_additional_resident(
+	house_instance_id: String
+) -> bool:
+	if get_house_by_instance_id(house_instance_id).is_empty():
+		return false
+	return (
+		get_house_resident_count(house_instance_id)
+		< get_house_resident_capacity(house_instance_id)
+		and get_house_occupancy(house_instance_id)
+		< get_house_capacity(house_instance_id)
+	)
+
+
 func get_character_assignment(character_id: int) -> Dictionary:
 	if character_id <= 0:
 		return {}
@@ -359,9 +372,7 @@ func assign_character_as_resident(
 			str(assignment.get("house_instance_id", "")) == house_instance_id
 			and str(assignment.get("assignment_type", "")) == "resident"
 		)
-	if get_house_resident_count(house_instance_id) >= get_house_resident_capacity(house_instance_id):
-		return false
-	if get_house_occupancy(house_instance_id) >= get_house_capacity(house_instance_id):
+	if not can_accept_additional_resident(house_instance_id):
 		return false
 	var residents: Array = house.get("resident_character_ids", [])
 	residents.append(character_id)

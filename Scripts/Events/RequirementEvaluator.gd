@@ -185,6 +185,8 @@ func _failure_reason(requirement: Dictionary, query: Dictionary) -> Dictionary:
 		"job": message = "Requires %s career." % expected_display
 		"job_tag": message = "Requires %s career." % expected_display.replace("_", " ").capitalize()
 		"house_level": message = "Requires House Level %s." % expected_display
+		"house_has_resident_capacity":
+			message = "The mother's House needs an available resident slot. Assign her to a House or free capacity first."
 		"business_level": message = "Requires Business Level %s." % expected_display
 		"entitlement": message = "Requires %s access." % String(requirement.get("value", "")).replace("_", " ").capitalize()
 		"has_spouse":

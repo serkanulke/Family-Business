@@ -988,6 +988,7 @@ func _test_all_requirement_constructs() -> void:
 		{"type": "money", "operator": ">=", "value": 100},
 		{"type": "diamonds", "operator": ">=", "value": 1},
 		{"type": "house_assignment", "target": "primary", "operator": "==", "value": true},
+		{"type": "house_has_resident_capacity", "target": "primary", "operator": "==", "value": true},
 		{"type": "house_level", "target": "primary", "operator": ">=", "value": 1},
 		{"type": "household_status", "operator": "==", "value": "orderly"},
 		{"type": "household_perk", "operator": "==", "value": "artistic"},
@@ -1037,6 +1038,7 @@ func _all_valid_effects() -> Array:
 		{"type": "unequip_item", "target": "primary", "item_id": ITEM_ID},
 		{"type": "remove_from_house", "target": "primary"},
 		{"type": "business_upgrade", "business": "business"},
+		{"type": "create_biological_child", "carrier": "primary", "spouse": "target"},
 		{"type": "queue_event", "event_id": "follow_up"},
 		{"type": "schedule_event", "event_id": "follow_up", "delay": {"unit": "month", "value": 1}, "inherit_context": true},
 		{"type": "cancel_scheduled_event", "event_id": "follow_up"}

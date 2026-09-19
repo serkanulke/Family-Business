@@ -59,7 +59,8 @@ const REQUIREMENT_TYPES: Array[String] = [
 	"education_enrollment_available", "major_available", "lifestyle_score",
 	"equipped_item", "item_type",
 	"item_rarity", "money", "diamonds", "house_assignment",
-	"house_level", "household_status", "household_perk", "business_owned",
+	"house_has_resident_capacity", "house_level", "household_status",
+	"household_perk", "business_owned",
 	"business_type", "business_level", "business_role", "event_seen",
 	"event_completed", "event_not_completed", "choice_made",
 	"outcome_reached", "entitlement", "date", "year", "month"
@@ -74,7 +75,8 @@ const NUMERIC_REQUIREMENTS: Array[String] = [
 ]
 const BOOLEAN_REQUIREMENTS: Array[String] = [
 	"is_alive", "is_family_member", "has_child", "has_parent", "has_spouse",
-	"business_owned", "education_enrollment_available", "major_available"
+	"business_owned", "education_enrollment_available", "major_available",
+	"house_has_resident_capacity"
 ]
 const TARGETED_REQUIREMENTS: Array[String] = [
 	"stat", "flag", "age", "life_stage", "gender", "is_alive",
@@ -82,7 +84,7 @@ const TARGETED_REQUIREMENTS: Array[String] = [
 	"relationship_status", "employment_status", "job", "job_tag", "education_stage", "school",
 	"school_type", "major", "education_enrollment_available", "major_available",
 	"lifestyle_score", "equipped_item", "item_type", "item_rarity",
-	"house_assignment", "house_level", "business_type",
+	"house_assignment", "house_has_resident_capacity", "house_level", "business_type",
 	"business_level", "business_role"
 ]
 const RESOLUTION_MODES: Array[String] = [
@@ -99,7 +101,8 @@ const EFFECT_TYPES: Array[String] = [
 	"salary_increase", "education_enroll", "education_decline_university",
 	"education_select_major", "add_item", "remove_item", "equip_item",
 	"unequip_item", "remove_from_house", "business_upgrade",
-	"queue_event", "schedule_event", "cancel_scheduled_event"
+	"create_biological_child", "queue_event", "schedule_event",
+	"cancel_scheduled_event"
 ]
 const FORBIDDEN_EXECUTABLE_KEYS: Array[String] = [
 	"code", "script", "method", "method_name", "callable", "signal_path"
@@ -1281,6 +1284,9 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 			_validate_reference(source, event_id, path + ".item_id", effect.get("item_id", null), _item_ids, "item id")
 		"remove_from_house":
 			_validate_effect_target(source, event_id, path, effect, "target", participant_names)
+		"create_biological_child":
+			_validate_effect_target(source, event_id, path, effect, "carrier", participant_names)
+			_validate_effect_target(source, event_id, path, effect, "spouse", participant_names)
 		"business_upgrade":
 			_validate_effect_target(source, event_id, path, effect, "business", participant_names)
 			if effect.has("business_type_id"):

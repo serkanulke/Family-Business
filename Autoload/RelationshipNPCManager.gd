@@ -2074,6 +2074,32 @@ func are_married_partners(
 	)
 
 
+func can_use_biological_conception(
+	carrier: Dictionary,
+	spouse: Dictionary
+) -> bool:
+	if not are_married_partners(
+		carrier,
+		spouse
+	):
+		return false
+
+	if not can_have_biological_child(
+		carrier
+	):
+		return false
+
+	if String(
+		spouse.get(
+			"gender",
+			""
+		)
+	) != "male":
+		return false
+
+	return true
+
+
 func can_use_donor_conception(
 	carrier: Dictionary,
 	spouse: Dictionary

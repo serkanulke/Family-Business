@@ -250,6 +250,17 @@ func get_requirement_value(
 		"house_assignment":
 			if character.is_empty(): return _invalid("Character target is unavailable.")
 			actual = not HouseManager.get_character_assignment(int(character.get("character_id", 0))).is_empty()
+		"house_has_resident_capacity":
+			if character.is_empty(): return _invalid("Character target is unavailable.")
+			var house := HouseManager.get_character_house(
+				int(character.get("character_id", 0))
+			)
+			actual = (
+				not house.is_empty()
+				and HouseManager.can_accept_additional_resident(
+					String(house.get("house_instance_id", ""))
+				)
+			)
 		"house_level":
 			var house := _resolve_house(requirement, participants, context)
 			if house.is_empty(): return _invalid("House context is unavailable.")
@@ -321,7 +332,9 @@ func get_requirement_label(requirement: Dictionary) -> String:
 		"education_enrollment_available": "School option",
 		"major_available": "Major option",
 		"money": "Money", "diamonds": "Diamonds",
-		"house_assignment": "House assignment", "house_level": "House level",
+		"house_assignment": "House assignment",
+		"house_has_resident_capacity": "House resident capacity",
+		"house_level": "House level",
 		"household_status": "Household Status", "household_perk": "Household Perk",
 		"business_owned": "Business ownership", "business_type": "Business type",
 		"business_level": "Business level", "business_role": "Business role",

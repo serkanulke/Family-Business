@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bvcopx3ku8gti"]
 
-[ext_resource type="PackedScene" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
+[ext_resource type="PackedScene" uid="uid://ckn3fh6nlofvc" path="res://Scenes/FamilyTree/FamilyTreeScreen.tscn" id="1_family_tree_screen"]
 [ext_resource type="Script" uid="uid://ctumuhfy4rlj2" path="res://Scenes/Main/Main.gd" id="2_main"]
 [ext_resource type="PackedScene" path="res://UI/MainHUD.tscn" id="3_hud"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Business/BusinessModal.tscn" id="4_business_modal"]
@@ -37,4 +37,4 @@ visible = false
 [node name="BuyHouseModal" parent="ModalLayer" unique_id=426818295 instance=ExtResource("7_buy_house_modal")]
 visible = false
 
-[node name="EventPresentation" parent="." instance=ExtResource("8_event_presentation")]
+[node name="EventPresentation" parent="." unique_id=1654483003 instance=ExtResource("8_event_presentation")]

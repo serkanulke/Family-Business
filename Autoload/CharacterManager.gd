@@ -29,6 +29,8 @@ signal character_retired(
 const CHARACTER_DATA_PATH := "res://Resources/Json/Character.json"
 const MAJOR_DATA_PATH := "res://Resources/Json/Major.json"
 const JOB_DATA_PATH := "res://Resources/Json/Job.json"
+const NAMES_DATA_PATH := "res://Resources/Json/names.json"
+const DEFAULT_NEWBORN_NAME_CULTURE := "english"
 
 const UNIVERSITY_START_AGE := 18
 const STARTING_MAJOR_CHANCE := 0.70
@@ -129,6 +131,7 @@ const SKIN_TONES: Array[String] = [
 var characters: Array = []
 var majors: Array = []
 var jobs: Array = []
+var newborn_first_names: Dictionary = {}
 var next_character_id: int = 1
 
 
@@ -136,6 +139,7 @@ func _ready() -> void:
 	load_characters()
 	load_major_data()
 	load_job_data()
+	load_newborn_name_data()
 
 	TimeManager.date_changed.connect(
 		_on_date_changed
@@ -328,6 +332,141 @@ func load_json_array(
 		return []
 
 	return data[root_key]
+
+
+func load_newborn_name_data() -> void:
+	newborn_first_names = {}
+
+	if not FileAccess.file_exists(
+		NAMES_DATA_PATH
+	):
+		push_error(
+			"Names file could not be found: "
+			+ NAMES_DATA_PATH
+		)
+		return
+
+	var file := FileAccess.open(
+		NAMES_DATA_PATH,
+		FileAccess.READ
+	)
+
+	if file == null:
+		push_error(
+			"Names file could not be opened: "
+			+ NAMES_DATA_PATH
+		)
+		return
+
+	var json := JSON.new()
+	var parse_result := json.parse(
+		file.get_as_text()
+	)
+
+	if parse_result != OK:
+		push_error(
+			"Names JSON error at line %d: %s"
+			% [
+				json.get_error_line(),
+				json.get_error_message()
+			]
+		)
+		return
+
+	var data = json.data
+
+	if typeof(data) != TYPE_DICTIONARY:
+		push_error(
+			"Names JSON root must be a Dictionary."
+		)
+		return
+
+	var first_names_value = data.get(
+		"first_names",
+		null
+	)
+
+	if typeof(first_names_value) != TYPE_DICTIONARY:
+		push_error(
+			"Names JSON must contain a first_names Dictionary."
+		)
+		return
+
+	var first_names: Dictionary = first_names_value
+	var loaded_names: Dictionary = {}
+
+	for gender in [
+		"male",
+		"female"
+	]:
+		var gender_value = first_names.get(
+			gender,
+			null
+		)
+
+		if typeof(gender_value) != TYPE_DICTIONARY:
+			push_error(
+				"Names JSON first_names.%s must be a Dictionary."
+				% gender
+			)
+			return
+
+		var culture_names_value = gender_value.get(
+			DEFAULT_NEWBORN_NAME_CULTURE,
+			null
+		)
+
+		if (
+			typeof(culture_names_value) != TYPE_ARRAY
+			or culture_names_value.is_empty()
+		):
+			push_error(
+				"Names JSON first_names.%s.%s must be a non-empty Array."
+				% [
+					gender,
+					DEFAULT_NEWBORN_NAME_CULTURE
+				]
+			)
+			return
+
+		var cleaned_names: Array[String] = []
+
+		for name_value in culture_names_value:
+			if (
+				typeof(name_value) != TYPE_STRING
+				or String(name_value).strip_edges().is_empty()
+			):
+				push_error(
+					"Names JSON first_names.%s.%s must contain only non-empty Strings."
+					% [
+						gender,
+						DEFAULT_NEWBORN_NAME_CULTURE
+					]
+				)
+				return
+
+			var cleaned_name := String(
+				name_value
+			).strip_edges()
+
+			if not cleaned_names.has(
+				cleaned_name
+			):
+				cleaned_names.append(
+					cleaned_name
+				)
+
+		loaded_names[gender] = cleaned_names
+
+	newborn_first_names = loaded_names
+
+	print(
+		"Newborn names loaded: ",
+		int(newborn_first_names.get("male", []).size())
+		+ int(newborn_first_names.get("female", []).size()),
+		" | Culture: ",
+		DEFAULT_NEWBORN_NAME_CULTURE
+	)
 
 
 func load_major_data() -> void:
@@ -3127,10 +3266,161 @@ func create_base_baby_character(
 	)
 
 
+func generate_system_newborn_gender() -> String:
+	return (
+		"male"
+		if randi_range(
+			0,
+			1
+		) == 0
+		else "female"
+	)
+
+
+func generate_system_newborn_first_name(
+	gender: String
+) -> String:
+	var normalized_gender := (
+		gender.strip_edges().to_lower()
+	)
+
+	if normalized_gender not in [
+		"male",
+		"female"
+	]:
+		push_error(
+			"Invalid newborn gender for name generation: "
+			+ gender
+		)
+		return ""
+
+	if newborn_first_names.is_empty():
+		load_newborn_name_data()
+
+	var names_value = newborn_first_names.get(
+		normalized_gender,
+		[]
+	)
+
+	if (
+		typeof(names_value) != TYPE_ARRAY
+		or names_value.is_empty()
+	):
+		push_error(
+			"No %s newborn names are available for culture '%s'."
+			% [
+				normalized_gender,
+				DEFAULT_NEWBORN_NAME_CULTURE
+			]
+		)
+		return ""
+
+	return String(
+		names_value[
+			randi_range(
+				0,
+				names_value.size() - 1
+			)
+		]
+	)
+
+
+func has_system_newborn_name_data() -> bool:
+	if newborn_first_names.is_empty():
+		load_newborn_name_data()
+
+	for gender in [
+		"male",
+		"female"
+	]:
+		var names_value = newborn_first_names.get(
+			gender,
+			[]
+		)
+		if (
+			typeof(names_value) != TYPE_ARRAY
+			or names_value.is_empty()
+		):
+			return false
+
+	return true
+
+
+func get_system_biological_child_availability(
+	carrier_id: int,
+	spouse_id: int
+) -> Dictionary:
+	var carrier := get_character_by_id(
+		carrier_id
+	)
+	var spouse := get_character_by_id(
+		spouse_id
+	)
+
+	if carrier.is_empty() or spouse.is_empty():
+		return {
+			"available": false,
+			"code": "parent_unavailable",
+			"message": "Both parents must be available."
+		}
+
+	if not has_system_newborn_name_data():
+		return {
+			"available": false,
+			"code": "newborn_name_data_unavailable",
+			"message": "System-generated newborn names are unavailable."
+		}
+
+	if not RelationshipNpcManager.can_use_biological_conception(
+		carrier,
+		spouse
+	):
+		return {
+			"available": false,
+			"code": "biological_child_ineligible",
+			"message": "The married couple does not meet the biological-child requirements."
+		}
+
+	var carrier_assignment := HouseManager.get_character_assignment(
+		carrier_id
+	)
+	var house_instance_id := String(
+		carrier_assignment.get(
+			"house_instance_id",
+			""
+		)
+	)
+
+	if house_instance_id.is_empty():
+		return {
+			"available": false,
+			"code": "carrier_unhoused",
+			"message": "The mother must be assigned to a House before having a child."
+		}
+
+	if not HouseManager.can_accept_additional_resident(
+		house_instance_id
+	):
+		return {
+			"available": false,
+			"code": "house_resident_capacity_unavailable",
+			"message": "The mother's House needs an available resident slot. Resolve its capacity first.",
+			"house_instance_id": house_instance_id
+		}
+
+	return {
+		"available": true,
+		"code": "",
+		"message": "",
+		"house_instance_id": house_instance_id
+	}
+
+
 func _finalize_new_child(
 	child: Dictionary,
 	parent_one: Dictionary,
-	parent_two: Dictionary
+	parent_two: Dictionary,
+	house_instance_id: String = ""
 ) -> Dictionary:
 	if child.is_empty():
 		return {}
@@ -3156,6 +3446,22 @@ func _finalize_new_child(
 	characters.append(
 		child
 	)
+
+	if (
+		not house_instance_id.is_empty()
+		and not HouseManager.assign_character_as_resident(
+			house_instance_id,
+			child_id
+		)
+	):
+		characters.erase(
+			child
+		)
+		push_error(
+			"Newborn could not be assigned to the mother's House: "
+			+ house_instance_id
+		)
+		return {}
 
 	add_child_id_to_parent(
 		parent_one,
@@ -3302,6 +3608,98 @@ func create_baby_character(
 		" | Birth date: ",
 		baby.get(
 			"birth_date",
+			""
+		)
+	)
+
+	return baby
+
+
+func create_system_generated_biological_child(
+	carrier_id: int,
+	spouse_id: int
+) -> Dictionary:
+	var availability := get_system_biological_child_availability(
+		carrier_id,
+		spouse_id
+	)
+
+	if not bool(
+		availability.get(
+			"available",
+			false
+		)
+	):
+		push_error(
+			String(
+				availability.get(
+					"message",
+					"Biological child creation is unavailable."
+				)
+			)
+		)
+		return {}
+
+	var parents := _get_valid_child_parents(
+		carrier_id,
+		spouse_id
+	)
+
+	if parents.size() != 2:
+		return {}
+
+	var carrier: Dictionary = parents[0]
+	var spouse: Dictionary = parents[1]
+	var gender := generate_system_newborn_gender()
+	var first_name := generate_system_newborn_first_name(
+		gender
+	)
+
+	if first_name.is_empty():
+		return {}
+
+	var baby := create_base_baby_character(
+		first_name,
+		gender,
+		carrier,
+		spouse
+	)
+
+	if baby.is_empty():
+		return {}
+
+	if _finalize_new_child(
+		baby,
+		carrier,
+		spouse,
+		String(
+			availability.get(
+				"house_instance_id",
+				""
+			)
+		)
+	).is_empty():
+		return {}
+
+	print(
+		"System-generated biological baby created: ",
+		baby.get(
+			"character_id",
+			0
+		),
+		" | Name: ",
+		baby.get(
+			"first_name",
+			""
+		),
+		" | Gender: ",
+		baby.get(
+			"gender",
+			""
+		),
+		" | House: ",
+		availability.get(
+			"house_instance_id",
 			""
 		)
 	)

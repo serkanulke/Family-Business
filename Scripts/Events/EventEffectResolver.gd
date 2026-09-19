@@ -79,6 +79,25 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 				return _invalid(index, "relationship_target_unavailable", "The relationship participants are no longer available.")
 			plan["primary_id"] = primary_id
 			plan["target_id"] = target_id
+		"create_biological_child":
+			var carrier_id := _character_id(
+				effect,
+				"carrier",
+				participants
+			)
+			var spouse_id := _character_id(
+				effect,
+				"spouse",
+				participants
+			)
+			if carrier_id <= 0 or spouse_id <= 0:
+				return _invalid(
+					index,
+					"biological_child_parent_unavailable",
+					"The biological-child parents are no longer available."
+				)
+			plan["carrier_id"] = carrier_id
+			plan["spouse_id"] = spouse_id
 		"business_upgrade":
 			var business_id := _string_target(effect, "business", participants, context)
 			var cost := BusinessManager.get_business_upgrade_cost(business_id)
@@ -129,6 +148,20 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 		"relationship_divorce":
 			if not RelationshipNpcManager.are_married_partners(CharacterManager.get_character_by_id(int(plan["primary_id"])), CharacterManager.get_character_by_id(int(plan["target_id"]))):
 				return _invalid(index, "divorce_unavailable", "These Characters are no longer married.")
+		"create_biological_child":
+			var availability := CharacterManager.get_system_biological_child_availability(
+				int(plan["carrier_id"]),
+				int(plan["spouse_id"])
+			)
+			if not bool(availability.get("available", false)):
+				return _invalid(
+					index,
+					String(availability.get("code", "biological_child_unavailable")),
+					String(availability.get("message", "Biological child creation is unavailable."))
+				)
+			plan["house_instance_id"] = String(
+				availability.get("house_instance_id", "")
+			)
 		"accept_job_offer":
 			var character := CharacterManager.get_character_by_id(int(plan["character_id"]))
 			if not CareerManager.is_active_job_offer_valid(character, CareerManager.get_active_job_offer(int(plan["character_id"]))):
@@ -213,7 +246,7 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 		"cancel_scheduled_event":
 			if not _has_scheduled_target(effect):
 				return _invalid(index, "scheduled_event_unavailable", "No matching scheduled Event is available to cancel.")
-		"add_flag", "remove_flag", "money_change", "diamond_change", "remove_from_house", "business_upgrade": pass
+		"add_flag", "remove_flag", "money_change", "diamond_change", "remove_from_house", "business_upgrade", "create_biological_child": pass
 		_:
 			return _invalid(index, "unsupported_effect", "The Event effect is unsupported.")
 	return plan
@@ -281,6 +314,20 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			}, true)
 		"relationship_marry": result["success"] = RelationshipNpcManager.make_candidate_family_member(int(plan["target_id"]), int(plan["primary_id"]))
 		"relationship_divorce": result["success"] = RelationshipNpcManager.divorce_characters(int(plan["primary_id"]), int(plan["target_id"]))
+		"create_biological_child":
+			var child := CharacterManager.create_system_generated_biological_child(
+				int(plan["carrier_id"]),
+				int(plan["spouse_id"])
+			)
+			result.merge({
+				"success": not child.is_empty(),
+				"target_character_id": int(child.get("character_id", 0)),
+				"carrier_id": int(plan["carrier_id"]),
+				"spouse_id": int(plan["spouse_id"]),
+				"first_name": String(child.get("first_name", "")),
+				"gender": String(child.get("gender", "")),
+				"house_instance_id": String(plan.get("house_instance_id", ""))
+			}, true)
 		"accept_job_offer":
 			result["success"] = CareerManager.accept_job_offer(character_id)
 			var character := CharacterManager.get_character_by_id(character_id)
@@ -434,6 +481,13 @@ func _exclusive_mutation_key(plan: Dictionary) -> String:
 			var ids := [int(plan.get("primary_id", 0)), int(plan.get("target_id", 0))]
 			ids.sort()
 			return "relationship:%d:%d" % [ids[0], ids[1]]
+		"create_biological_child":
+			var ids := [
+				int(plan.get("carrier_id", 0)),
+				int(plan.get("spouse_id", 0))
+			]
+			ids.sort()
+			return "biological_child:%d:%d" % [ids[0], ids[1]]
 		"accept_job_offer", "reject_job_offer", "job_remove", "salary_increase":
 			return "career:%d" % int(plan.get("character_id", 0))
 		"education_enroll", "education_decline_university", "education_select_major":
