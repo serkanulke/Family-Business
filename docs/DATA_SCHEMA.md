@@ -334,6 +334,21 @@ metadata
 
 The Event Authoring Guide is authoritative for full field-level authoring rules.
 
+### Resolution Character Event Log
+
+A choice/default resolution may optionally define Character Card history entries:
+
+```json
+"event_log": [
+  {
+    "target": "primary",
+    "description": "💍 Married {candidate_name}"
+  }
+]
+```
+
+Each entry contains only `target` and `description`. `target` names an Event participant. After the resolution effects apply and the Event reaches `completed`, the runtime appends `{date, description}` to that participant Character's existing `event_log`; `date` is the current game date and presentation tokens in `description` use the shared Event presentation resolver. Failed, rolled-back, cancelled, or expired Events do not append Character history. This Character Card history remains separate from Event `story_history`.
+
 ## 9. Event Runtime Structures
 
 `EventInstance` stores runtime identity and bindings, not duplicated display definitions:

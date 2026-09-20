@@ -598,6 +598,74 @@ func _test_resolution_validation() -> void:
 		registry.get_diagnostic_text()
 	)
 
+	var valid_event_log := _base_event("valid_character_event_log", "general")
+	valid_event_log["choices"][0]["resolution"]["event_log"] = [
+		{
+			"target": "primary",
+			"description": "Completed an important Event with {character_name}."
+		}
+	]
+	var valid_event_log_registry := _registry_for(
+		"general",
+		[valid_event_log]
+	)
+	_assert_true(
+		valid_event_log_registry.is_valid,
+		"Resolution event_log accepts only a participant target and description",
+		valid_event_log_registry.get_diagnostic_text()
+	)
+
+	var non_array_event_log := _base_event(
+		"non_array_character_event_log",
+		"general"
+	)
+	non_array_event_log["choices"][0]["resolution"]["event_log"] = {}
+	_expect_invalid_event(
+		non_array_event_log,
+		"Resolution event_log must be an Array",
+		"event_log must be an Array"
+	)
+
+	var invalid_event_log_entries := _base_event(
+		"invalid_character_event_log_entries",
+		"general"
+	)
+	invalid_event_log_entries["choices"][0]["resolution"]["event_log"] = [
+		"not-a-dictionary",
+		{"target": "", "description": ""},
+		{"target": "missing", "description": "Valid text"},
+		{
+			"target": "primary",
+			"description": "Valid text",
+			"date": "2000-01-01"
+		}
+	]
+	var invalid_event_log_registry := _registry_for(
+		"general",
+		[invalid_event_log_entries]
+	)
+	_assert_true(
+		not invalid_event_log_registry.is_valid
+		and _diagnostics_contain(
+			invalid_event_log_registry,
+			"event_log entry must be a Dictionary"
+		)
+		and _diagnostics_contain(
+			invalid_event_log_registry,
+			"event_log target is not a defined participant"
+		)
+		and _diagnostics_contain(
+			invalid_event_log_registry,
+			"event_log entry only supports target and description"
+		)
+		and _diagnostics_contain(
+			invalid_event_log_registry,
+			"Required value must be a non-empty String"
+		),
+		"Invalid resolution event_log entries are rejected without extra required fields",
+		invalid_event_log_registry.get_diagnostic_text()
+	)
+
 
 func _test_effect_validation() -> void:
 	var unsupported := _base_event("bad_effect", "general")

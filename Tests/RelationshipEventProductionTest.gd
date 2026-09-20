@@ -673,6 +673,44 @@ func _test_wedding_choices() -> void:
 			"%s invokes canonical marriage exactly once" % String(choice.get("title", "")),
 			"marriage_count=%d" % marriage_count
 		)
+		var event_log_value = choice.get("resolution", {}).get(
+			"event_log",
+			[]
+		)
+		var event_log: Array = (
+			event_log_value
+			if typeof(event_log_value) == TYPE_ARRAY
+			else []
+		)
+		var entries_by_target: Dictionary = {}
+		var only_supported_keys := true
+		for entry_value in event_log:
+			if typeof(entry_value) != TYPE_DICTIONARY:
+				only_supported_keys = false
+				continue
+			var entry: Dictionary = entry_value
+			entries_by_target[String(entry.get("target", ""))] = entry
+			for key_value in entry:
+				if String(key_value) not in ["target", "description"]:
+					only_supported_keys = false
+		_assert(
+			event_log.size() == 2
+			and only_supported_keys
+			and String(
+				entries_by_target.get("primary", {}).get(
+					"description",
+					""
+				)
+			) == "💍 Married {candidate_name}"
+			and String(
+				entries_by_target.get("candidate", {}).get(
+					"description",
+					""
+				)
+			) == "💍 Married {character_name}",
+			"%s authors both Character Event History entries in JSON" % String(choice.get("title", "")),
+			str(event_log)
+		)
 
 
 func _test_choice_title_limit() -> void:

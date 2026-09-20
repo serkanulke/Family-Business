@@ -907,9 +907,6 @@ func _add_event_history_entry(event_value: Variant, show_separator: bool) -> voi
 	var year_label := _make_label(_extract_year(_string_value(event.get("date", ""))), 27, COLOR_SECONDARY, "regular")
 	year_label.custom_minimum_size = Vector2(92.0, 0.0)
 	row.add_child(year_label)
-	var event_icon := _make_texture_rect(_resolve_event_icon_path(event), Vector2(35.0, 35.0))
-	event_icon.visible = event_icon.texture != null
-	row.add_child(event_icon)
 	var description := _make_label(_resolve_event_description(event), 27, COLOR_SECONDARY, "regular")
 	description.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	description.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -941,25 +938,6 @@ func _resolve_event_description(event: Dictionary) -> String:
 		"education_graduated":
 			return "Graduated from " + school_name if not school_name.is_empty() else "Graduated"
 	return _humanize(event_type)
-
-
-func _resolve_event_icon_path(event: Dictionary) -> String:
-	var event_type := _string_value(event.get("event_type", ""))
-	if event_type in ["education_started", "major_selected", "education_graduated"]:
-		var school_id = event.get("school_id", null)
-		var manager := _get_manager("EducationManager")
-		if manager != null and school_id != null:
-			var value = manager.call("get_school_by_id", int(school_id))
-			if typeof(value) == TYPE_DICTIONARY:
-				var path := String((value as Dictionary).get("icon_path", ""))
-				if ResourceLoader.exists(path):
-					return path
-	if event.has("job_id") or event.has("company_id"):
-		return ICON_FOLDER + "job-status.svg"
-	if event_type in ["married", "marriage", "partnered"]:
-		return ICON_FOLDER + "relationship-status.svg"
-	return ""
-
 
 func _resolve_school_name(school_id: Variant) -> String:
 	if school_id == null:

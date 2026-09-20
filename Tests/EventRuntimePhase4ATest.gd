@@ -131,7 +131,7 @@ func _test_resolution_transaction_rollback() -> void:
 
 	var transaction_event := _event("weighted_apply_failure", [])
 	transaction_event.cost = {"currency":"money","amount":100}
-	transaction_event.choices[0].resolution = {"mode":"weighted","outcomes":[{"outcome_id":"attempt","weight":1.0,"effects":[{"type":"money_change","amount":50},{"type":"accept_job_offer","target":"primary"}]}]}
+	transaction_event.choices[0].resolution = {"mode":"weighted","event_log":[{"target":"primary","description":"This must roll back."}],"outcomes":[{"outcome_id":"attempt","weight":1.0,"effects":[{"type":"money_change","amount":50},{"type":"accept_job_offer","target":"primary"}]}]}
 	_configure([transaction_event])
 	GameManager.family_money = 1000
 	EventManager.activate_chain(transaction_event.event_id, {"primary":1})
@@ -148,7 +148,7 @@ func _test_resolution_transaction_rollback() -> void:
 
 	_assert(not result.resolved and result.effect_results.size() == 2 and result.effect_results[0].success and not result.effect_results[1].success, "Apply-time failure is reported after an earlier effect actually ran")
 	_assert(GameManager.family_money == 1000 and CareerManager.get_active_job_offer(1) == offer_before, "Apply-time rollback restores Event cost, economy mutation, and Career state")
-	_assert(EventManager.active_event != null and EventManager.active_event.instance_id == source_instance_id and EventManager.story_history.records.is_empty() and EventManager.state_provider.completed_repeat_records.is_empty(), "Apply-time rollback restores the original active Event with no completion state")
+	_assert(EventManager.active_event != null and EventManager.active_event.instance_id == source_instance_id and EventManager.story_history.records.is_empty() and EventManager.state_provider.completed_repeat_records.is_empty() and CharacterManager.characters[0].event_log.is_empty(), "Apply-time rollback restores the original active Event with no completion or Character history state")
 	_assert(rng_after.seed == rng_before.seed and rng_after.state == rng_before.state, "Apply-time rollback restores the weighted resolution RNG stream")
 	EventManager.cancel_active_event()
 

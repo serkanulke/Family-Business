@@ -3590,6 +3590,16 @@
 				"primary": "primary",
 				"target": "candidate"
 			  }
+			],
+			"event_log": [
+			  {
+				"target": "primary",
+				"description": "💍 Married {candidate_name}"
+			  },
+			  {
+				"target": "candidate",
+				"description": "💍 Married {character_name}"
+			  }
 			]
 		  },
 		  "description": "A simple wedding.",
@@ -3620,6 +3630,16 @@
 				"type": "relationship_marry",
 				"primary": "primary",
 				"target": "candidate"
+			  }
+			],
+			"event_log": [
+			  {
+				"target": "primary",
+				"description": "💍 Married {candidate_name}"
+			  },
+			  {
+				"target": "candidate",
+				"description": "💍 Married {character_name}"
 			  }
 			]
 		  },
@@ -3663,6 +3683,16 @@
 				"type": "relationship_marry",
 				"primary": "primary",
 				"target": "candidate"
+			  }
+			],
+			"event_log": [
+			  {
+				"target": "primary",
+				"description": "💍 Married {candidate_name}"
+			  },
+			  {
+				"target": "candidate",
+				"description": "💍 Married {character_name}"
 			  }
 			]
 		  },

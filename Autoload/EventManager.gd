@@ -548,6 +548,11 @@ func resolve_active_event(choice_id: String = "") -> Dictionary:
 		if not _restore_resolution_transaction(transaction_snapshot):
 			completion_reasons.append({"code": "rollback_failed", "message": "The incomplete Event resolution could not be rolled back."})
 		return {"resolved": false, "failure_reasons": completion_reasons, "effect_results": applied.get("effect_results", []).duplicate(true)}
+	_append_character_event_logs(
+		outcome.get("event_log", []),
+		finished_instance.participants,
+		finished_instance.context
+	)
 	return {"resolved": true, "instance": finished_instance.to_dictionary(), "choice_id": finished_instance.choice_id, "outcome_id": finished_instance.outcome_id, "effect_results": finished_instance.effect_results.duplicate(true), "resolution_details": outcome.get("details", {}).duplicate(true)}
 
 
@@ -1442,6 +1447,42 @@ func _emit_queue_state() -> void:
 
 func _current_date() -> String:
 	return TimeManager.get_iso_date_string()
+
+
+func _append_character_event_logs(
+	entries_value,
+	participants: Dictionary,
+	context: Dictionary
+) -> void:
+	if typeof(entries_value) != TYPE_ARRAY:
+		return
+	for entry_value in entries_value:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		var target := String(entry.get("target", ""))
+		var character_id := int(participants.get(target, 0))
+		if character_id <= 0:
+			continue
+		var character := CharacterManager.get_character_by_id(character_id)
+		if character.is_empty():
+			continue
+		var log_value = character.get("event_log", [])
+		if typeof(log_value) != TYPE_ARRAY:
+			continue
+		var event_log: Array = log_value
+		var resolved_description := EventPresentationResolver.resolve_text(
+			String(entry.get("description", "")),
+			participants,
+			context
+		)
+		event_log.append(
+			{
+				"date": TimeManager.get_iso_date_string(),
+				"description": resolved_description
+			}
+		)
+		character["event_log"] = event_log
 
 
 func _cost_amount(value, currency: String) -> int:

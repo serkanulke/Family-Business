@@ -265,6 +265,8 @@ Current manager-aligned principles:
 - Business upgrade may delegate to BusinessManager;
 - Event queue/schedule/cancel operations remain Event-owned.
 
+A resolution may optionally define `event_log` entries containing only a participant `target` and player-facing `description`. These entries are not effects: after all effects succeed and the Event reaches `completed`, EventManager resolves the description through the shared presentation-token resolver and appends only the current game `date` plus resolved `description` to the target Character's existing `event_log`. Failed, rolled-back, cancelled, and expired Events write no Character history.
+
 Explicitly absent:
 
 - Career Level/progression state;
@@ -288,6 +290,8 @@ Completed/terminal Event runtime records retain:
 - source chain identity.
 
 EventManager export/import preserves active, queued, scheduled, history, repeat/cooldown, counters, RNG/selection state, occurrence ledgers, and pause ownership without replaying effects.
+
+Event `story_history` remains the detailed engine history used by requirements/repeat/choice/outcome tracking. Character `event_log` remains the short Character Card life history; the two stores are not merged or duplicated.
 
 SaveManager stores one Event runtime subsection.
 

@@ -24,15 +24,35 @@ static func resolve_content(
 	for field_name in ["title", "subtitle", "description"]:
 		if typeof(resolved.get(field_name, null)) != TYPE_STRING:
 			continue
+		resolved[field_name] = _replace_tokens(
+			String(resolved[field_name]),
+			replacements
+		)
 
-		var text := String(resolved[field_name])
-		for token in replacements:
-			text = text.replace(
-				"{%s}" % String(token),
-				String(replacements[token])
-			)
-		resolved[field_name] = text
+	return resolved
 
+
+static func resolve_text(
+	text: String,
+	participants: Dictionary,
+	context: Dictionary
+) -> String:
+	return _replace_tokens(
+		text,
+		_build_replacements(participants, context)
+	)
+
+
+static func _replace_tokens(
+	text: String,
+	replacements: Dictionary
+) -> String:
+	var resolved := text
+	for token in replacements:
+		resolved = resolved.replace(
+			"{%s}" % String(token),
+			String(replacements[token])
+		)
 	return resolved
 
 

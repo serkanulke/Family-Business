@@ -44,6 +44,7 @@ This document reports repository reality. It does not create gameplay decisions.
 - Runtime requirement/participant resolution exists.
 - All five trigger families exist.
 - Queue, priority, repeat, cooldown, scheduling, save/load, resolution, effects, story history, and EffectResult behavior exist.
+- Optional resolution-authored Character `event_log` entries commit only after successful Event completion and remain separate from Event `story_history`.
 - Save-scoped ordinary random Event pacing is implemented.
 - Random pacing regression passed locally: **8 / 0**.
 - Ordinary random family size expands candidates without multiplying pool activation rolls.

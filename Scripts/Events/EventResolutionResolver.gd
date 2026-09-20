@@ -14,14 +14,19 @@ func _init(p_query_provider: EventRuntimeQueryProvider, seed: int = 0) -> void:
 
 
 func resolve(resolution: Dictionary, participants: Dictionary, context: Dictionary) -> Dictionary:
+	var result: Dictionary
 	match String(resolution.get("mode", "")):
 		"deterministic":
-			return {"valid": true, "mode": "deterministic", "outcome_id": null, "effects": _effects(resolution)}
+			result = {"valid": true, "mode": "deterministic", "outcome_id": null, "effects": _effects(resolution)}
 		"weighted":
-			return _resolve_weighted(resolution, participants, context)
+			result = _resolve_weighted(resolution, participants, context)
 		"score_check":
-			return _resolve_score_check(resolution, participants, context)
-	return {"valid": false, "failure_reasons": [_failure("invalid_resolution", "Event resolution is unavailable.")]}
+			result = _resolve_score_check(resolution, participants, context)
+		_:
+			return {"valid": false, "failure_reasons": [_failure("invalid_resolution", "Event resolution is unavailable.")]}
+	if bool(result.get("valid", false)):
+		result["event_log"] = _event_log(resolution)
+	return result
 
 
 func export_state() -> Dictionary:
@@ -133,6 +138,11 @@ func _outcome_result(mode: String, outcome: Dictionary, details: Dictionary) -> 
 func _effects(value: Dictionary) -> Array:
 	var effects = value.get("effects", [])
 	return effects.duplicate(true) if typeof(effects) == TYPE_ARRAY else []
+
+
+func _event_log(resolution: Dictionary) -> Array:
+	var event_log = resolution.get("event_log", [])
+	return event_log.duplicate(true) if typeof(event_log) == TYPE_ARRAY else []
 
 
 func _failure(code: String, message: String) -> Dictionary:

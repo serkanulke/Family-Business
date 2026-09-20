@@ -80,6 +80,40 @@ func _ready() -> void:
 	_assert_equal(snapshot.get("lifestyle_stars"), 0, "Character with no equipped items has zero Lifestyle")
 	_assert_equal(snapshot.get("lifestyle_class"), "", "Missing canonical class label stays hidden")
 	_assert_equal(snapshot.get("item_count"), "0/3", "Character with no equipped items shows 0/3")
+	var event_history_rows: Array = []
+	var event_history_text: Array[String] = []
+	var event_history_uses_asset_icons := false
+	for history_child in card.event_history_list.get_children():
+		if history_child is not HBoxContainer:
+			continue
+		event_history_rows.append(history_child)
+		if not history_child.find_children(
+			"*",
+			"TextureRect",
+			true,
+			false
+		).is_empty():
+			event_history_uses_asset_icons = true
+		for row_child in history_child.get_children():
+			if row_child is Label:
+				event_history_text.append(
+					String(row_child.text)
+				)
+	_assert_equal(
+		event_history_rows.size(),
+		3,
+		"Character Card continues to render every existing event_log entry"
+	)
+	_assert_true(
+		not event_history_uses_asset_icons,
+		"Character Event History rows do not render SVG or image assets"
+	)
+	_assert_true(
+		"2016" in event_history_text
+		and "Started working at Johnson Hospital" in event_history_text
+		and "Graduated from Prestige University" in event_history_text,
+		"Character Event History keeps year and resolved description text"
+	)
 	var thresholds := {0: 0, 1: 1, 34: 1, 35: 2, 59: 2, 60: 3, 79: 3, 80: 4, 94: 4, 95: 5, 100: 5}
 	for score in thresholds:
 		_assert_equal(card.get_lifestyle_star_count(score), thresholds[score], "Lifestyle threshold %d" % score)

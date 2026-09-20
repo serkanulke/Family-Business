@@ -1075,6 +1075,14 @@ func _validate_resolution(source: String, event_id: String, path: String, value,
 		if not mode.is_empty():
 			_add(source, event_id, path + ".mode", "Unsupported resolution mode '%s'." % mode)
 		return
+	if resolution.has("event_log"):
+		_validate_character_event_log(
+			source,
+			event_id,
+			path + ".event_log",
+			resolution["event_log"],
+			participant_names
+		)
 	match mode:
 		"deterministic":
 			_validate_effects(source, event_id, path + ".effects", resolution.get("effects", null), participant_names)
@@ -1082,6 +1090,53 @@ func _validate_resolution(source: String, event_id: String, path: String, value,
 			_validate_weighted_outcomes(source, event_id, path + ".outcomes", resolution.get("outcomes", null), participant_names)
 		"score_check":
 			_validate_score_check(source, event_id, path, resolution, participant_names)
+
+
+func _validate_character_event_log(
+	source: String,
+	event_id: String,
+	path: String,
+	value,
+	participant_names: Dictionary
+) -> void:
+	if typeof(value) != TYPE_ARRAY:
+		_add(source, event_id, path, "event_log must be an Array.")
+		return
+	for index in value.size():
+		var entry_path := path + "[%d]" % index
+		var entry_value = value[index]
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			_add(source, event_id, entry_path, "event_log entry must be a Dictionary.")
+			continue
+		var entry: Dictionary = entry_value
+		for key_value in entry:
+			var key := String(key_value)
+			if key not in ["target", "description"]:
+				_add(
+					source,
+					event_id,
+					entry_path + "." + key,
+					"event_log entry only supports target and description."
+				)
+		var target := _required_string(
+			source,
+			event_id,
+			entry_path + ".target",
+			entry.get("target", null)
+		)
+		if not target.is_empty() and not participant_names.has(target):
+			_add(
+				source,
+				event_id,
+				entry_path + ".target",
+				"event_log target is not a defined participant."
+			)
+		_required_string(
+			source,
+			event_id,
+			entry_path + ".description",
+			entry.get("description", null)
+		)
 
 
 func _validate_weighted_outcomes(source: String, event_id: String, path: String, value, participant_names: Dictionary) -> void:
