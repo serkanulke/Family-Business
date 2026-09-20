@@ -114,9 +114,11 @@ It changes only current external salary through CareerManager and does not creat
 
 ### 5. Relationship
 
-The current production set contains 27 definitions covering the 23 numbered Relationship Events. It uses the approved eligibility, probability, relative weight, cooldown, and chain values without adding a relationship meter/state machine.
+The current production set contains 28 definitions covering the 23 numbered Relationship Events plus the scheduled Birth opportunity. It uses the approved eligibility, probability, relative weight, cooldown, chain, and Birth scheduling values without adding a relationship meter/state machine.
 
 Meet Someone uses ordinary save-scoped random pacing and activation-time candidate assignment: reuse an eligible unassigned persistent Relationship NPC first, generate only when the pool is empty, and release rather than delete on rejection or failed activation.
+
+Wedding completion creates the Birth plan once in the existing scheduler. The JSON-owned distribution is 0-4 opportunities and 1-240 months, with uniform month selection inside the selected weighted bucket and a 12-month minimum initial spacing. Due-time invalidity expires without replacement; House capacity and the first two explicit refusals defer the same record monthly; the third refusal consumes it; late final resolution minimally cascades later due dates. This is scheduling around CharacterManager's existing biological-child backend, not a pregnancy subsystem.
 
 ### 6. Household
 

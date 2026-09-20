@@ -55,6 +55,8 @@ This document reports repository reality. It does not create gameplay decisions.
 - Meet Someone reuses an eligible unassigned Relationship NPC from the persistent Character pool before generating a new one.
 - Per-family rejection history, assignment/release, family entry, marriage, divorce, remarriage cooldown, donor/adoption helpers, active candidate indexing, and marriage cleanup exist.
 - Explicit Event rejection/end choices release the candidate or dating link without deleting the external Character; failed activation rollback does the same without recording a rejection.
+- Completed Wedding Events create at most one data-driven 0-4 Birth opportunity plan in the existing Event scheduler. Initial exact ISO dates use the approved 1-240 month weighted buckets, uniform month selection inside a bucket, and at least 12 months between opportunities without age-based compression.
+- A due Birth opportunity revalidates the exact spouse, life/sex/age rules, and House capacity. Invalid future opportunities expire without replacement; House capacity defers the same opportunity by one month without counting a refusal; the third explicit refusal consumes it; and late final resolution shifts later opportunities only enough to restore 12-month spacing.
 
 ### House / Household backend
 - Five House levels, roles, role/resident capacity, Household Score/Status, Household Perks, Unhoused handling, upgrade and House economy hooks exist.
@@ -85,7 +87,7 @@ This document reports repository reality. It does not create gameplay decisions.
 | Age / Lifecycle | **Complete core production set** — Retirement + Farewell |
 | Job Offer | **Complete core production set** — 1 generic factual Event |
 | Career | **Next** — production content not authored yet |
-| Relationship | **Production set authored** — 27 definitions covering 23 numbered Events; pool/rejection cleanup implemented |
+| Relationship | **Production set authored** — 28 definitions covering 23 numbered Events plus the scheduled Birth opportunity; pool/rejection cleanup and Birth scheduling implemented |
 | Household | Not authored |
 | Business | Not authored |
 | Health | Not authored |
@@ -110,9 +112,10 @@ The Event backend should not be broadly refactored while authoring these categor
 - Production random Career balance values such as activation chances and salary-increase amounts must come from approved design/content decisions; do not invent them.
 
 ### Relationship Event content
-- `relationship.json` contains the current 27-definition production set covering the 23 numbered Meet Someone/dating/marriage Events.
+- `relationship.json` contains the current 28-definition production set covering the 23 numbered Meet Someone/dating/marriage Events plus the scheduled Birth opportunity.
 - Meet Someone age-band definitions are repeatable and have no cross-band `event_seen` lock; trigger timing, pools, activation chances, weights, and cooldown values remain data-authored.
 - The 13 explicit rejection/end choices release their bound NPC through `relationship_status_set.value = null` and record that family/NPC pair as rejected.
+- Birth scheduling and resolution are JSON-authored around the existing scheduler and biological-child backend; no separate pregnancy simulation, manager, or save structure was added. Focused Birth scheduling regression passes **22 / 0**.
 
 ### Lifestyle / Family Agency
 - Event backend supports manual flows.

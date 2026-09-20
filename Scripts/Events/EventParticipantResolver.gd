@@ -264,6 +264,20 @@ func _validate_resolved_participants(
 			failures.append(_failure("participant_invalid", "Participant '%s' is no longer available." % name, name))
 			continue
 		var participant_source := String(definition.get("source", ""))
+		if participant_source == "relation":
+			var from_name := String(definition.get("from", ""))
+			var relation := String(definition.get("relation", ""))
+			var from_id := int(participants.get(from_name, 0))
+			if (
+				from_id <= 0
+				or int(value) not in query_provider.get_relation_ids(from_id, relation)
+			):
+				failures.append(_failure(
+					"participant_invalid",
+					"Participant '%s' is no longer the required %s relation." % [name, relation],
+					name
+				))
+				continue
 		if (
 			participant_type == "relationship_npc"
 			and participant_source in ["relationship_npc", "new_relationship_npc"]

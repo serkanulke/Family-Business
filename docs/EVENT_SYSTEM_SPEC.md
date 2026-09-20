@@ -120,6 +120,10 @@ Continues only because authored Event results queue the next Event.
 ### Scheduled
 Stores a future due date plus exact participants/context and revalidates when due.
 
+The Relationship Birth flow uses this same scheduler. A completed Wedding rolls one 0-4 opportunity plan once, stores exact ISO due dates, and binds the actual spouses. Timing is data-authored as weighted month ranges; after a range is selected, its month is uniform. Initial opportunities are at least 12 months apart and are never compressed around Character age. A due opportunity that fails spouse, alive, sex, or biological-age revalidation expires without replacement.
+
+House capacity is choice availability rather than Event eligibility: the Event remains visible, the Birth choice is locked with the normal requirement reason, and choosing the non-Birth path while capacity is unavailable defers the same schedule record one month without a refusal. The first two explicit refusals also defer that record one month; the third consumes it. When final resolution is later than planned, following opportunities move only far enough, cascading in plan order, to restore 12-month spacing.
+
 ## 5. Ordinary Random Pacing
 
 Ordinary random Event pacing is **save-scoped**.
@@ -264,6 +268,7 @@ Current manager-aligned principles:
 - Event content cannot staff/replace/remove Business workers;
 - Business upgrade may delegate to BusinessManager;
 - Event queue/schedule/cancel operations remain Event-owned.
+- Wedding resolution may invoke the narrow `schedule_birth_opportunities` Event operation, and the scheduled Birth choices use `resolve_birth_opportunity`; biological child creation still delegates to CharacterManager's existing `create_biological_child` path.
 
 A resolution may optionally define `event_log` entries containing only a participant `target` and player-facing `description`. These entries are not effects: after all effects succeed and the Event reaches `completed`, EventManager resolves the description through the shared presentation-token resolver and appends only the current game `date` plus resolved `description` to the target Character's existing `event_log`. Failed, rolled-back, cancelled, and expired Events write no Character history.
 
@@ -295,6 +300,8 @@ Event `story_history` remains the detailed engine history used by requirements/r
 
 SaveManager stores one Event runtime subsection.
 
+Birth planning persists only through this existing Event runtime subsection: scheduled records hold due date/participants/plan index/refusal-attempt state, while the originating Wedding instance context/history holds the one-time plan marker. There is no parallel Birth persistence model.
+
 ## 12. Activation-time Relationship Candidate Materialization
 
 For participant source `new_relationship_npc`:
@@ -321,7 +328,7 @@ Marriage, rejection-history mutation, and assignment cleanup remain Relationship
 - Career.
 
 ### Authored production set
-- Relationship: 27 definitions covering the 23 numbered Meet Someone/dating/marriage Events.
+- Relationship: 28 definitions covering the 23 numbered Meet Someone/dating/marriage Events plus the scheduled Birth opportunity.
 
 ### Not yet authored
 - Household

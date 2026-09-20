@@ -243,6 +243,194 @@ func schedule_event_after(
 	return {} if due_date.is_empty() else schedule_event(event_id, due_date, participants, context, source_instance_id)
 
 
+func schedule_birth_opportunities_for_marriage(
+	event_id: String,
+	first_character_id: int,
+	second_character_id: int,
+	source_instance_id: String
+) -> Dictionary:
+	if (
+		active_event == null
+		or active_event.instance_id != source_instance_id
+		or source_instance_id.is_empty()
+	):
+		return {"success": false, "code": "birth_plan_source_unavailable"}
+	if bool(active_event.context.get("birth_plan_created", false)):
+		return {
+			"success": true,
+			"plan_id": String(active_event.context.get("birth_plan_id", "")),
+			"opportunity_count": int(active_event.context.get("birth_opportunity_count", 0)),
+			"scheduled_event_ids": _birth_plan_scheduled_ids(
+				String(active_event.context.get("birth_plan_id", ""))
+			)
+		}
+
+	var definition := registry.get_event(event_id)
+	var schedule_config := _birth_schedule_config(definition)
+	if (
+		definition.is_empty()
+		or String(definition.get("trigger", {}).get("type", "")) != "scheduled"
+		or schedule_config.is_empty()
+	):
+		return {"success": false, "code": "birth_schedule_definition_unavailable"}
+
+	var first := CharacterManager.get_character_by_id(first_character_id)
+	var second := CharacterManager.get_character_by_id(second_character_id)
+	if not RelationshipNpcManager.are_married_partners(first, second):
+		return {"success": false, "code": "birth_plan_marriage_unavailable"}
+
+	var carrier_id := 0
+	var spouse_id := 0
+	if String(first.get("gender", "")) == "female" and String(second.get("gender", "")) == "male":
+		carrier_id = first_character_id
+		spouse_id = second_character_id
+	elif String(second.get("gender", "")) == "female" and String(first.get("gender", "")) == "male":
+		carrier_id = second_character_id
+		spouse_id = first_character_id
+
+	var plan_id := "birth_plan:%s" % source_instance_id
+	var opportunity_count := 0
+	var scheduled_ids: Array[String] = []
+	if carrier_id > 0 and spouse_id > 0:
+		opportunity_count = int(
+			_pick_birth_weighted_record(
+				schedule_config.get("opportunity_counts", [])
+			).get("count", 0)
+		)
+		var month_offsets := _roll_birth_month_offsets(
+			opportunity_count,
+			schedule_config.get("timing_buckets", []),
+			int(schedule_config.get("minimum_spacing_months", 12))
+		)
+		if month_offsets.size() != opportunity_count:
+			return {"success": false, "code": "birth_schedule_generation_failed"}
+		for opportunity_index in month_offsets.size():
+			var due_date := GameCalendar.add_months(
+				_current_date(),
+				int(month_offsets[opportunity_index])
+			)
+			var scheduled := schedule_event(
+				event_id,
+				due_date,
+				{"primary": carrier_id, "spouse": spouse_id},
+				{
+					"birth_plan_id": plan_id,
+					"birth_opportunity_index": opportunity_index,
+					"birth_refusal_count": 0,
+					"birth_attempt": 0,
+					"birth_opportunity_resolved": false
+				},
+				source_instance_id
+			)
+			if scheduled.is_empty():
+				return {"success": false, "code": "birth_schedule_creation_failed"}
+			scheduled_ids.append(String(scheduled.get("scheduled_event_id", "")))
+
+	active_event.context["birth_plan_created"] = true
+	active_event.context["birth_plan_id"] = plan_id
+	active_event.context["birth_opportunity_count"] = opportunity_count
+	return {
+		"success": true,
+		"plan_id": plan_id,
+		"opportunity_count": opportunity_count,
+		"scheduled_event_ids": scheduled_ids
+	}
+
+
+func can_resolve_active_birth_opportunity(
+	carrier_id: int,
+	spouse_id: int,
+	action: String
+) -> bool:
+	if active_event == null or action not in ["accept", "decline"]:
+		return false
+	var record_index := _active_birth_schedule_index(active_event.instance_id)
+	if record_index < 0:
+		return false
+	var record: Dictionary = scheduled_events[record_index]
+	return (
+		int(record.get("participants", {}).get("primary", 0)) == carrier_id
+		and int(record.get("participants", {}).get("spouse", 0)) == spouse_id
+	)
+
+
+func resolve_active_birth_opportunity(
+	carrier_id: int,
+	spouse_id: int,
+	action: String,
+	source_instance_id: String
+) -> Dictionary:
+	if (
+		active_event == null
+		or active_event.instance_id != source_instance_id
+		or not can_resolve_active_birth_opportunity(carrier_id, spouse_id, action)
+	):
+		return {"success": false, "code": "birth_opportunity_unavailable"}
+
+	var record_index := _active_birth_schedule_index(source_instance_id)
+	var record: Dictionary = scheduled_events[record_index]
+	var context: Dictionary = record.get("context", {}).duplicate(true)
+	var schedule_config := _birth_schedule_config(registry.get_event(active_event.event_id))
+	if schedule_config.is_empty():
+		return {"success": false, "code": "birth_schedule_definition_unavailable"}
+
+	var refusal_count := int(context.get("birth_refusal_count", 0))
+	var deferred_for_house := false
+	var consumed := action == "accept"
+	if action == "decline":
+		var availability := CharacterManager.get_system_biological_child_availability(
+			carrier_id,
+			spouse_id
+		)
+		var availability_code := String(availability.get("code", ""))
+		if availability_code in ["carrier_unhoused", "house_resident_capacity_unavailable"]:
+			deferred_for_house = true
+		elif not bool(availability.get("available", false)):
+			return {
+				"success": false,
+				"code": availability_code,
+				"message": String(availability.get("message", "Birth opportunity is unavailable."))
+			}
+		else:
+			refusal_count += 1
+			consumed = refusal_count >= int(schedule_config.get("maximum_refusals", 3))
+
+	context["birth_refusal_count"] = refusal_count
+	if consumed:
+		context["birth_opportunity_resolved"] = true
+		record["context"] = context
+		scheduled_events[record_index] = record
+		scheduled_event_changed.emit(record.duplicate(true))
+		_shift_following_birth_opportunities(
+			String(context.get("birth_plan_id", "")),
+			int(context.get("birth_opportunity_index", -1)),
+			_current_date(),
+			int(schedule_config.get("minimum_spacing_months", 12))
+		)
+	else:
+		context["birth_attempt"] = int(context.get("birth_attempt", 0)) + 1
+		record["context"] = context
+		record["due_date"] = GameCalendar.add_months(
+			_current_date(),
+			int(schedule_config.get("retry_delay_months", 1))
+		)
+		record["status"] = "scheduled"
+		record["queued_instance_id"] = null
+		record["failure_reasons"] = []
+		scheduled_events[record_index] = record
+		scheduled_event_changed.emit(record.duplicate(true))
+
+	return {
+		"success": true,
+		"action": action,
+		"consumed": consumed,
+		"deferred": not consumed,
+		"deferred_for_house": deferred_for_house,
+		"refusal_count": refusal_count,
+		"due_date": String(record.get("due_date", ""))
+	}
+
+
 func cancel_scheduled_event(scheduled_event_id: String) -> bool:
 	for index in scheduled_events.size():
 		var record: Dictionary = scheduled_events[index]
@@ -271,6 +459,8 @@ func process_scheduled_due(date_text: String = "") -> Array:
 	for index in scheduled_events.size():
 		var record: Dictionary = scheduled_events[index]
 		if String(record.get("status", "")) != "scheduled" or GameCalendar.compare(current_date, String(record.get("due_date", ""))) < 0:
+			continue
+		if _birth_opportunity_has_pending_predecessor(record):
 			continue
 		var event_id := String(record.get("event_id", ""))
 		var event := registry.get_event(event_id)
@@ -301,6 +491,149 @@ func process_scheduled_due(date_text: String = "") -> Array:
 		scheduled_event_changed.emit(record.duplicate(true))
 		processed.append(record.duplicate(true))
 	return processed
+
+
+func _birth_schedule_config(event: Dictionary) -> Dictionary:
+	var metadata_value = event.get("metadata", {})
+	if typeof(metadata_value) != TYPE_DICTIONARY:
+		return {}
+	var config_value = metadata_value.get("birth_schedule", {})
+	return config_value.duplicate(true) if typeof(config_value) == TYPE_DICTIONARY else {}
+
+
+func _pick_birth_weighted_record(records_value) -> Dictionary:
+	if typeof(records_value) != TYPE_ARRAY or records_value.is_empty():
+		return {}
+	var total := 0.0
+	var records: Array[Dictionary] = []
+	for record_value in records_value:
+		if typeof(record_value) != TYPE_DICTIONARY:
+			continue
+		var record: Dictionary = record_value
+		var weight := float(record.get("weight", 0.0))
+		if weight <= 0.0:
+			continue
+		total += weight
+		records.append(record)
+	if total <= 0.0 or records.is_empty():
+		return {}
+	var roll := resolution_resolver.random.randf() * total
+	var cumulative := 0.0
+	for record in records:
+		cumulative += float(record.get("weight", 0.0))
+		if roll < cumulative:
+			return record.duplicate(true)
+	return records.back().duplicate(true)
+
+
+func _roll_birth_month_offsets(
+	count: int,
+	buckets_value,
+	minimum_spacing_months: int
+) -> Array[int]:
+	var offsets: Array[int] = []
+	while offsets.size() < count:
+		var bucket := _pick_birth_weighted_record(buckets_value)
+		if bucket.is_empty():
+			return []
+		var candidate := resolution_resolver.random.randi_range(
+			int(bucket.get("minimum_month", 0)),
+			int(bucket.get("maximum_month", 0))
+		)
+		var collides := false
+		for existing in offsets:
+			if absi(candidate - existing) < minimum_spacing_months:
+				collides = true
+				break
+		if not collides:
+			offsets.append(candidate)
+	offsets.sort()
+	return offsets
+
+
+func _birth_plan_scheduled_ids(plan_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for record in scheduled_events:
+		if String(record.get("context", {}).get("birth_plan_id", "")) == plan_id:
+			result.append(String(record.get("scheduled_event_id", "")))
+	return result
+
+
+func _active_birth_schedule_index(source_instance_id: String) -> int:
+	for index in scheduled_events.size():
+		var record: Dictionary = scheduled_events[index]
+		if (
+			String(record.get("status", "")) == "queued"
+			and String(record.get("queued_instance_id", "")) == source_instance_id
+			and not String(record.get("context", {}).get("birth_plan_id", "")).is_empty()
+		):
+			return index
+	return -1
+
+
+func _birth_opportunity_has_pending_predecessor(record: Dictionary) -> bool:
+	var context_value = record.get("context", {})
+	if typeof(context_value) != TYPE_DICTIONARY:
+		return false
+	var context: Dictionary = context_value
+	var plan_id := String(context.get("birth_plan_id", ""))
+	var opportunity_index := int(context.get("birth_opportunity_index", -1))
+	if plan_id.is_empty() or opportunity_index < 0:
+		return false
+	for other in scheduled_events:
+		var other_context_value = other.get("context", {})
+		if typeof(other_context_value) != TYPE_DICTIONARY:
+			continue
+		var other_context: Dictionary = other_context_value
+		if (
+			String(other_context.get("birth_plan_id", "")) != plan_id
+			or int(other_context.get("birth_opportunity_index", -1)) >= opportunity_index
+		):
+			continue
+		var other_status := String(other.get("status", ""))
+		if other_status == "scheduled":
+			return true
+		if other_status == "queued" and not bool(other_context.get("birth_opportunity_resolved", false)):
+			return true
+	return false
+
+
+func _shift_following_birth_opportunities(
+	plan_id: String,
+	resolved_index: int,
+	resolved_date: String,
+	minimum_spacing_months: int
+) -> void:
+	var following_indices: Array[int] = []
+	for index in scheduled_events.size():
+		var record: Dictionary = scheduled_events[index]
+		var context_value = record.get("context", {})
+		if typeof(context_value) != TYPE_DICTIONARY:
+			continue
+		var context: Dictionary = context_value
+		if (
+			String(record.get("status", "")) == "scheduled"
+			and String(context.get("birth_plan_id", "")) == plan_id
+			and int(context.get("birth_opportunity_index", -1)) > resolved_index
+		):
+			following_indices.append(index)
+	following_indices.sort_custom(func(left: int, right: int) -> bool:
+		return int(scheduled_events[left].get("context", {}).get("birth_opportunity_index", -1)) < int(scheduled_events[right].get("context", {}).get("birth_opportunity_index", -1))
+	)
+	var minimum_due_date := GameCalendar.add_months(
+		resolved_date,
+		minimum_spacing_months
+	)
+	for index in following_indices:
+		var record: Dictionary = scheduled_events[index]
+		if GameCalendar.compare(String(record.get("due_date", "")), minimum_due_date) < 0:
+			record["due_date"] = minimum_due_date
+			scheduled_events[index] = record
+			scheduled_event_changed.emit(record.duplicate(true))
+		minimum_due_date = GameCalendar.add_months(
+			String(record.get("due_date", "")),
+			minimum_spacing_months
+		)
 
 
 func complete_active_event() -> bool:

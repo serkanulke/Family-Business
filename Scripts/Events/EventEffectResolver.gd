@@ -79,6 +79,30 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 				return _invalid(index, "relationship_target_unavailable", "The relationship participants are no longer available.")
 			plan["primary_id"] = primary_id
 			plan["target_id"] = target_id
+		"schedule_birth_opportunities":
+			var primary_id := _character_id(effect, "primary", participants)
+			var spouse_id := _character_id(effect, "spouse", participants)
+			if primary_id <= 0 or spouse_id <= 0:
+				return _invalid(index, "birth_plan_participant_unavailable", "The married couple is no longer available.")
+			plan["primary_id"] = primary_id
+			plan["spouse_id"] = spouse_id
+		"resolve_birth_opportunity":
+			var carrier_id := _character_id(effect, "carrier", participants)
+			var spouse_id := _character_id(effect, "spouse", participants)
+			var action := String(effect.get("action", ""))
+			if (
+				carrier_id <= 0
+				or spouse_id <= 0
+				or not EventManager.can_resolve_active_birth_opportunity(
+					carrier_id,
+					spouse_id,
+					action
+				)
+			):
+				return _invalid(index, "birth_opportunity_unavailable", "The Birth opportunity is no longer available.")
+			plan["carrier_id"] = carrier_id
+			plan["spouse_id"] = spouse_id
+			plan["action"] = action
 		"create_biological_child":
 			var carrier_id := _character_id(
 				effect,
@@ -243,10 +267,18 @@ func _plan_effect(index: int, effect: Dictionary, participants: Dictionary, cont
 			var target_event := registry.get_event(String(effect.get("event_id", "")))
 			if target_event.is_empty() or String(target_event.get("trigger", {}).get("type", "")) != "scheduled":
 				return _invalid(index, "scheduled_event_unavailable", "The scheduled Event is unavailable.")
+		"schedule_birth_opportunities":
+			var target_event := registry.get_event(String(effect.get("event_id", "")))
+			if (
+				target_event.is_empty()
+				or String(target_event.get("trigger", {}).get("type", "")) != "scheduled"
+				or typeof(target_event.get("metadata", {}).get("birth_schedule", null)) != TYPE_DICTIONARY
+			):
+				return _invalid(index, "birth_schedule_definition_unavailable", "The Birth scheduling definition is unavailable.")
 		"cancel_scheduled_event":
 			if not _has_scheduled_target(effect):
 				return _invalid(index, "scheduled_event_unavailable", "No matching scheduled Event is available to cancel.")
-		"add_flag", "remove_flag", "money_change", "diamond_change", "remove_from_house", "business_upgrade", "create_biological_child": pass
+		"add_flag", "remove_flag", "money_change", "diamond_change", "remove_from_house", "business_upgrade", "create_biological_child", "resolve_birth_opportunity": pass
 		_:
 			return _invalid(index, "unsupported_effect", "The Event effect is unsupported.")
 	return plan
@@ -314,6 +346,22 @@ func _apply_plan(plan: Dictionary, source_instance_id: String, created_items: Di
 			}, true)
 		"relationship_marry": result["success"] = RelationshipNpcManager.make_candidate_family_member(int(plan["target_id"]), int(plan["primary_id"]))
 		"relationship_divorce": result["success"] = RelationshipNpcManager.divorce_characters(int(plan["primary_id"]), int(plan["target_id"]))
+		"schedule_birth_opportunities":
+			var scheduled := EventManager.schedule_birth_opportunities_for_marriage(
+				String(effect.get("event_id", "")),
+				int(plan["primary_id"]),
+				int(plan["spouse_id"]),
+				source_instance_id
+			)
+			result.merge(scheduled, true)
+		"resolve_birth_opportunity":
+			var resolution := EventManager.resolve_active_birth_opportunity(
+				int(plan["carrier_id"]),
+				int(plan["spouse_id"]),
+				String(plan["action"]),
+				source_instance_id
+			)
+			result.merge(resolution, true)
 		"create_biological_child":
 			var child := CharacterManager.create_system_generated_biological_child(
 				int(plan["carrier_id"]),
@@ -488,6 +536,12 @@ func _exclusive_mutation_key(plan: Dictionary) -> String:
 			]
 			ids.sort()
 			return "biological_child:%d:%d" % [ids[0], ids[1]]
+		"schedule_birth_opportunities":
+			var ids := [int(plan.get("primary_id", 0)), int(plan.get("spouse_id", 0))]
+			ids.sort()
+			return "birth_plan:%d:%d" % [ids[0], ids[1]]
+		"resolve_birth_opportunity":
+			return "birth_opportunity:%s" % String(EventManager.active_event.instance_id if EventManager.active_event != null else "")
 		"accept_job_offer", "reject_job_offer", "job_remove", "salary_increase":
 			return "career:%d" % int(plan.get("character_id", 0))
 		"education_enroll", "education_decline_university", "education_select_major":
@@ -508,6 +562,8 @@ func _display(effect: Dictionary, result: Dictionary) -> Dictionary:
 	var text := String(effect.get("type", "")).replace("_", " ").capitalize()
 	match String(effect.get("type", "")):
 		"relationship_status_set": text = "Relationship updated."
+		"schedule_birth_opportunities": text = "Birth opportunities planned."
+		"resolve_birth_opportunity": text = "Birth opportunity updated."
 		"accept_job_offer": text = "Accepted %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]
 		"reject_job_offer": text = "Rejected %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]
 		"job_remove": text = "Left %s at %s." % [String(result.get("job_name", "a job")), String(result.get("company_name", "a company"))]

@@ -381,6 +381,18 @@ EventManager also persists:
 - occurrence/selection ledgers
 - pause ownership/runtime state
 
+A scheduled Birth opportunity uses the normal scheduled-Event record. Its `participants` bind `primary` to the female carrier and `spouse` to the actual spouse Character ID. Its existing `context` contains only scheduling state:
+
+```text
+birth_plan_id
+birth_opportunity_index
+birth_refusal_count
+birth_attempt
+birth_opportunity_resolved
+```
+
+`due_date` remains the scheduler's exact ISO date. `birth_attempt` changes the retry identity when the same opportunity is deferred; it is not a second opportunity. The originating Wedding Event context/history stores `birth_plan_created`, `birth_plan_id`, and `birth_opportunity_count` so the completed marriage cannot reroll its plan. No separate Birth save collection exists.
+
 ## 10. Event Presentation Tokens
 
 `EventPresentationResolver` currently supports these player-facing content tags:

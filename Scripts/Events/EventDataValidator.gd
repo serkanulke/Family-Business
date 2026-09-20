@@ -101,7 +101,8 @@ const EFFECT_TYPES: Array[String] = [
 	"salary_increase", "education_enroll", "education_decline_university",
 	"education_select_major", "add_item", "remove_item", "equip_item",
 	"unequip_item", "remove_from_house", "business_upgrade",
-	"create_biological_child", "queue_event", "schedule_event",
+	"create_biological_child", "schedule_birth_opportunities",
+	"resolve_birth_opportunity", "queue_event", "schedule_event",
 	"cancel_scheduled_event"
 ]
 const FORBIDDEN_EXECUTABLE_KEYS: Array[String] = [
@@ -463,6 +464,13 @@ func _validate_event(
 	_require_type(source, event_context, base_path + ".enabled", event.get("enabled", null), TYPE_BOOL, "enabled must be a bool.")
 	if event.has("metadata") and typeof(event["metadata"]) != TYPE_DICTIONARY:
 		_add(source, event_context, base_path + ".metadata", "metadata must be a Dictionary when present.")
+	elif typeof(event.get("metadata", null)) == TYPE_DICTIONARY:
+		_validate_birth_schedule_metadata(
+			source,
+			event_context,
+			base_path + ".metadata.birth_schedule",
+			event["metadata"].get("birth_schedule", null)
+		)
 
 	var rarity := _required_string(source, event_context, base_path + ".rarity", event.get("rarity", null))
 	if not rarity.is_empty() and rarity not in RARITIES:
@@ -1342,6 +1350,21 @@ func _validate_effect_shape(source: String, event_id: String, path: String, effe
 		"create_biological_child":
 			_validate_effect_target(source, event_id, path, effect, "carrier", participant_names)
 			_validate_effect_target(source, event_id, path, effect, "spouse", participant_names)
+		"schedule_birth_opportunities":
+			_validate_effect_target(source, event_id, path, effect, "primary", participant_names)
+			_validate_effect_target(source, event_id, path, effect, "spouse", participant_names)
+			_required_string(source, event_id, path + ".event_id", effect.get("event_id", null))
+		"resolve_birth_opportunity":
+			_validate_effect_target(source, event_id, path, effect, "carrier", participant_names)
+			_validate_effect_target(source, event_id, path, effect, "spouse", participant_names)
+			var action := _required_string(
+				source,
+				event_id,
+				path + ".action",
+				effect.get("action", null)
+			)
+			if not action.is_empty() and action not in ["accept", "decline"]:
+				_add(source, event_id, path + ".action", "Birth opportunity action must be accept or decline.")
 		"business_upgrade":
 			_validate_effect_target(source, event_id, path, effect, "business", participant_names)
 			if effect.has("business_type_id"):
@@ -1383,6 +1406,107 @@ func _validate_duration(source: String, event_id: String, path: String, value) -
 		_add(source, event_id, path + ".unit", "Unsupported calendar duration unit '%s'." % unit)
 	if not _is_integer_number(value.get("value", null)) or int(value.get("value", 0)) <= 0:
 		_add(source, event_id, path + ".value", "Calendar duration value must be a positive integer.")
+
+
+func _validate_birth_schedule_metadata(
+	source: String,
+	event_id: String,
+	path: String,
+	value
+) -> void:
+	if value == null:
+		return
+	if typeof(value) != TYPE_DICTIONARY:
+		_add(source, event_id, path, "birth_schedule must be a Dictionary.")
+		return
+	var schedule: Dictionary = value
+	_validate_birth_weighted_records(
+		source,
+		event_id,
+		path + ".opportunity_counts",
+		schedule.get("opportunity_counts", null),
+		"count"
+	)
+	_validate_birth_timing_buckets(
+		source,
+		event_id,
+		path + ".timing_buckets",
+		schedule.get("timing_buckets", null)
+	)
+	for key in ["minimum_spacing_months", "retry_delay_months", "maximum_refusals"]:
+		if not _is_integer_number(schedule.get(key, null)) or int(schedule.get(key, 0)) <= 0:
+			_add(source, event_id, path + "." + key, "%s must be a positive integer." % key)
+
+
+func _validate_birth_weighted_records(
+	source: String,
+	event_id: String,
+	path: String,
+	value,
+	value_key: String
+) -> void:
+	if typeof(value) != TYPE_ARRAY or value.is_empty():
+		_add(source, event_id, path, "Birth weighted records must be a non-empty Array.")
+		return
+	var total_weight := 0.0
+	var seen_values: Dictionary = {}
+	for index in value.size():
+		var record_path := path + "[%d]" % index
+		var record_value = value[index]
+		if typeof(record_value) != TYPE_DICTIONARY:
+			_add(source, event_id, record_path, "Birth weighted record must be a Dictionary.")
+			continue
+		var record: Dictionary = record_value
+		if not _is_integer_number(record.get(value_key, null)):
+			_add(source, event_id, record_path + "." + value_key, "%s must be an integer." % value_key)
+		else:
+			var integer_value := int(record[value_key])
+			if value_key == "count" and (integer_value < 0 or integer_value > 4):
+				_add(source, event_id, record_path + ".count", "Birth opportunity count must be between 0 and 4.")
+			if seen_values.has(integer_value):
+				_add(source, event_id, record_path + "." + value_key, "Birth weighted values must be unique.")
+			seen_values[integer_value] = true
+		var weight = record.get("weight", null)
+		if not _is_number(weight) or float(weight) <= 0.0:
+			_add(source, event_id, record_path + ".weight", "Birth weight must be a positive number.")
+		else:
+			total_weight += float(weight)
+	if not is_equal_approx(total_weight, 100.0):
+		_add(source, event_id, path, "Birth weights must total 100.")
+
+
+func _validate_birth_timing_buckets(
+	source: String,
+	event_id: String,
+	path: String,
+	value
+) -> void:
+	if typeof(value) != TYPE_ARRAY or value.is_empty():
+		_add(source, event_id, path, "Birth timing_buckets must be a non-empty Array.")
+		return
+	var total_weight := 0.0
+	for index in value.size():
+		var record_path := path + "[%d]" % index
+		var record_value = value[index]
+		if typeof(record_value) != TYPE_DICTIONARY:
+			_add(source, event_id, record_path, "Birth timing bucket must be a Dictionary.")
+			continue
+		var record: Dictionary = record_value
+		var minimum = record.get("minimum_month", null)
+		var maximum = record.get("maximum_month", null)
+		if not _is_integer_number(minimum) or int(minimum) <= 0:
+			_add(source, event_id, record_path + ".minimum_month", "minimum_month must be a positive integer.")
+		if not _is_integer_number(maximum) or int(maximum) <= 0:
+			_add(source, event_id, record_path + ".maximum_month", "maximum_month must be a positive integer.")
+		if _is_integer_number(minimum) and _is_integer_number(maximum) and int(minimum) > int(maximum):
+			_add(source, event_id, record_path, "Birth timing bucket minimum_month must not exceed maximum_month.")
+		var weight = record.get("weight", null)
+		if not _is_number(weight) or float(weight) <= 0.0:
+			_add(source, event_id, record_path + ".weight", "Birth timing weight must be a positive number.")
+		else:
+			total_weight += float(weight)
+	if not is_equal_approx(total_weight, 100.0):
+		_add(source, event_id, path, "Birth timing weights must total 100.")
 
 
 func _validate_cross_document_references() -> void:
@@ -1510,7 +1634,7 @@ func _validate_event_flow_references(source: String, event_id: String, event: Di
 	for wrapper in effects_with_paths:
 		var effect: Dictionary = wrapper["effect"]
 		var effect_type := String(effect.get("type", ""))
-		if effect_type not in ["queue_event", "schedule_event", "cancel_scheduled_event"]:
+		if effect_type not in ["queue_event", "schedule_event", "schedule_birth_opportunities", "cancel_scheduled_event"]:
 			continue
 		if not effect.has("event_id"):
 			continue

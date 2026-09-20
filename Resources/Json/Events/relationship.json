@@ -3589,6 +3589,12 @@
 				"type": "relationship_marry",
 				"primary": "primary",
 				"target": "candidate"
+			  },
+			  {
+				"type": "schedule_birth_opportunities",
+				"event_id": "relationship_birth_opportunity",
+				"primary": "primary",
+				"spouse": "candidate"
 			  }
 			],
 			"event_log": [
@@ -3630,6 +3636,12 @@
 				"type": "relationship_marry",
 				"primary": "primary",
 				"target": "candidate"
+			  },
+			  {
+				"type": "schedule_birth_opportunities",
+				"event_id": "relationship_birth_opportunity",
+				"primary": "primary",
+				"spouse": "candidate"
 			  }
 			],
 			"event_log": [
@@ -3683,6 +3695,12 @@
 				"type": "relationship_marry",
 				"primary": "primary",
 				"target": "candidate"
+			  },
+			  {
+				"type": "schedule_birth_opportunities",
+				"event_id": "relationship_birth_opportunity",
+				"primary": "primary",
+				"spouse": "candidate"
 			  }
 			],
 			"event_log": [
@@ -3705,6 +3723,181 @@
 	  ],
 	  "metadata": {
 		"logical_event_number": 23
+	  }
+	},
+	{
+	  "event_id": "relationship_birth_opportunity",
+	  "category": "relationship",
+	  "domain": "relationship",
+	  "subtype": "birth_opportunity",
+	  "enabled": true,
+	  "rarity": "common",
+	  "weight": 1.0,
+	  "priority": 100,
+	  "exclusive_group": null,
+	  "pool_id": null,
+	  "trigger": {
+		"type": "scheduled"
+	  },
+	  "participants": {
+		"primary": {
+		  "type": "character",
+		  "source": "context"
+		},
+		"spouse": {
+		  "type": "character",
+		  "source": "relation",
+		  "from": "primary",
+		  "relation": "spouse"
+		}
+	  },
+	  "requirements": {
+		"all": [
+		  {
+			"type": "is_alive",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "primary",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "gender",
+			"target": "primary",
+			"operator": "==",
+			"value": "female"
+		  },
+		  {
+			"type": "age",
+			"target": "primary",
+			"operator": ">=",
+			"value": 18
+		  },
+		  {
+			"type": "age",
+			"target": "primary",
+			"operator": "<=",
+			"value": 49
+		  },
+		  {
+			"type": "is_alive",
+			"target": "spouse",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "is_family_member",
+			"target": "spouse",
+			"operator": "==",
+			"value": true
+		  },
+		  {
+			"type": "gender",
+			"target": "spouse",
+			"operator": "==",
+			"value": "male"
+		  }
+		]
+	  },
+	  "repeat": {
+		"mode": "repeatable"
+	  },
+	  "cooldown": null,
+	  "behavior": {
+		"blocking": true,
+		"pause_game": true
+	  },
+	  "content": {
+		"title": "A NEW CHAPTER?",
+		"subtitle": null,
+		"description": "{character_name} and {spouse_name} have been thinking about growing their family. Is now the right time to welcome a child?"
+	  },
+	  "presentation": {
+		"template": "standard_event"
+	  },
+	  "choices": [
+		{
+		  "choice_id": "have_a_child",
+		  "title": "HAVE A CHILD",
+		  "requirements": {
+			"all": [
+			  {
+				"type": "house_has_resident_capacity",
+				"target": "primary",
+				"operator": "==",
+				"value": true
+			  }
+			]
+		  },
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": [
+			  {
+				"type": "create_biological_child",
+				"carrier": "primary",
+				"spouse": "spouse"
+			  },
+			  {
+				"type": "resolve_birth_opportunity",
+				"carrier": "primary",
+				"spouse": "spouse",
+				"action": "accept"
+			  }
+			],
+			"event_log": [
+			  {
+				"target": "primary",
+				"description": "👶 Welcomed a child with {spouse_name}"
+			  },
+			  {
+				"target": "spouse",
+				"description": "👶 Welcomed a child with {character_name}"
+			  }
+			]
+		  },
+		  "description": "Welcome a child into the family."
+		},
+		{
+		  "choice_id": "not_now",
+		  "title": "NOT NOW",
+		  "resolution": {
+			"mode": "deterministic",
+			"effects": [
+			  {
+				"type": "resolve_birth_opportunity",
+				"carrier": "primary",
+				"spouse": "spouse",
+				"action": "decline"
+			  }
+			]
+		  },
+		  "description": "Decide not to have a child right now."
+		}
+	  ],
+	  "metadata": {
+		"birth_schedule": {
+		  "opportunity_counts": [
+			{"count": 0, "weight": 20},
+			{"count": 1, "weight": 45},
+			{"count": 2, "weight": 24},
+			{"count": 3, "weight": 9},
+			{"count": 4, "weight": 2}
+		  ],
+		  "timing_buckets": [
+			{"minimum_month": 1, "maximum_month": 12, "weight": 10},
+			{"minimum_month": 13, "maximum_month": 36, "weight": 25},
+			{"minimum_month": 37, "maximum_month": 72, "weight": 30},
+			{"minimum_month": 73, "maximum_month": 120, "weight": 20},
+			{"minimum_month": 121, "maximum_month": 240, "weight": 15}
+		  ],
+		  "minimum_spacing_months": 12,
+		  "retry_delay_months": 1,
+		  "maximum_refusals": 3
+		}
 	  }
 	}
   ]

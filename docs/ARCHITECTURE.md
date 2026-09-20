@@ -72,7 +72,7 @@ Owns the reusable Relationship NPC pool, fallback generation/config use, per-fam
 Owns stable item-definition lookup, family ItemInstances, equipment, expiration, exact Lifestyle Score, purchases, and monthly slot-specific shop stock.
 
 ### EventManager
-Owns Event orchestration only: trigger dispatch, random/save-level pool evaluation, queue/active/scheduled runtime, repeat/cooldown, resolution/effect orchestration, story history, and Event save state. It does not become a second Character/Education/Career/House/Business/etc. model.
+Owns Event orchestration only: trigger dispatch, random/save-level pool evaluation, queue/active/scheduled runtime, repeat/cooldown, resolution/effect orchestration, story history, and Event save state. Birth opportunity planning is a narrow use of the existing scheduled-Event runtime: the Wedding resolution creates the dated records, while CharacterManager, RelationshipNpcManager, and HouseManager remain authoritative for biological-child, spouse, and capacity rules. EventManager does not become a second Character/Education/Career/House/Business/etc. model.
 
 ### SaveManager
 Owns save/load of mutable manager state and Event runtime state.
@@ -208,6 +208,8 @@ Mutable per-save state stays in manager snapshots and Event runtime state. Stati
 - active Event instances
 
 Configuration migration must keep this distinction.
+
+Birth opportunity plans do not add a second persistence structure. Their exact ISO due dates, bound parent IDs, plan/index identity, refusal count, retry attempt, and resolved marker live in the existing scheduled-Event records; the completed Wedding instance retains only the idempotence marker and plan summary in its existing context/history.
 
 ## 10. Change Discipline
 

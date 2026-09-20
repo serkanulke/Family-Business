@@ -100,10 +100,10 @@ func _test_logical_event_structure() -> void:
 			break
 
 	_assert(
-		events.size() == 27
+		events.size() == 28
 		and logical_numbers.size() == 23
 		and all_logical_events_present,
-		"Relationship JSON represents 23 logical Events with 27 technical definitions",
+		"Relationship JSON represents 23 logical Events with 28 technical definitions",
 		"definitions=%d logical=%s" % [events.size(), str(logical_numbers.keys())]
 	)
 
@@ -224,6 +224,20 @@ func _test_followup_participant_continuity() -> void:
 
 		var participants: Dictionary = event.get("participants", {})
 		var primary: Dictionary = participants.get("primary", {})
+		if event_id == "relationship_birth_opportunity":
+			var spouse: Dictionary = participants.get("spouse", {})
+			if (
+				String(primary.get("type", "")) != "character"
+				or String(primary.get("source", "")) != "context"
+				or String(spouse.get("type", "")) != "character"
+				or String(spouse.get("source", "")) != "relation"
+				or String(spouse.get("from", "")) != "primary"
+				or String(spouse.get("relation", "")) != "spouse"
+			):
+				ok = false
+				detail = "%s participants=%s" % [event_id, str(participants)]
+				break
+			continue
 		var candidate: Dictionary = participants.get("candidate", {})
 
 		if (
@@ -238,7 +252,7 @@ func _test_followup_participant_continuity() -> void:
 
 	_assert(
 		ok,
-		"Every follow-up Event reuses the exact bound primary and candidate",
+		"Every follow-up Event preserves its exact bound relationship participants",
 		detail
 	)
 
